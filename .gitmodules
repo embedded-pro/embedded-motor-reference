@@ -1,0 +1,9 @@
+[submodule "embedded-infra-lib"]
+	path = embedded-infra-lib
+	url = https://github.com/embedded-pro/embedded-infra-lib.git
+[submodule "hal/st"]
+	path = hal/st
+	url = https://github.com/embedded-pro/hal-st.git
+[submodule "dsp-control"]
+	path = dsp-control
+	url = https://github.com/embedded-pro/embedded-dsp-control.git

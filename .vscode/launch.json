@@ -1,0 +1,65 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Linux Debug",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            "miDebuggerPath": "/usr/bin/gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ]
+        },
+        {
+            "name": "NUCLEO-WB55RG Port 61234",
+            "cwd": "${workspaceFolder}",
+            "executable": "${command:cmake.launchTargetPath}",
+            "request": "launch",
+            "type": "cortex-debug",
+            "device": "STM32WB55RG",
+            "servertype": "external",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "both",
+            "gdbTarget": "host.docker.internal:61234",
+            "overrideLaunchCommands": [
+                "monitor reset",
+                "-target-download",
+                "monitor reset"
+            ],
+            "overrideRestartCommands": [
+                "monitor reset"
+            ]
+        },
+        {
+            "name": "NUCLEO-WB55RG Port 61237",
+            "cwd": "${workspaceFolder}",
+            "executable": "${command:cmake.launchTargetPath}",
+            "request": "launch",
+            "type": "cortex-debug",
+            "device": "STM32WB55RG",
+            "servertype": "external",
+            "runToEntryPoint": "main",
+            "showDevDebugOutput": "both",
+            "gdbTarget": "host.docker.internal:61237",
+            "overrideLaunchCommands": [
+                "monitor reset",
+                "-target-download",
+                "monitor reset"
+            ],
+            "overrideRestartCommands": [
+                "monitor reset"
+            ]
+        }
+    ]
+}

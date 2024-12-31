@@ -1,0 +1,26 @@
+{
+  "build": {
+    "context": "..",
+    "dockerfile": "Dockerfile"
+  },
+  "mounts": [
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+  "runArgs": ["--add-host=host.docker.internal:host-gateway", "--privileged"],
+  "customizations": {
+    "vscode": {
+      "extensions": ["JacquesLucke.gcov-viewer@0.5.0"],
+      "settings": {
+        "editor.formatOnSave": true,
+        "files.insertFinalNewline": true,
+        "gcovViewer.buildDirectories": ["${workspaceFolder}/build/Coverage"],
+        "gcovViewer.highlightMissedLines": true
+      }
+    }
+  },
+  "postCreateCommand": {
+    "submodule.update": "git submodule update --init --recursive",
+    "config.core.autocrlf": "git config --replace-all core.autocrlf false",
+    "config.core.eol": "git config --replace-all core.eol lf"
+  }
+}
