@@ -26,25 +26,33 @@ jobs:
       matrix:
         os: [macos-latest, ubuntu-latest, windows-latest]
     steps:
+      - name: Configure Git
+        run: |
+          git config --global url."https://${{ secrets.PRIVATE_REPO_TOKEN }}@github.com/".insteadOf "https://github.com/"
+          git config --global url."https://github.com/".insteadOf "git@github.com:"
+          git config --global --add safe.directory '*'
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-      - uses: hendrikmuhs/ccache-action@ed74d11c0b343532753ecead8a951bb09bb34bc9 # v1.2.14
+      - uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875 # v1.2.16
         with:
           key: ${{ github.job }}-${{ matrix.os }}
           variant: sccache
+          max-size: 2G
+          save: ${{ github.ref == 'refs/heads/main' }}
+      - uses: seanmiddleditch/gha-setup-ninja@96bed6edff20d1dd61ecff9b75cc519d516e6401 # v5
       - uses: lukka/run-cmake@af1be47fd7c933593f687731bc6fdbee024d3ff4 # v10.8
         with:
-          configurePreset: "continuous-integration"
-          buildPreset: "continuous-integration"
-          testPreset: "continuous-integration"
+          configurePreset: "coverage"
+          buildPreset: "coverage"
+          testPreset: "coverage"
           configurePresetAdditionalArgs: "['-DCMAKE_C_COMPILER_LAUNCHER=sccache', '-DCMAKE_CXX_COMPILER_LAUNCHER=sccache']"
       - name: Upload test logs
         if: ${{ failure() }}
-        uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+        uses: actions/upload-artifact@65c4c4a1ddee5b72f698fdd19549f0f0fb45cf08 # v4.6.0
         with:
           name: test-logs
-          path: build/continuous-integration/Testing/Temporary/
+          path: build/coverage/Testing/Temporary/
   embedded_build:
     name: Embedded Build
     runs-on: ubuntu-latest
@@ -52,7 +60,7 @@ jobs:
       matrix:
         configuration: ["RelWithDebInfo"]
         gcc: ["10.3-2021.10"]
-        target: ["stm32wb55", "stm32wba52"]
+        target: ["tm4c123gh6pm", "tm4c1294ncpdt", "stm32f407", "stm32f429"]
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
@@ -64,6 +72,9 @@ jobs:
       - uses: hendrikmuhs/ccache-action@ed74d11c0b343532753ecead8a951bb09bb34bc9 # v1.2.14
         with:
           key: ${{ matrix.gcc }}-${{ matrix.configuration }}
+          variant: sccache
+          max-size: 2G
+          save: ${{ github.ref == 'refs/heads/main' }}
       - run: |
           sudo apt-get update && sudo apt-get install --no-install-recommends ninja-build xsltproc
           echo "::add-matcher::.github/matchers/gcc-problem-matcher.json"
