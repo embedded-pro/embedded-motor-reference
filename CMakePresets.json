@@ -1,0 +1,206 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 24,
+        "patch": 0
+    },
+    "configurePresets": [
+        {
+            "name": "defaults",
+            "hidden": true,
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "generator": "Ninja Multi-Config",
+            "cacheVariables": {
+                "CMAKE_EXPORT_COMPILE_COMMANDS": "On",
+                "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel"
+            }
+        },
+        {
+            "name": "host",
+            "displayName": "host",
+            "description": "Build required tools for host",
+            "inherits": "defaults",
+            "cacheVariables": {
+                "MOTOR_REFERENCE_BUILD_TESTS": "On",
+                "MOTOR_REFERENCE_BUILD_FOR_EMBEDDED": "Off"
+            },
+            "generator": "Ninja Multi-Config"
+        },
+        {
+            "name": "coverage",
+            "displayName": "coverage",
+            "description": "Configuration for code coverage",
+            "inherits": "host",
+            "cacheVariables": {
+                "EMIL_ENABLE_COVERAGE": "On"
+            },
+            "generator": "Ninja"
+        },
+        {
+            "name": "embedded",
+            "hidden": true,
+            "inherits": "defaults",
+            "environment": {
+                "CMAKE_TOOLCHAIN_FILE": ""
+            },
+            "cacheVariables": {
+                "EMIL_GENERATE_PACKAGE_CONFIG": false,
+                "EMIL_INCLUDE_SEGGER_RTT": "On",
+                "MOTOR_REFERENCE_BUILD_FOR_EMBEDDED": "On"
+            }
+        },
+        {
+            "name": "tiva",
+            "hidden": true,
+            "inherits": "embedded",
+            "environment": {
+                "CMAKE_TOOLCHAIN_FILE": ""
+            },
+            "cacheVariables": {
+                "TARGET_MCU_VENDOR": "ti"
+            }
+        },
+        {
+            "name": "stm32",
+            "hidden": true,
+            "inherits": "embedded",
+            "environment": {
+                "CMAKE_TOOLCHAIN_FILE": ""
+            },
+            "cacheVariables": {
+                "TARGET_MCU_VENDOR": "st"
+            }
+        },
+        {
+            "name": "tm4c123gh6pm",
+            "displayName": "tm4c123gh6pm",
+            "description": "Build for tm4c123gh6pm",
+            "inherits": "tiva",
+            "toolchainFile": "${sourceDir}/build/${presetName}/_deps/emil-src/cmake/toolchain-arm-gcc-m4-fpv4-sp-d16.cmake",
+            "cacheVariables": {
+                "TARGET_CORTEX": "m4",
+                "TARGET_MCU_FAMILY": "TM4C123",
+                "TARGET_MCU": "tm4c123gh6pm"
+            }
+        },
+        {
+            "name": "tm4c1294ncpdt",
+            "displayName": "tm4c1294ncpdt",
+            "description": "Build for tm4c1294ncpdt",
+            "inherits": "tiva",
+            "toolchainFile": "${sourceDir}/build/${presetName}/_deps/emil-src/cmake/toolchain-arm-gcc-m4-fpv4-sp-d16.cmake",
+            "cacheVariables": {
+                "TARGET_CORTEX": "m4",
+                "TARGET_MCU_FAMILY": "TM4C129",
+                "TARGET_MCU": "tm4c1294ncpdt"
+            }
+        },
+        {
+            "name": "stm32f407",
+            "displayName": "stm32f407",
+            "description": "Build for stm32f407",
+            "inherits": "stm32",
+            "toolchainFile": "${sourceDir}/build/${presetName}/_deps/emil-src/cmake/toolchain-arm-gcc-m4-fpv4-sp-d16.cmake",
+            "cacheVariables": {
+                "TARGET_CORTEX": "m4",
+                "TARGET_MCU_FAMILY": "stm32f4xx",
+                "TARGET_MCU": "stm32f407"
+            }
+        },
+        {
+            "name": "stm32f429",
+            "displayName": "stm32f429",
+            "description": "Build for stm32f429",
+            "inherits": "stm32",
+            "toolchainFile": "${sourceDir}/build/${presetName}/_deps/emil-src/cmake/toolchain-arm-gcc-m4-fpv4-sp-d16.cmake",
+            "cacheVariables": {
+                "TARGET_CORTEX": "m4",
+                "TARGET_MCU_FAMILY": "stm32f4xx",
+                "TARGET_MCU": "stm32f429"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "host-RelWithDebInfo",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "host"
+        },
+        {
+            "name": "host-Debug",
+            "configuration": "Debug",
+            "configurePreset": "host"
+        },
+        {
+            "name": "coverage",
+            "configuration": "Debug",
+            "configurePreset": "coverage"
+        },
+        {
+            "name": "tm4c123gh6pm-RelWithDebInfo",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "tm4c123gh6pm"
+        },
+        {
+            "name": "tm4c123gh6pm-Debug",
+            "configuration": "Debug",
+            "configurePreset": "tm4c123gh6pm"
+        },
+        {
+            "name": "tm4c1294ncpdt-RelWithDebInfo",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "tm4c1294ncpdt"
+        },
+        {
+            "name": "tm4c1294ncpdt-Debug",
+            "configuration": "Debug",
+            "configurePreset": "tm4c1294ncpdt"
+        },
+        {
+            "name": "stm32f407-RelWithDebInfo",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "stm32f407"
+        },
+        {
+            "name": "stm32f407-Debug",
+            "configuration": "Debug",
+            "configurePreset": "stm32f407"
+        },
+        {
+            "name": "stm32f429-RelWithDebInfo",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "stm32f429"
+        },
+        {
+            "name": "stm32f429-Debug",
+            "configuration": "Debug",
+            "configurePreset": "stm32f429"
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "defaults",
+            "hidden": true,
+            "output": {
+                "outputOnFailure": true
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": true
+            }
+        },
+        {
+            "name": "host",
+            "configurePreset": "host",
+            "configuration": "Debug",
+            "inherits": "defaults"
+        },
+        {
+            "name": "coverage",
+            "configurePreset": "coverage",
+            "configuration": "Debug",
+            "inherits": "defaults"
+        }
+    ]
+}

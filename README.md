@@ -56,8 +56,8 @@ make flash
 
 ## Project Structure
 ```
-├── docs/               # Documentation
-├── examples/           # Example applications
+├── docs/              # Documentation
+├── application/       # Example applications
 │   ├── dc/            # DC motor examples
 │   ├── bldc/          # BLDC motor examples
 │   ├── pmsm/          # PMSM motor examples
