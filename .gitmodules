@@ -7,3 +7,6 @@
 [submodule "dsp-control"]
 	path = dsp-control
 	url = https://github.com/embedded-pro/embedded-dsp-control.git
+[submodule "hal/ti"]
+	path = hal/ti
+	url = https://github.com/embedded-pro/hal-ti.git
