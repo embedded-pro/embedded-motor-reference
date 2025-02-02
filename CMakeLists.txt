@@ -31,12 +31,13 @@ else()
     set(MOTOR_REFERENCE_EXCLUDE_FROM_ALL "EXCLUDE_FROM_ALL")
 endif()
 
+add_subdirectory(embedded-infra-lib)
+
 if (MOTOR_REFERENCE_BUILD_TESTS)
     include(CTest)
     emil_enable_testing()
 endif()
 
-add_subdirectory(embedded-infra-lib)
 add_subdirectory(dsp-control)
 add_subdirectory(hal/st)
 add_subdirectory(hal/ti)
