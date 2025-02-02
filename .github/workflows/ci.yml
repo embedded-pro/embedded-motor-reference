@@ -35,6 +35,7 @@ jobs:
         with:
           persist-credentials: false
           submodules: recursive
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
       - uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875 # v1.2.16
         with:
           key: ${{ github.job }}-${{ matrix.os }}
@@ -67,6 +68,7 @@ jobs:
         with:
           persist-credentials: false
           submodules: recursive
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
       - name: Install GNU Arm Embedded Toolchain ${{ matrix.gcc }}
         uses: carlosperate/arm-none-eabi-gcc-action@0cc83a7330501be1848887e2966aaceb49a4bb12 # v1.9.1
         with:
