@@ -22,7 +22,7 @@
             "description": "Build required tools for host",
             "inherits": "defaults",
             "cacheVariables": {
-                "MOTOR_REFERENCE_BUILD_TESTS": "On",
+                "MOTOR_REFERENCE_BUILD_TESTS": true,
                 "MOTOR_REFERENCE_BUILD_FOR_EMBEDDED": "Off"
             },
             "generator": "Ninja Multi-Config"
@@ -191,15 +191,27 @@
             }
         },
         {
-            "name": "host",
+            "name": "host-Debug",
             "configurePreset": "host",
             "configuration": "Debug",
             "inherits": "defaults"
         },
         {
-            "name": "coverage",
+            "name": "host-RelWithDebInfo",
+            "configurePreset": "host",
+            "configuration": "RelWithDebInfo",
+            "inherits": "defaults"
+        },
+        {
+            "name": "coverage-Debug",
             "configurePreset": "coverage",
             "configuration": "Debug",
+            "inherits": "defaults"
+        },
+        {
+            "name": "coverage-RelWithDebInfo",
+            "configurePreset": "coverage",
+            "configuration": "RelWithDebInfo",
             "inherits": "defaults"
         }
     ]

@@ -9,7 +9,7 @@ option(MOTOR_REFERENCE_INCLUDE_DEFAULT_INIT "Include default initialization code
 option(MOTOR_REFERENCE_BUILD_TESTS "Enable build of the examples" Off)
 
 if (MOTOR_REFERENCE_BUILD_TESTS)
-    set(EMIL_BUILD_TESTS On)
+    set(BUILD_TESTING On)
 endif()
 
 add_definitions(-DEMIL_ENABLE_TRACING=1)
@@ -21,11 +21,27 @@ set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 set_directory_properties(PROPERTY USE_FOLDERS ON)
 
+set(MOTOR_REFERENCE_EXCLUDE_FROM_ALL "")
+
 add_subdirectory(embedded-infra-lib)
+
+if (MOTOR_REFERENCE_BUILD_TESTS)
+    include(CTest)
+    emil_enable_testing()
+endif()
+
 add_subdirectory(dsp-control)
-add_subdirectory(hal/st)
-add_subdirectory(hal/ti)
 add_subdirectory(application)
+
+if (MOTOR_REFERENCE_BUILD_FOR_EMBEDDED)
+    if (TARGET_MCU_VENDOR STREQUAL "st")
+        add_subdirectory(hal/st)
+    elseif(TARGET_MCU_VENDOR STREQUAL "ti")
+        add_subdirectory(hal/ti)
+    else()
+        message(ERROR "Vendor not supported!")
+    endif()
+endif()
 
 emil_clangformat_directories(motor_reference DIRECTORIES application)
 emil_folderize_all_targets()
