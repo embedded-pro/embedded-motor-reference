@@ -73,7 +73,7 @@ jobs:
         uses: carlosperate/arm-none-eabi-gcc-action@0cc83a7330501be1848887e2966aaceb49a4bb12 # v1.9.1
         with:
           release: ${{ matrix.gcc }}
-      - uses: hendrikmuhs/ccache-action@ed74d11c0b343532753ecead8a951bb09bb34bc9 # v1.2.14
+      - uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875 # v1.2.16
         with:
           key: ${{ matrix.gcc }}-${{ matrix.configuration }}
           variant: sccache
@@ -82,7 +82,8 @@ jobs:
       - run: |
           sudo apt-get update && sudo apt-get install --no-install-recommends ninja-build xsltproc
           echo "::add-matcher::.github/matchers/gcc-problem-matcher.json"
-          cmake --preset host -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          cmake --build --preset host-${{ matrix.configuration }}
-          cmake --preset ${{ matrix.target }} -DCMAKE_C_COMPILER_LAUNCHER=ccache -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
-          cmake --build --preset ${{ matrix.target }}-${{ matrix.configuration }}
+      - uses: lukka/run-cmake@af1be47fd7c933593f687731bc6fdbee024d3ff4 # v10.8
+        with:
+          configurePreset: ${{ matrix.target }}
+          buildPreset: ${{ matrix.target }}-${{ matrix.configuration }}
+          configurePresetAdditionalArgs: "['-DCMAKE_C_COMPILER_LAUNCHER=sccache', '-DCMAKE_CXX_COMPILER_LAUNCHER=sccache']"
