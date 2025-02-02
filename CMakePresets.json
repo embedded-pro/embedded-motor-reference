@@ -203,15 +203,9 @@
             "inherits": "defaults"
         },
         {
-            "name": "coverage-Debug",
+            "name": "coverage",
             "configurePreset": "coverage",
             "configuration": "Debug",
-            "inherits": "defaults"
-        },
-        {
-            "name": "coverage-RelWithDebInfo",
-            "configurePreset": "coverage",
-            "configuration": "RelWithDebInfo",
             "inherits": "defaults"
         }
     ]
