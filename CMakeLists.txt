@@ -30,7 +30,7 @@ if (MOTOR_REFERENCE_BUILD_TESTS)
     emil_enable_testing()
 endif()
 
-add_subdirectory(dsp-control)
+add_subdirectory(numerical-toolbox)
 add_subdirectory(application)
 
 if (MOTOR_REFERENCE_BUILD_FOR_EMBEDDED)
