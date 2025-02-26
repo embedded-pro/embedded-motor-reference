@@ -4,8 +4,8 @@
 [submodule "hal/st"]
 	path = hal/st
 	url = https://github.com/embedded-pro/hal-st.git
-[submodule "dsp-control"]
-	path = dsp-control
+[submodule "numerical-toolbox"]
+	path = numerical-toolbox
 	url = https://github.com/embedded-pro/embedded-dsp-control.git
 [submodule "hal/ti"]
 	path = hal/ti
