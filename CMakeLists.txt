@@ -16,7 +16,7 @@ add_definitions(-DEMIL_ENABLE_TRACING=1)
 
 project(motor_reference LANGUAGES C CXX ASM VERSION 0.0.1) # x-release-please-version
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 set_directory_properties(PROPERTY USE_FOLDERS ON)
