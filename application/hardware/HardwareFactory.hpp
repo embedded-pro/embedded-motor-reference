@@ -2,11 +2,11 @@
 #define HARDWARE_FACTORY_HPP
 
 #include "hal/interfaces/Gpio.hpp"
-#include "hal/interfaces/SerialCommunication.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include "infra/util/MemoryRange.hpp"
-#include "infra/util/ProxyCreator.hpp"
+#include "services/tracer/Tracer.hpp"
+#include "services/util/Terminal.hpp"
 
 namespace application
 {
@@ -23,10 +23,12 @@ namespace application
         {}
 
         virtual void Run() = 0;
-        virtual hal::SerialCommunication& Serial() = 0;
+        virtual services::Tracer& Tracer() = 0;
+        virtual services::TerminalWithCommands& Terminal() = 0;
         virtual infra::MemoryRange<hal::GpioPin> Leds() = 0;
-        virtual infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& QuadratureEncoderCreator() = 0;
-        virtual infra::CreatorBase<hal::SynchronousPwm, void()>& PwmOutputCreator() = 0;
+        virtual hal::SynchronousQuadratureEncoder& QuadratureEncoder() = 0;
+        virtual hal::SynchronousPwm& PwmOutput() = 0;
+        virtual uint32_t& ControlTimerId() const = 0;
 
     protected:
         infra::Function<void()> onInitialized;

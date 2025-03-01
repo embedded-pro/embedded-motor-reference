@@ -10,12 +10,16 @@ target_link_libraries(motor_reference.logic PUBLIC
     numerical.math
     numerical.controllers
     motor_reference.hardware
+    services.util
+    services.tracer
 )
 
 target_sources(motor_reference.logic PRIVATE
     MotorController.hpp
     MotorControllerImpl.cpp
     MotorControllerImpl.hpp
+    Terminal.cpp
+    Terminal.hpp
 )
 
 add_subdirectory(test)

@@ -5,7 +5,7 @@
 
 namespace application
 {
-    MotorControllerImpl::MotorControllerImpl(Encoder& encoder, OutputPwm& outputPwm, const uint32_t& timerId)
+    MotorControllerImpl::MotorControllerImpl(hal::SynchronousQuadratureEncoder& encoder, hal::SynchronousPwm& outputPwm, const uint32_t& timerId)
         : pid(encoder, outputPwm, std::chrono::milliseconds(5), timerId)
     {}
 
@@ -42,16 +42,14 @@ namespace application
         pid.Disable();
     }
 
-    MotorControllerImpl::PidWithTimer::PidWithTimer(Encoder& input, OutputPwm& output, infra::Duration sampleTime, const uint32_t& timerId)
+    MotorControllerImpl::PidWithTimer::PidWithTimer(hal::SynchronousQuadratureEncoder& input, hal::SynchronousPwm& output, infra::Duration sampleTime, const uint32_t& timerId)
         : controllers::Pid<float>(Tunnings{ 0.0f, 0.0f, 0.0f }, controllers::Pid<float>::Limits{ 0.0f, 0.9999f })
-        , inputCreator(input)
-        , outputCreator(output)
+        , input(input)
+        , output(output)
         , timer(timerId)
         , sampleTime(sampleTime)
     {
         really_assert(timerId != infra::systemTimerServiceId);
-        inputCreator.Emplace();
-        outputCreator.Emplace();
     }
 
     void MotorControllerImpl::PidWithTimer::SetPoint(float setPoint)
@@ -69,14 +67,14 @@ namespace application
         this->Enable();
         timer.Start(sampleTime, [this]()
             {
-                outputCreator->Start(hal::Percent(Process(inputCreator->Speed()) * 100.0f));
+                output.Start(hal::Percent(Process(input.Speed()) * 100.0f));
             });
     }
 
     void MotorControllerImpl::PidWithTimer::Disable()
     {
         timer.Cancel();
-        outputCreator->Stop();
+        output.Stop();
         this->Disable();
     }
 
