@@ -1,5 +1,5 @@
 ls:
-  .dir: snake_case
+  .dir: snake_case | kebab-case | regex:^[A-Z0-9][A-Z0-9-]+$
   .hpp: PascalCase
   .cpp: PascalCase
 
@@ -9,3 +9,6 @@ ignore:
   - .github
   - .vscode
   - megalinter-reports
+  - embedded-infra-lib
+  - numerical-toolbox
+  - hal
