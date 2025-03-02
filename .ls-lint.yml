@@ -2,13 +2,14 @@ ls:
   .dir: snake_case | kebab-case | regex:^[A-Z0-9][A-Z0-9-]+$
   .hpp: PascalCase
   .cpp: PascalCase
-
 ignore:
   - .devcontainer
   - .git
   - .github
   - .vscode
+  - .gitlab
   - megalinter-reports
   - embedded-infra-lib
   - numerical-toolbox
   - hal
+  - application/hardware/Host
