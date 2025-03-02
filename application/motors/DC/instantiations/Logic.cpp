@@ -1,4 +1,4 @@
-#include "application/dc/instantiations/Logic.hpp"
+#include "application/motors/DC/instantiations/Logic.hpp"
 
 namespace application
 {

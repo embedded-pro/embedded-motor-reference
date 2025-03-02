@@ -1,8 +1,7 @@
 add_executable(motor_reference.dc.main)
-emil_build_for(motor_reference.dc.main)
 
 target_include_directories(motor_reference.dc.main PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../../>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../../../>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 

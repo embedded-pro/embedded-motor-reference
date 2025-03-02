@@ -1,7 +1,7 @@
 #ifndef APPLICATION_DC_LOGIC_TERMINAL_HPP
 #define APPLICATION_DC_LOGIC_TERMINAL_HPP
 
-#include "application/dc/logic/MotorController.hpp"
+#include "application/motors/DC/logic/MotorController.hpp"
 #include "services/tracer/Tracer.hpp"
 #include "services/util/Terminal.hpp"
 

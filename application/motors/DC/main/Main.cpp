@@ -1,5 +1,5 @@
-#include "application/dc/instantiations/Logic.hpp"
 #include "application/hardware/HardwareFactory.hpp"
+#include "application/motors/DC/instantiations/Logic.hpp"
 
 int main()
 {

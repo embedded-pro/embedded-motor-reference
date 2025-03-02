@@ -1,4 +1,4 @@
-#include "application/dc/logic/Terminal.hpp"
+#include "application/motors/DC/logic/Terminal.hpp"
 
 namespace application
 {

@@ -1,4 +1,3 @@
-add_subdirectory(bldc)
-add_subdirectory(dc)
+add_subdirectory(pid)
 add_subdirectory(hardware)
-add_subdirectory(psms)
+add_subdirectory(motors)
