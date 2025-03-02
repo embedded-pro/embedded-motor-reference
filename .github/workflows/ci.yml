@@ -34,7 +34,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-          submodules: recursive
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          submodules: true
       - uses: hendrikmuhs/ccache-action@53911442209d5c18de8a31615e0923161e435875 # v1.2.16
         with:
           key: ${{ github.job }}-${{ matrix.os }}
@@ -74,7 +75,8 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           persist-credentials: false
-          submodules: recursive
+          token: ${{ secrets.PRIVATE_REPO_TOKEN }}
+          submodules: true
       - name: Install GNU Arm Embedded Toolchain ${{ matrix.gcc }}
         uses: carlosperate/arm-none-eabi-gcc-action@f3be82dce0d93e59bb84bbc1ad67c74068e35507 # v1.10.0
         with:
