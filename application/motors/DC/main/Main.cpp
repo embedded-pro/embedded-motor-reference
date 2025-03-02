@@ -1,14 +1,14 @@
-#include "application/hardware/HardwareFactory.hpp"
+#include HARDWARE_FACTORY_IMPL_HEADER
 #include "application/motors/DC/instantiations/Logic.hpp"
 
 int main()
 {
     static std::optional<application::Logic> logic;
-    // static application::HardwareImpl hardware([]()
-    //     {
-    //         logic.emplace(hardware);
-    //     });
+    static application::HardwareFactoryImpl hardware([]()
+        {
+            logic.emplace(hardware);
+        });
 
-    // hardware.Run();
+    hardware.Run();
     __builtin_unreachable();
 }

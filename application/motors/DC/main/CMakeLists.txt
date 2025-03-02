@@ -6,7 +6,7 @@ target_include_directories(motor_reference.dc.main PUBLIC
 )
 
 target_link_libraries(motor_reference.dc.main PUBLIC
-    motor_reference.hardware
+    motor_reference.hardware_impl
     motor_reference.dc.instantiations
     numerical.controllers
 )

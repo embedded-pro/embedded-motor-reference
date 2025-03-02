@@ -8,13 +8,19 @@
 #include "services/tracer/Tracer.hpp"
 #include "services/util/Terminal.hpp"
 
-namespace application
+namespace hal
 {
-    class QuadratureEncoder
+    class HallSensor
     {
     public:
-    };
+        using State = uint8_t;
 
+        virtual State Read() = 0;
+    };
+}
+
+namespace application
+{
     class HardwareFactory
     {
     public:
@@ -28,7 +34,8 @@ namespace application
         virtual infra::MemoryRange<hal::GpioPin> Leds() = 0;
         virtual hal::SynchronousQuadratureEncoder& QuadratureEncoder() = 0;
         virtual hal::SynchronousPwm& PwmOutput() = 0;
-        virtual uint32_t& ControlTimerId() const = 0;
+        virtual uint32_t ControlTimerId() const = 0;
+        virtual hal::HallSensor& HallSensor() = 0;
 
     protected:
         infra::Function<void()> onInitialized;

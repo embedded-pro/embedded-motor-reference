@@ -18,17 +18,14 @@ target_sources(motor_reference.hardware PRIVATE
     HardwareFactory.hpp
 )
 
-# if (USB_HOST_BUILD_FOR_EMBEDDED)
-#     add_subdirectory(${TARGET_MCU})
+add_subdirectory(${MOTOR_REFERENCE_TARGET_PLATFORM})
 
-#     add_library(motor_reference.dc.hardware_impl INTERFACE)
-#     emil_build_for(motor_reference.dc.hardware_impl PREREQUISITE_BOOL USB_HOST_BUILD_EXAMPLES)
+add_library(motor_reference.hardware_impl INTERFACE)
 
-#     target_compile_definitions(motor_reference.dc.hardware_impl INTERFACE
-#         HARDWARE_MANAGER_IMPL_HEADER="examples/usb_host_cdc/hardware_abstraction/${TARGET_MCU}/HardwareManagerImpl.hpp"
-#     )
+target_compile_definitions(motor_reference.hardware_impl INTERFACE
+    HARDWARE_FACTORY_IMPL_HEADER="application/hardware/${MOTOR_REFERENCE_TARGET_PLATFORM}/HardwareFactoryImpl.hpp"
+)
 
-#     target_link_libraries(motor_reference.dc.hardware_impl INTERFACE
-#         motor_reference.dc.hardware_${TARGET_MCU}
-#     )
-# endif()
+target_link_libraries(motor_reference.hardware_impl INTERFACE
+    motor_reference.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM}
+)
