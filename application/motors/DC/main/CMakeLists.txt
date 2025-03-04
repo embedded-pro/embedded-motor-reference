@@ -14,3 +14,13 @@ target_link_libraries(motor_reference.dc.main PUBLIC
 target_sources(motor_reference.dc.main PRIVATE
     Main.cpp
 )
+
+if(TARGET_MCU_VENDOR STREQUAL "st")
+    halst_target_default_linker_scripts(motor_reference.dc.main)
+    halst_target_default_init(motor_reference.dc.main)
+elseif(TARGET_MCU_VENDOR STREQUAL "ti")
+    hal_ti_target_default_linker_scripts(motor_reference.dc.main)
+    hal_ti_target_default_init(motor_reference.dc.main)
+endif()
+
+emil_generate_artifacts(TARGET motor_reference.dc.main LST MAP BIN HEX)

@@ -2,12 +2,17 @@
 #include "application/hardware/HardwareFactory.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include "infra/util/MemoryRange.hpp"
+#include DEVICE_HEADER
+
+unsigned int hse_value = 8'000'000;
 
 namespace application
 {
     HardwareFactoryImpl::HardwareFactoryImpl(const infra::Function<void()>& onInitialized)
         : HardwareFactory(onInitialized)
-    {}
+    {
+        HAL_Init();
+    }
 
     void HardwareFactoryImpl::Run()
     {
