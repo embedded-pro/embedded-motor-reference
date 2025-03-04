@@ -23,4 +23,6 @@ elseif(TARGET_MCU_VENDOR STREQUAL "ti")
     hal_ti_target_default_init(motor_reference.dc.main)
 endif()
 
-emil_generate_artifacts(TARGET motor_reference.dc.main LST MAP BIN HEX)
+if(DEFINED TARGET_MCU_VENDOR)
+    emil_generate_artifacts(TARGET motor_reference.dc.main LST MAP BIN HEX)
+endif()
