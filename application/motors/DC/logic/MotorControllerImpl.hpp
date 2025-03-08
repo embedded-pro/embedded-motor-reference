@@ -14,7 +14,7 @@ namespace application
         , private Output
     {
     public:
-        MotorControllerImpl(hal::SynchronousQuadratureEncoder& input, hal::SynchronousPwm& output, const uint32_t& timerId);
+        MotorControllerImpl(hal::SynchronousQuadratureEncoder& input, hal::SynchronousPwm& output, Pid& pid, const uint32_t& timerId);
 
         // Implementation of MotorController
         void AutoTune(const infra::Function<void()>& onDone) override;
@@ -33,8 +33,8 @@ namespace application
     private:
         hal::SynchronousQuadratureEncoder& input;
         hal::SynchronousPwm& output;
-        PidWithTimer pid;
-        PidWithTimer::Tunnings tunnings{ 0.0f, 0.0f, 0.0f };
+        PidWithTimer pidWithTimer;
+        Pid::Tunnings tunnings{ 0.0f, 0.0f, 0.0f };
     };
 }
 

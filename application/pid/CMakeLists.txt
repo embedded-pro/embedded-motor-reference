@@ -16,4 +16,5 @@ target_sources(motor_reference.pid PRIVATE
     PidWithTimer.hpp
 )
 
+add_subdirectory(instantiations)
 add_subdirectory(test)

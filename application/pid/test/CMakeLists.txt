@@ -6,6 +6,7 @@ target_link_libraries(motor_reference.pid_test PUBLIC
     gmock_main
     motor_reference.pid
     numerical.math_test_helper
+    infra.timer_test_helper
 )
 
 target_sources(motor_reference.pid_test PRIVATE

@@ -2,10 +2,10 @@
 
 namespace application
 {
-    PidWithTimer::PidWithTimer(Input& input, Output& output, infra::Duration sampleTime, const uint32_t& timerId)
-        : controllers::Pid<float>(Tunnings{ 0.0f, 0.0f, 0.0f }, controllers::Pid<float>::Limits{ 0.0f, 0.9999f })
-        , input(input)
+    PidWithTimer::PidWithTimer(Input& input, Output& output, Pid& pid, infra::Duration sampleTime, const uint32_t& timerId)
+        : input(input)
         , output(output)
+        , pid(pid)
         , timer(timerId)
         , sampleTime(sampleTime)
     {
@@ -14,20 +14,20 @@ namespace application
 
     void PidWithTimer::SetPoint(float setPoint)
     {
-        this->SetPoint(setPoint);
+        pid.SetPoint(setPoint);
     }
 
-    void PidWithTimer::SetTunnings(Tunnings tunnings)
+    void PidWithTimer::SetTunnings(Pid::Tunnings tunnings)
     {
-        this->SetTunnings(tunnings);
+        pid.SetTunnings(tunnings);
     }
 
     void PidWithTimer::Enable()
     {
-        this->Enable();
+        pid.Enable();
         timer.Start(sampleTime, [this]()
             {
-                output.Update(Process(input.Read()));
+                output.Update(this->pid.Process(input.Read()));
             });
     }
 
@@ -35,7 +35,7 @@ namespace application
     {
         timer.Cancel();
         output.Disable();
-        this->Disable();
+        pid.Disable();
     }
 
     bool PidWithTimer::IsRunning() const

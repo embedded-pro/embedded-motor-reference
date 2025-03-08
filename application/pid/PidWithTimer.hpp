@@ -19,15 +19,24 @@ namespace application
         virtual void Disable() = 0;
     };
 
-    class PidWithTimer
-        : private controllers::Pid<float>
+    class Pid
     {
     public:
         using Tunnings = controllers::Pid<float>::Tunnings;
 
-        PidWithTimer(Input& input, Output& output, infra::Duration sampleTime, const uint32_t& timerId);
+        virtual void SetTunnings(Tunnings tunnings) = 0;
+        virtual void SetPoint(float setPoint) = 0;
+        virtual void Enable() = 0;
+        virtual void Disable() = 0;
+        virtual float Process(float measuredProcessVariable) = 0;
+    };
 
-        void SetTunnings(Tunnings tunnings);
+    class PidWithTimer
+    {
+    public:
+        PidWithTimer(Input& input, Output& output, Pid& pid, infra::Duration sampleTime, const uint32_t& timerId);
+
+        void SetTunnings(Pid::Tunnings tunnings);
         void SetPoint(float setPoint);
         void Enable();
         void Disable();
@@ -36,6 +45,7 @@ namespace application
     private:
         Input& input;
         Output& output;
+        Pid& pid;
         infra::TimerRepeating timer;
         infra::Duration sampleTime;
     };

@@ -3,10 +3,10 @@
 
 namespace application
 {
-    MotorControllerImpl::MotorControllerImpl(hal::SynchronousQuadratureEncoder& input, hal::SynchronousPwm& output, const uint32_t& timerId)
+    MotorControllerImpl::MotorControllerImpl(hal::SynchronousQuadratureEncoder& input, hal::SynchronousPwm& output, Pid& pid, const uint32_t& timerId)
         : input(input)
         , output(output)
-        , pid(*this, *this, std::chrono::milliseconds(5), timerId)
+        , pidWithTimer(*this, *this, pid, std::chrono::milliseconds(5), timerId)
     {}
 
     void MotorControllerImpl::AutoTune(const infra::Function<void()>& onDone)
@@ -24,22 +24,22 @@ namespace application
         if (kd)
             tunnings.kd = *kd;
 
-        pid.SetTunnings(tunnings);
+        pidWithTimer.SetTunnings(tunnings);
     }
 
     void MotorControllerImpl::SetSpeed(const RevPerMinute& speed)
     {
-        pid.SetPoint(speed.Value());
+        pidWithTimer.SetPoint(speed.Value());
     }
 
     void MotorControllerImpl::Start()
     {
-        pid.Enable();
+        pidWithTimer.Enable();
     }
 
     void MotorControllerImpl::Stop()
     {
-        pid.Disable();
+        pidWithTimer.Disable();
     }
 
     float MotorControllerImpl::Read()
