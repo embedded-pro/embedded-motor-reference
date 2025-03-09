@@ -1,3 +1,8 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_embedded-motor-reference&metric=alert_status&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_embedded-motor-reference)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_embedded-motor-reference&metric=coverage&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_embedded-motor-reference)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_embedded-motor-reference&metric=duplicated_lines_density&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_embedded-motor-reference)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_embedded-motor-reference&metric=vulnerabilities&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_embedded-motor-reference)
+
 # embedded-motor-reference
 
 A comprehensive embedded motor control reference implementation demonstrating Field-Oriented Control (FOC) and PID control for DC, BLDC, and PMSM motors with detailed examples and real-world applications.

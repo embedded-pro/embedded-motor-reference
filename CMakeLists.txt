@@ -12,11 +12,14 @@ if (MOTOR_REFERENCE_BUILD_TESTS)
     set(BUILD_TESTING On)
 endif()
 
+set(HALST_INCLUDE_DEFAULT_LINKER_SCRIPTS Off CACHE INTERNAL "")
+set(HALST_BUILD_EXAMPLES Off CACHE INTERNAL "")
+
 add_definitions(-DEMIL_ENABLE_TRACING=1)
 
 project(motor_reference LANGUAGES C CXX ASM VERSION 0.0.1) # x-release-please-version
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 set_directory_properties(PROPERTY USE_FOLDERS ON)
@@ -30,18 +33,12 @@ if (MOTOR_REFERENCE_BUILD_TESTS)
     emil_enable_testing()
 endif()
 
-add_subdirectory(dsp-control)
-add_subdirectory(application)
-
-if (MOTOR_REFERENCE_BUILD_FOR_EMBEDDED)
-    if (TARGET_MCU_VENDOR STREQUAL "st")
-        add_subdirectory(hal/st)
-    elseif(TARGET_MCU_VENDOR STREQUAL "ti")
-        add_subdirectory(hal/ti)
-    else()
-        message(ERROR "Vendor not supported!")
-    endif()
+if (DEFINED TARGET_MCU_VENDOR)
+    add_subdirectory(hal/${TARGET_MCU_VENDOR})
 endif()
+
+add_subdirectory(numerical-toolbox)
+add_subdirectory(application)
 
 emil_clangformat_directories(motor_reference DIRECTORIES application)
 emil_folderize_all_targets()
