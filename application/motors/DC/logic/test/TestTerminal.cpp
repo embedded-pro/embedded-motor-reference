@@ -2,6 +2,9 @@
 #include "application/motors/DC/logic/Terminal.hpp"
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
+#include "infra/util/ByteRange.hpp"
+#include "infra/util/MemoryRange.hpp"
+#include "infra/util/test_helper/MemoryRangeMatcher.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
 #include "services/util/Terminal.hpp"
 #include "gmock/gmock.h"
@@ -122,6 +125,46 @@ TEST_F(TestMotorTerminal, set_speed)
     InvokeCommand("set_speed 4.444", [this, speed]()
         {
             EXPECT_CALL(motorControllerMock, SetSpeed(SpeedEq(speed)));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestMotorTerminal, set_speed_invalid)
+{
+    application::MotorController::RevPerMinute speed{ 4.444f };
+
+    InvokeCommand("set_speed abc", [this, speed]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float." };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestMotorTerminal, set_speed_with_extra_args)
+{
+    application::MotorController::RevPerMinute speed{ 4.444f };
+
+    InvokeCommand("set_speed 1.1 abc", [this, speed]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid number of arguments." };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
         });
 
     ExecuteAllActions();

@@ -22,37 +22,38 @@ namespace
 namespace application
 {
     TerminalInteractor::TerminalInteractor(services::TerminalWithStorage& terminal, services::Tracer& tracer, application::MotorController& motorController)
-        : tracer(tracer)
+        : terminal(terminal)
+        , tracer(tracer)
         , motorController(motorController)
     {
         terminal.AddCommand({ { "auto_tune", "at", "Run auto tune" },
             [this](const auto&)
             {
-                AutoTune();
+                this->terminal.ProcessResult(AutoTune());
             } });
 
         terminal.AddCommand({ { "set_pid", "spid", "Set PID parameters. set_pid <kp> <ki> <kd>. Ex: spid 1.0 0.765 -0.56" },
             [this](const auto& params)
             {
-                SetKpKiKd(params);
+                this->terminal.ProcessResult(SetKpKiKd(params));
             } });
 
         terminal.AddCommand({ { "set_speed", "ss", "Set speed. set_speed <speed>. Ex: ss 20.0" },
             [this](const auto& params)
             {
-                SetSpeed(params);
+                this->terminal.ProcessResult(SetSpeed(params));
             } });
 
         terminal.AddCommand({ { "start", "sts", "Start system. start. Ex: start" },
             [this](const auto&)
             {
-                Start();
+                this->terminal.ProcessResult(Start());
             } });
 
         terminal.AddCommand({ { "stop", "stp", "Stop system. stop. Ex: stop" },
             [this](const auto&)
             {
-                Stop();
+                this->terminal.ProcessResult(Stop());
             } });
     }
 
@@ -90,7 +91,7 @@ namespace application
         infra::Tokenizer tokenizer(input, ' ');
 
         if (tokenizer.Size() != 1)
-            return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
+            return { services::TerminalWithStorage::Status::error, "invalid number of arguments." };
 
         auto speed = ParseInput(tokenizer.Token(0));
         if (!speed)

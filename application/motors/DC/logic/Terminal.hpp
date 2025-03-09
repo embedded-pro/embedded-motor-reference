@@ -22,6 +22,7 @@ namespace application
         StatusWithMessage Stop();
 
     private:
+        services::TerminalWithStorage& terminal;
         services::Tracer& tracer;
         application::MotorController& motorController;
     };
