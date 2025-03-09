@@ -3,24 +3,26 @@
 
 #include "application/motors/DC/logic/MotorController.hpp"
 #include "services/tracer/Tracer.hpp"
-#include "services/util/Terminal.hpp"
+#include "services/util/TerminalWithStorage.hpp"
 
 namespace application
 {
     class TerminalInteractor
     {
     public:
-        TerminalInteractor(services::TerminalCommands& terminal, services::Tracer& tracer, application::MotorController& motorController);
+        TerminalInteractor(services::TerminalWithStorage& terminal, services::Tracer& tracer, application::MotorController& motorController);
 
     private:
-        void AutoTune();
-        void SetKpKiKd(const infra::BoundedConstString& param);
-        void SetSpeed(const infra::BoundedConstString& param);
-        void Start();
-        void Stop();
+        using StatusWithMessage = services::TerminalWithStorage::StatusWithMessage;
+
+        StatusWithMessage AutoTune();
+        StatusWithMessage SetKpKiKd(const infra::BoundedConstString& param);
+        StatusWithMessage SetSpeed(const infra::BoundedConstString& param);
+        StatusWithMessage Start();
+        StatusWithMessage Stop();
 
     private:
-        services::TerminalCommands& terminal;
+        services::TerminalWithStorage& terminal;
         services::Tracer& tracer;
         application::MotorController& motorController;
     };
