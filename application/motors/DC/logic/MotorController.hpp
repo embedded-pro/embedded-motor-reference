@@ -10,15 +10,15 @@ namespace application
 {
     namespace unit
     {
-        typedef infra::BaseUnit<8> Revolution;
-        typedef Revolution::Div<infra::Second>::Inverse RevPerSecond;
-        typedef RevPerSecond::Scale<infra::StaticRational<60, 1>> RevPerMinute;
+        using Revolution = infra::BaseUnit<8>;
+        using RevPerSecond = Revolution::Div<infra::Second>::Inverse;
+        using RevPerMinute = RevPerSecond::Scale<infra::StaticRational<60, 1>>;
     }
 
     class MotorController
     {
     public:
-        typedef infra::Quantity<unit::RevPerMinute, float> RevPerMinute;
+        using RevPerMinute = infra::Quantity<unit::RevPerMinute, float>;
 
         virtual void AutoTune(const infra::Function<void()>& onDone) = 0;
         virtual void SetPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd) = 0;

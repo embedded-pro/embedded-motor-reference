@@ -6,7 +6,7 @@
 namespace application
 {
     HardwareFactoryImpl::HardwareFactoryImpl(const infra::Function<void()>& onInitialized)
-        : HardwareFactory(onInitialized)
+        : onInitialized(onInitialized)
     {}
 
     void HardwareFactoryImpl::Run()

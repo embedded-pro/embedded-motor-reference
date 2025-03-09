@@ -15,7 +15,6 @@ namespace application
         explicit Logic(application::HardwareFactory& hardware);
 
     private:
-        application::HardwareFactory& hardware;
         application::PidImpl pid;
         application::MotorControllerImpl motorController;
         services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;

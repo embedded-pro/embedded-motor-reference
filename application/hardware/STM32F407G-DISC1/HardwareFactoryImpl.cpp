@@ -9,7 +9,7 @@ unsigned int hse_value = 8'000'000;
 namespace application
 {
     HardwareFactoryImpl::HardwareFactoryImpl(const infra::Function<void()>& onInitialized)
-        : HardwareFactory(onInitialized)
+        : onInitialized(onInitialized)
     {
         HAL_Init();
     }

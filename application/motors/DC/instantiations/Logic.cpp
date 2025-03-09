@@ -3,8 +3,7 @@
 namespace application
 {
     Logic::Logic(application::HardwareFactory& hardware)
-        : hardware(hardware)
-        , motorController(hardware.QuadratureEncoder(), hardware.PwmOutput(), pid, hardware.ControlTimerId())
+        : motorController(hardware.QuadratureEncoder(), hardware.PwmOutput(), pid, hardware.ControlTimerId())
         , terminalWithStorage(hardware.Terminal(), hardware.Tracer())
         , terminal(terminalWithStorage, hardware.Tracer(), motorController)
     {}

@@ -2,10 +2,6 @@
 
 namespace application
 {
-    PidImpl::PidImpl()
-        : pid(Tunnings{ 0.0f, 0.0f, 0.0f }, controllers::Pid<float>::Limits{ 0.0f, 0.9999f })
-    {}
-
     void PidImpl::SetTunnings(Tunnings tunnings)
     {
         pid.SetTunnings(tunnings);

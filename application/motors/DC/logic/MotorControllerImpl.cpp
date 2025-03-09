@@ -49,7 +49,7 @@ namespace application
 
     void MotorControllerImpl::Update(float action)
     {
-        output.Start(hal::Percent(action * 100.0f));
+        output.Start(hal::Percent(static_cast<uint8_t>(action * 100.0f)));
     }
 
     void MotorControllerImpl::Disable()

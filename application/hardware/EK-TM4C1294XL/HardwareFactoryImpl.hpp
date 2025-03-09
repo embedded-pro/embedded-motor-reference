@@ -88,6 +88,7 @@ namespace application
         };
 
     private:
+        infra::Function<void()> onInitialized;
         static constexpr uint32_t timerId = 1;
         SynchronousQuadratureEncoderStub encoder;
         SynchronousPwmStub pwm;

@@ -24,10 +24,6 @@ namespace application
     class HardwareFactory
     {
     public:
-        explicit HardwareFactory(const infra::Function<void()>& onInitialized)
-            : onInitialized(onInitialized)
-        {}
-
         virtual void Run() = 0;
         virtual services::Tracer& Tracer() = 0;
         virtual services::TerminalWithCommands& Terminal() = 0;
@@ -36,9 +32,6 @@ namespace application
         virtual hal::SynchronousPwm& PwmOutput() = 0;
         virtual uint32_t ControlTimerId() const = 0;
         virtual hal::HallSensor& HallSensor() = 0;
-
-    protected:
-        infra::Function<void()> onInitialized;
     };
 }
 
