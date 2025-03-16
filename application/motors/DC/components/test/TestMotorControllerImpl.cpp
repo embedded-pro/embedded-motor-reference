@@ -1,5 +1,5 @@
-#include "application/motors/DC/logic/MotorController.hpp"
-#include "application/motors/DC/logic/MotorControllerImpl.hpp"
+#include "application/motors/DC/components/MotorController.hpp"
+#include "application/motors/DC/components/MotorControllerImpl.hpp"
 #include "application/pid/PidWithTimer.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
