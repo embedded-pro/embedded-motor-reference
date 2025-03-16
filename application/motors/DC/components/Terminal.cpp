@@ -1,4 +1,4 @@
-#include "application/motors/DC/logic/Terminal.hpp"
+#include "application/motors/DC/components/Terminal.hpp"
 #include "infra/stream/StringInputStream.hpp"
 #include "infra/util/Function.hpp"
 #include "infra/util/Tokenizer.hpp"

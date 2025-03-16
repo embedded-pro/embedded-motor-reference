@@ -1,4 +1,4 @@
-#include "application/motors/DC/logic/MotorControllerImpl.hpp"
+#include "application/motors/DC/components/MotorControllerImpl.hpp"
 #include <chrono>
 
 namespace application

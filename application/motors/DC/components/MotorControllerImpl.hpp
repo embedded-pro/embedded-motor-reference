@@ -1,7 +1,7 @@
 #ifndef APPLICATION_DC_LOGIC_MOTOR_CONTROLLER_IMPL_HPP
 #define APPLICATION_DC_LOGIC_MOTOR_CONTROLLER_IMPL_HPP
 
-#include "application/motors/DC/logic/MotorController.hpp"
+#include "application/motors/DC/components/MotorController.hpp"
 #include "application/pid/PidWithTimer.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"

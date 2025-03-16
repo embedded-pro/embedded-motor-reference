@@ -8,7 +8,7 @@ target_include_directories(motor_reference.dc.instantiations PUBLIC
 
 target_link_libraries(motor_reference.dc.instantiations PUBLIC
     motor_reference.hardware
-    motor_reference.logic
+    motor_reference.components
     motor_reference.pid.instantiations
     numerical.controllers
 )
