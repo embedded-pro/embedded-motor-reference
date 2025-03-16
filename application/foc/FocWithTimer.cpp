@@ -57,35 +57,4 @@ namespace application
     {
         return timer.Armed();
     }
-
-    FocWithTimerAndProfiler::FocWithTimerAndProfiler(infra::BoundedVector<ExecutionTimes>& executionTimes, FocInput& input, FocOutput& output, Components& components, PerformanceTracker& profiler)
-        : FocWithTimer(input, output, components)
-        , executionTimes(executionTimes)
-        , profiler(profiler)
-    {}
-
-    void FocWithTimerAndProfiler::Enable()
-    {
-        executionTimes.clear();
-
-        dPid.Enable();
-        qPid.Enable();
-
-        timer.Start(sampleTime, [this]()
-            {
-                auto& read = input.Read();
-
-                auto idAndIq = park.Forward(clarke.Forward(read.first), read.second);
-                auto twoPhaseVoltage = controllers::RotatingFrame<float>{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) };
-                auto voltageAlphaBeta = park.Inverse(twoPhaseVoltage, read.second);
-                auto pwmOutput = spaceVectorModulator.Generate(voltageAlphaBeta);
-
-                output.Update(pwmOutput);
-            });
-    }
-
-    infra::BoundedVector<FocWithTimerAndProfiler::ExecutionTimes>& FocWithTimerAndProfiler::ProfileData() const
-    {
-        return executionTimes;
-    }
 }
