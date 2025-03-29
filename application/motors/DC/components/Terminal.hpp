@@ -10,7 +10,7 @@ namespace application
     class TerminalInteractor
     {
     public:
-        TerminalInteractor(services::TerminalWithStorage& terminal, services::Tracer& tracer, application::MotorController& motorController);
+        TerminalInteractor(services::TerminalWithStorage& terminal, application::MotorController& motorController);
 
     private:
         using StatusWithMessage = services::TerminalWithStorage::StatusWithMessage;
@@ -23,7 +23,6 @@ namespace application
 
     private:
         services::TerminalWithStorage& terminal;
-        services::Tracer& tracer;
         application::MotorController& motorController;
     };
 }

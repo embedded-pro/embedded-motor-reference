@@ -21,9 +21,8 @@ namespace
 
 namespace application
 {
-    TerminalInteractor::TerminalInteractor(services::TerminalWithStorage& terminal, services::Tracer& tracer, application::MotorController& motorController)
+    TerminalInteractor::TerminalInteractor(services::TerminalWithStorage& terminal, application::MotorController& motorController)
         : terminal(terminal)
-        , tracer(tracer)
         , motorController(motorController)
     {
         terminal.AddCommand({ { "auto_tune", "at", "Run auto tune" },

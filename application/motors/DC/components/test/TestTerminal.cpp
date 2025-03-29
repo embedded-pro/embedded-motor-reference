@@ -76,7 +76,7 @@ namespace
             } };
         services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<> terminalWithCommands{ communication, tracer };
         services::TerminalWithStorage::WithMaxSize<10> terminal{ terminalWithCommands, tracer };
-        application::TerminalInteractor terminalInteractor{ terminal, tracer, motorControllerMock };
+        application::TerminalInteractor terminalInteractor{ terminal, motorControllerMock };
 
         void InvokeCommand(std::string command, const std::function<void()>& onCommandReceived)
         {
