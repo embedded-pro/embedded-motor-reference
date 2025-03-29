@@ -21,6 +21,8 @@ namespace application
         services::Tracer& Tracer() override;
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
+        hal::SynchronousAdc& PhaseA() override;
+        hal::SynchronousAdc& PhaseB() override;
         hal::SynchronousQuadratureEncoder& QuadratureEncoder() override;
         hal::SynchronousPwm& PwmOutput() override;
         uint32_t ControlTimerId() const override;
@@ -30,6 +32,16 @@ namespace application
         State Read() override;
 
     private:
+        class SynchronousAdcStub
+            : public hal::SynchronousAdc
+        {
+        public:
+            Samples Measure(std::size_t numberOfSamples) override
+            {
+                return Samples();
+            }
+        };
+
         class SynchronousPwmStub
             : public hal::SynchronousPwm
         {
@@ -90,6 +102,8 @@ namespace application
     private:
         infra::Function<void()> onInitialized;
         static constexpr uint32_t timerId = 1;
+        SynchronousAdcStub phaseA;
+        SynchronousAdcStub phaseB;
         SynchronousQuadratureEncoderStub encoder;
         SynchronousPwmStub pwm;
         GpioPinStub pin;

@@ -2,6 +2,7 @@
 #define HARDWARE_FACTORY_HPP
 
 #include "hal/interfaces/Gpio.hpp"
+#include "hal/synchronous_interfaces/SynchronousAdc.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include "infra/util/MemoryRange.hpp"
@@ -28,6 +29,8 @@ namespace application
         virtual services::Tracer& Tracer() = 0;
         virtual services::TerminalWithCommands& Terminal() = 0;
         virtual infra::MemoryRange<hal::GpioPin> Leds() = 0;
+        virtual hal::SynchronousAdc& PhaseA() = 0;
+        virtual hal::SynchronousAdc& PhaseB() = 0;
         virtual hal::SynchronousQuadratureEncoder& QuadratureEncoder() = 0;
         virtual hal::SynchronousPwm& PwmOutput() = 0;
         virtual uint32_t ControlTimerId() const = 0;

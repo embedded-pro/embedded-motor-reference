@@ -28,6 +28,16 @@ namespace application
         return infra::MakeRangeFromSingleObject(pin);
     }
 
+    hal::SynchronousAdc& HardwareFactoryImpl::PhaseA()
+    {
+        return phaseA;
+    }
+
+    hal::SynchronousAdc& HardwareFactoryImpl::PhaseB()
+    {
+        return phaseB;
+    }
+
     hal::SynchronousQuadratureEncoder& HardwareFactoryImpl::QuadratureEncoder()
     {
         return encoder;
