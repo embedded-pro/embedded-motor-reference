@@ -54,11 +54,12 @@ namespace application
         };
 
         using IdAndIqTunnings = std::pair<controllers::Pid<float>::Tunnings, controllers::Pid<float>::Tunnings>;
+        using IdAndIqPoint = std::pair<float, float>;
 
         FocWithTimer(FocInput& input, FocOutput& output, Components& components);
 
         void SetTunnings(IdAndIqTunnings tunnings);
-        void SetTorque(float torque);
+        void SetPoint(const IdAndIqPoint& point);
         virtual void Enable();
         void Disable();
         bool IsRunning() const;

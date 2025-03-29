@@ -22,9 +22,10 @@ namespace application
         qPid.SetTunnings(tunnings.second);
     }
 
-    void FocWithTimer::SetTorque(float torque)
+    void FocWithTimer::SetPoint(const IdAndIqPoint& point)
     {
-        qPid.SetPoint(torque);
+        dPid.SetPoint(point.first);
+        qPid.SetPoint(point.second);
     }
 
     void FocWithTimer::Enable()
