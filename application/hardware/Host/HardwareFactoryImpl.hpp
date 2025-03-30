@@ -5,6 +5,7 @@
 #include "hal/interfaces/Gpio.hpp"
 #include "hal/interfaces/SerialCommunication.hpp"
 #include "hal/synchronous_interfaces/SynchronousAdc.hpp"
+#include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "services/tracer/StreamWriterOnSerialCommunication.hpp"
 #include "services/tracer/TracerWithDateTime.hpp"
 
@@ -25,7 +26,8 @@ namespace application
         hal::SynchronousAdc& PhaseA() override;
         hal::SynchronousAdc& PhaseB() override;
         hal::SynchronousQuadratureEncoder& QuadratureEncoder() override;
-        hal::SynchronousPwm& PwmOutput() override;
+        hal::SynchronousSingleChannelPwm& PwmSinglePhaseOutput() override;
+        hal::SynchronousThreeChannelsPwm& PwmThreePhaseOutput() override;
         uint32_t ControlTimerId() const override;
         hal::HallSensor& HallSensor() override;
 
@@ -41,15 +43,6 @@ namespace application
             {
                 return Samples();
             }
-        };
-
-        class SynchronousPwmStub
-            : public hal::SynchronousPwm
-        {
-        public:
-            void SetBaseFrequency(hal::Hertz baseFrequency) override;
-            void Start(hal::Percent globalDutyCycle) override;
-            void Stop() override;
         };
 
         class SynchronousQuadratureEncoderStub
@@ -106,7 +99,7 @@ namespace application
         SynchronousQuadratureEncoderStub encoder;
         SynchronousAdcStub phaseA;
         SynchronousAdcStub phaseB;
-        SynchronousPwmStub pwm;
+        hal::SynchronousPwmImpl pwm;
         GpioPinStub pin;
         SerialCommunicationStub serial;
         TerminalAndTracer terminalAndTracer{ serial };

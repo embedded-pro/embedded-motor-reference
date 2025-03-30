@@ -14,7 +14,7 @@ namespace
         : public application::FocInput
     {
     public:
-        MOCK_METHOD(FocInput::Input&, Read, (), (override));
+        MOCK_METHOD(FocInput::Input, Read, (), (override));
     };
 
     class OutputMock
@@ -81,7 +81,7 @@ namespace
         void SetUp() override
         {
             ON_CALL(inputMock, Read())
-                .WillByDefault(::testing::ReturnRef(inputData));
+                .WillByDefault(::testing::Return(inputData));
         }
     };
 }
@@ -145,7 +145,7 @@ TEST_F(TestFocWithTimer, timer_callback_executes_complete_foc_pipeline)
         ::testing::InSequence seq;
 
         EXPECT_CALL(inputMock, Read())
-            .WillOnce(::testing::ReturnRef(inputData));
+            .WillOnce(::testing::Return(inputData));
 
         EXPECT_CALL(trigonometricMock, Cosine(electricalAngle))
             .WillOnce(::testing::Return(0.8775f));

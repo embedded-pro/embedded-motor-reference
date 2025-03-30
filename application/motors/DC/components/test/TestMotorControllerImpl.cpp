@@ -33,11 +33,11 @@ namespace
     };
 
     class PwmMock
-        : public hal::SynchronousPwm
+        : public hal::SynchronousSingleChannelPwm
     {
     public:
         MOCK_METHOD(void, SetBaseFrequency, (hal::Hertz baseFrequency), (override));
-        MOCK_METHOD(void, Start, (hal::Percent globalDutyCycle), (override));
+        MOCK_METHOD(void, Start, (hal::Percent), (override));
         MOCK_METHOD(void, Stop, (), (override));
     };
 

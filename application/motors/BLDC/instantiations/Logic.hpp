@@ -9,6 +9,8 @@ namespace application
     {
     public:
         explicit Logic(application::HardwareFactory& hardware);
+
+    private:
     };
 }
 

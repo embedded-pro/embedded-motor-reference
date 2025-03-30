@@ -9,18 +9,11 @@
 
 namespace application
 {
-    class PerformanceTracker
-    {
-    public:
-        virtual void Start() = 0;
-        virtual uint32_t ElapsedCycles() = 0;
-    };
-
     class FocInput
     {
     public:
         using Input = std::pair<controllers::ThreePhase<float>, float>;
-        virtual Input& Read() = 0;
+        virtual Input Read() = 0;
     };
 
     class FocOutput

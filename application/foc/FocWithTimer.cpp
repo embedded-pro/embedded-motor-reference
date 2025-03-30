@@ -35,7 +35,7 @@ namespace application
 
         timer.Start(sampleTime, [this]()
             {
-                auto& read = input.Read();
+                auto read = input.Read();
 
                 auto idAndIq = park.Forward(clarke.Forward(read.first), read.second);
                 auto twoPhaseVoltage = controllers::RotatingFrame<float>{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) };

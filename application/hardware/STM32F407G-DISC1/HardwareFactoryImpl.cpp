@@ -48,7 +48,12 @@ namespace application
         return encoder;
     }
 
-    hal::SynchronousPwm& HardwareFactoryImpl::PwmOutput()
+    hal::SynchronousSingleChannelPwm& HardwareFactoryImpl::PwmSinglePhaseOutput()
+    {
+        return pwm;
+    }
+
+    hal::SynchronousThreeChannelsPwm& HardwareFactoryImpl::PwmThreePhaseOutput()
     {
         return pwm;
     }
@@ -66,18 +71,6 @@ namespace application
     hal::HallSensor::State HardwareFactoryImpl::Read()
     {
         return 0;
-    }
-
-    void HardwareFactoryImpl::SynchronousPwmStub::SetBaseFrequency(hal::Hertz baseFrequency)
-    {
-    }
-
-    void HardwareFactoryImpl::SynchronousPwmStub::Start(hal::Percent globalDutyCycle)
-    {
-    }
-
-    void HardwareFactoryImpl::SynchronousPwmStub::Stop()
-    {
     }
 
     uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Position()

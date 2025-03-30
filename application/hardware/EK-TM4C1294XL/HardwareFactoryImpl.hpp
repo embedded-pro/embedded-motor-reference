@@ -24,7 +24,8 @@ namespace application
         hal::SynchronousAdc& PhaseA() override;
         hal::SynchronousAdc& PhaseB() override;
         hal::SynchronousQuadratureEncoder& QuadratureEncoder() override;
-        hal::SynchronousPwm& PwmOutput() override;
+        hal::SynchronousSingleChannelPwm& PwmSinglePhaseOutput() override;
+        hal::SynchronousThreeChannelsPwm& PwmThreePhaseOutput() override;
         uint32_t ControlTimerId() const override;
         hal::HallSensor& HallSensor() override;
 
@@ -40,15 +41,6 @@ namespace application
             {
                 return Samples();
             }
-        };
-
-        class SynchronousPwmStub
-            : public hal::SynchronousPwm
-        {
-        public:
-            void SetBaseFrequency(hal::Hertz baseFrequency) override;
-            void Start(hal::Percent globalDutyCycle) override;
-            void Stop() override;
         };
 
         class SynchronousQuadratureEncoderStub
@@ -105,7 +97,7 @@ namespace application
         SynchronousAdcStub phaseA;
         SynchronousAdcStub phaseB;
         SynchronousQuadratureEncoderStub encoder;
-        SynchronousPwmStub pwm;
+        hal::SynchronousPwmImpl pwm;
         GpioPinStub pin;
         SerialCommunicationStub serial;
         TerminalAndTracer terminalAndTracer{ serial };

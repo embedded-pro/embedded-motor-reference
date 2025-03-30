@@ -3,7 +3,7 @@
 
 namespace application
 {
-    MotorControllerImpl::MotorControllerImpl(hal::SynchronousQuadratureEncoder& input, hal::SynchronousPwm& output, Pid& pid, const uint32_t& timerId)
+    MotorControllerImpl::MotorControllerImpl(hal::SynchronousQuadratureEncoder& input, hal::SynchronousSingleChannelPwm& output, Pid& pid, const uint32_t& timerId)
         : input(input)
         , output(output)
         , pidWithTimer(*this, *this, pid, std::chrono::milliseconds(5), timerId)
