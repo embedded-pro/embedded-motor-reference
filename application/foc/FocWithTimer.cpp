@@ -35,11 +35,11 @@ namespace application
 
         timer.Start(sampleTime, [this]()
             {
-                auto read = input.Read();
+                auto [threePhaseCurrent, angle] = input.Read();
 
-                auto idAndIq = park.Forward(clarke.Forward(read.first), read.second);
+                auto idAndIq = park.Forward(clarke.Forward(threePhaseCurrent), angle);
                 auto twoPhaseVoltage = controllers::RotatingFrame<float>{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) };
-                auto voltageAlphaBeta = park.Inverse(twoPhaseVoltage, read.second);
+                auto voltageAlphaBeta = park.Inverse(twoPhaseVoltage, angle);
                 auto pwmOutput = spaceVectorModulator.Generate(voltageAlphaBeta);
 
                 output.Update(pwmOutput);

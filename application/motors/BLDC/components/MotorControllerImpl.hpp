@@ -13,8 +13,8 @@
 
 namespace application
 {
-    class MotorControllerImpl
-        : public MotorController
+    class FocControllerImpl
+        : public FocController
         , private FocInput
         , private FocOutput
     {
@@ -26,7 +26,7 @@ namespace application
             hal::SynchronousQuadratureEncoder& theta;
         };
 
-        MotorControllerImpl(Input& input, hal::SynchronousThreeChannelsPwm& output, FocWithTimer::Components& components);
+        FocControllerImpl(Input& input, hal::SynchronousThreeChannelsPwm& output, FocWithTimer::Components& components);
 
         // Implementation of MotorController
         void AutoTune(const infra::Function<void()>& onDone) override;

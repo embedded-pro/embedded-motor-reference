@@ -21,9 +21,9 @@ namespace
 
 namespace application
 {
-    TerminalInteractor::TerminalInteractor(services::TerminalWithStorage& terminal, application::MotorController& motorController)
+    TerminalInteractor::TerminalInteractor(services::TerminalWithStorage& terminal, application::FocController& focController)
         : terminal(terminal)
-        , motorController(motorController)
+        , focController(focController)
     {
         terminal.AddCommand({ { "auto_tune", "at", "Run auto tune" },
             [this](const auto&)
@@ -58,7 +58,7 @@ namespace application
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::AutoTune()
     {
-        motorController.AutoTune(infra::emptyFunction);
+        focController.AutoTune(infra::emptyFunction);
         return TerminalInteractor::StatusWithMessage();
     }
 
@@ -81,7 +81,7 @@ namespace application
         if (!kd)
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        motorController.SetPidParameters(kp, ki, kd);
+        focController.SetPidParameters(kp, ki, kd);
         return TerminalInteractor::StatusWithMessage();
     }
 
@@ -97,19 +97,19 @@ namespace application
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
         MotorController::RevPerMinute revPerMinute(*speed);
-        motorController.SetSpeed(revPerMinute);
+        focController.SetSpeed(revPerMinute);
         return TerminalInteractor::StatusWithMessage();
     }
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::Start()
     {
-        motorController.Start();
+        focController.Start();
         return TerminalInteractor::StatusWithMessage();
     }
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::Stop()
     {
-        motorController.Stop();
+        focController.Stop();
         return TerminalInteractor::StatusWithMessage();
     }
 }

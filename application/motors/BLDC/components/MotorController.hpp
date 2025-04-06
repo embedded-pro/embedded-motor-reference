@@ -19,7 +19,7 @@ namespace application
         using Degrees = Angle::Scale<infra::StaticRational<360, 1>>;
     }
 
-    class MotorController
+    class FocController
     {
     public:
         using RevPerMinute = infra::Quantity<unit::RevPerMinute, float>;

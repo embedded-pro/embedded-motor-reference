@@ -2,17 +2,17 @@
 
 namespace application
 {
-    MotorControllerImpl::MotorControllerImpl(Input& input, hal::SynchronousThreeChannelsPwm& output, FocWithTimer::Components& components)
+    FocControllerImpl::FocControllerImpl(Input& input, hal::SynchronousThreeChannelsPwm& output, FocWithTimer::Components& components)
         : input{ input }
         , output{ output }
         , foc{ *this, *this, components }
     {}
 
-    void MotorControllerImpl::AutoTune(const infra::Function<void()>& onDone)
+    void FocControllerImpl::AutoTune(const infra::Function<void()>& onDone)
     {
     }
 
-    void MotorControllerImpl::SetDQPidParameters(const std::pair<PidFocParameters, PidFocParameters>& pidDAndQParameters)
+    void FocControllerImpl::SetDQPidParameters(const std::pair<PidFocParameters, PidFocParameters>& pidDAndQParameters)
     {
         if (pidDAndQParameters.first.kp)
             idAndIqTunnings.first.kp = *pidDAndQParameters.first.kp;
@@ -35,15 +35,15 @@ namespace application
         foc.SetTunnings(idAndIqTunnings);
     }
 
-    void MotorControllerImpl::SetSpeedPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd)
+    void FocControllerImpl::SetSpeedPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd)
     {
     }
 
-    void MotorControllerImpl::SetPositionPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd)
+    void FocControllerImpl::SetPositionPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd)
     {
     }
 
-    void MotorControllerImpl::SetTorque(const Torque& speed)
+    void FocControllerImpl::SetTorque(const Torque& speed)
     {
         focSetPoint.first = speed.Value();
         focSetPoint.second = 0.0;
@@ -51,17 +51,17 @@ namespace application
         foc.SetPoint(focSetPoint);
     }
 
-    void MotorControllerImpl::Start()
+    void FocControllerImpl::Start()
     {
         foc.Enable();
     }
 
-    void MotorControllerImpl::Stop()
+    void FocControllerImpl::Stop()
     {
         foc.Disable();
     }
 
-    MotorControllerImpl::FocInput::Input MotorControllerImpl::Read()
+    FocControllerImpl::FocInput::Input FocControllerImpl::Read()
     {
         auto a = static_cast<float>(input.phaseA.Measure(1)[0] * 3300);
         auto b = static_cast<float>(input.phaseB.Measure(1)[0] * 3300);
@@ -71,7 +71,7 @@ namespace application
         return std::make_pair<controllers::ThreePhase<float>, float>({ a, b, c }, theta);
     }
 
-    void MotorControllerImpl::Update(Output& pwm)
+    void FocControllerImpl::Update(Output& pwm)
     {
         auto a = hal::Percent(static_cast<uint8_t>(pwm.a * 100.0f));
         auto b = hal::Percent(static_cast<uint8_t>(pwm.b * 100.0f));
@@ -79,7 +79,7 @@ namespace application
         output.Start(a, b, c);
     }
 
-    void MotorControllerImpl::Disable()
+    void FocControllerImpl::Disable()
     {
         output.Stop();
     }
