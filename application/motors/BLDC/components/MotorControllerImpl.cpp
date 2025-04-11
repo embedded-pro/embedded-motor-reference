@@ -51,6 +51,14 @@ namespace application
         foc.SetPoint(focSetPoint);
     }
 
+    void FocControllerImpl::SetSpeed(const RevPerMinute& speed)
+    {
+    }
+
+    void FocControllerImpl::SetPosition(const Degrees& position)
+    {
+    }
+
     void FocControllerImpl::Start()
     {
         foc.Enable();
@@ -59,6 +67,18 @@ namespace application
     void FocControllerImpl::Stop()
     {
         foc.Disable();
+    }
+
+    void FocControllerImpl::EnableTorqueControl()
+    {
+    }
+
+    void FocControllerImpl::EnableSpeedControl()
+    {
+    }
+
+    void FocControllerImpl::EnablePositionControl()
+    {
     }
 
     FocControllerImpl::FocInput::Input FocControllerImpl::Read()

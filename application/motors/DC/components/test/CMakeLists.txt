@@ -4,7 +4,7 @@ emil_add_test(motor_reference.motor.dc.logic_test)
 
 target_link_libraries(motor_reference.motor.dc.logic_test PUBLIC
     gmock_main
-    motor_reference.components
+    motor_reference.dc.components
     hal.interfaces_test_doubles
     infra.timer_test_helper
     infra.event_test_helper

@@ -31,10 +31,16 @@ namespace application
                 this->terminal.ProcessResult(AutoTune());
             } });
 
-        terminal.AddCommand({ { "set_pid", "spid", "Set PID parameters. set_pid <kp> <ki> <kd>. Ex: spid 1.0 0.765 -0.56" },
+        terminal.AddCommand({ { "set_dq_pid", "sdqpid", "Set D and Q PID parameters. set_dq_pid <kp> <ki> <kd> <kp> <ki> <kd>. Ex: sdqpid 1.0 0.765 -0.56 0.5 -0.35 0.75" },
             [this](const auto& params)
             {
-                this->terminal.ProcessResult(SetKpKiKd(params));
+                this->terminal.ProcessResult(SetFocPid(params));
+            } });
+
+        terminal.AddCommand({ { "set_speed_pid", "sspid", "Set speed PID parameters. set_speed_pid <kp> <ki> <kd>. Ex: sspid 1.0 0.765 -0.56" },
+            [this](const auto& params)
+            {
+                this->terminal.ProcessResult(SetSpeedPid(params));
             } });
 
         terminal.AddCommand({ { "set_speed", "ss", "Set speed. set_speed <speed>. Ex: ss 20.0" },
@@ -62,7 +68,45 @@ namespace application
         return TerminalInteractor::StatusWithMessage();
     }
 
-    TerminalInteractor::StatusWithMessage TerminalInteractor::SetKpKiKd(const infra::BoundedConstString& input)
+    TerminalInteractor::StatusWithMessage TerminalInteractor::SetFocPid(const infra::BoundedConstString& input)
+    {
+        infra::Tokenizer tokenizer(input, ' ');
+
+        if (tokenizer.Size() != 3)
+            return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
+
+        auto dkp = ParseInput(tokenizer.Token(0));
+        if (!dkp)
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
+
+        auto dki = ParseInput(tokenizer.Token(1));
+        if (!dki)
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
+
+        auto dkd = ParseInput(tokenizer.Token(2));
+        if (!dkd)
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
+
+        auto qkp = ParseInput(tokenizer.Token(3));
+        if (!qkp)
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
+
+        auto qki = ParseInput(tokenizer.Token(4));
+        if (!qki)
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
+
+        auto qkd = ParseInput(tokenizer.Token(5));
+        if (!qkd)
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
+
+        auto dPid = FocController::PidFocParameters{ *dkp, *dki, *dkd };
+        auto qPid = FocController::PidFocParameters{ *qkp, *qki, *qkd };
+
+        focController.SetDQPidParameters(std::make_pair(dPid, qPid));
+        return TerminalInteractor::StatusWithMessage();
+    }
+
+    TerminalInteractor::StatusWithMessage TerminalInteractor::SetSpeedPid(const infra::BoundedConstString& input)
     {
         infra::Tokenizer tokenizer(input, ' ');
 
@@ -81,7 +125,7 @@ namespace application
         if (!kd)
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        focController.SetPidParameters(kp, ki, kd);
+        focController.SetSpeedPidParameters(*kp, *ki, *kd);
         return TerminalInteractor::StatusWithMessage();
     }
 
@@ -96,7 +140,7 @@ namespace application
         if (!speed)
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        MotorController::RevPerMinute revPerMinute(*speed);
+        FocController::RevPerMinute revPerMinute(*speed);
         focController.SetSpeed(revPerMinute);
         return TerminalInteractor::StatusWithMessage();
     }
