@@ -7,6 +7,7 @@
 #include "infra/util/Function.hpp"
 #include "gmock/gmock.h"
 #include <chrono>
+#include <optional>
 
 namespace
 {
@@ -78,6 +79,16 @@ TEST_F(TestMotorControllerImpl, set_pid_parameters)
 
     EXPECT_CALL(pidMock, SetTunnings(TunningsEq(kp, ki, kd)));
     controller.SetPidParameters(std::make_optional(kp), std::make_optional(ki), std::make_optional(kd));
+}
+
+TEST_F(TestMotorControllerImpl, set_pid_parameters_with_null)
+{
+    float kp = 0.0f;
+    float ki = 0.0f;
+    float kd = 0.0f;
+
+    EXPECT_CALL(pidMock, SetTunnings(TunningsEq(kp, ki, kd)));
+    controller.SetPidParameters(std::nullopt, std::nullopt, std::nullopt);
 }
 
 TEST_F(TestMotorControllerImpl, set_speed)
