@@ -1,5 +1,5 @@
-#include "application/motors/DC/logic/MotorController.hpp"
-#include "application/motors/DC/logic/MotorControllerImpl.hpp"
+#include "application/motors/DC/components/MotorController.hpp"
+#include "application/motors/DC/components/MotorControllerImpl.hpp"
 #include "application/pid/PidWithTimer.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
@@ -7,6 +7,7 @@
 #include "infra/util/Function.hpp"
 #include "gmock/gmock.h"
 #include <chrono>
+#include <optional>
 
 namespace
 {
@@ -33,11 +34,11 @@ namespace
     };
 
     class PwmMock
-        : public hal::SynchronousPwm
+        : public hal::SynchronousSingleChannelPwm
     {
     public:
         MOCK_METHOD(void, SetBaseFrequency, (hal::Hertz baseFrequency), (override));
-        MOCK_METHOD(void, Start, (hal::Percent globalDutyCycle), (override));
+        MOCK_METHOD(void, Start, (hal::Percent), (override));
         MOCK_METHOD(void, Stop, (), (override));
     };
 
@@ -78,6 +79,16 @@ TEST_F(TestMotorControllerImpl, set_pid_parameters)
 
     EXPECT_CALL(pidMock, SetTunnings(TunningsEq(kp, ki, kd)));
     controller.SetPidParameters(std::make_optional(kp), std::make_optional(ki), std::make_optional(kd));
+}
+
+TEST_F(TestMotorControllerImpl, set_pid_parameters_with_null)
+{
+    float kp = 0.0f;
+    float ki = 0.0f;
+    float kd = 0.0f;
+
+    EXPECT_CALL(pidMock, SetTunnings(TunningsEq(kp, ki, kd)));
+    controller.SetPidParameters(std::nullopt, std::nullopt, std::nullopt);
 }
 
 TEST_F(TestMotorControllerImpl, set_speed)

@@ -1,7 +1,7 @@
 #ifndef APPLICATION_DC_LOGIC_MOTOR_CONTROLLER_IMPL_HPP
 #define APPLICATION_DC_LOGIC_MOTOR_CONTROLLER_IMPL_HPP
 
-#include "application/motors/DC/logic/MotorController.hpp"
+#include "application/motors/DC/components/MotorController.hpp"
 #include "application/pid/PidWithTimer.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
@@ -14,7 +14,7 @@ namespace application
         , private Output
     {
     public:
-        MotorControllerImpl(hal::SynchronousQuadratureEncoder& input, hal::SynchronousPwm& output, Pid& pid, const uint32_t& timerId);
+        MotorControllerImpl(hal::SynchronousQuadratureEncoder& input, hal::SynchronousSingleChannelPwm& output, Pid& pid, const uint32_t& timerId);
 
         // Implementation of MotorController
         void AutoTune(const infra::Function<void()>& onDone) override;
@@ -32,7 +32,7 @@ namespace application
 
     private:
         hal::SynchronousQuadratureEncoder& input;
-        hal::SynchronousPwm& output;
+        hal::SynchronousSingleChannelPwm& output;
         PidWithTimer pidWithTimer;
         Pid::Tunnings tunnings{ 0.0f, 0.0f, 0.0f };
     };

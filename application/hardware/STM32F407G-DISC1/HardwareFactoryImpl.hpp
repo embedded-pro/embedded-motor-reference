@@ -21,8 +21,11 @@ namespace application
         services::Tracer& Tracer() override;
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
+        hal::SynchronousAdc& PhaseA() override;
+        hal::SynchronousAdc& PhaseB() override;
         hal::SynchronousQuadratureEncoder& QuadratureEncoder() override;
-        hal::SynchronousPwm& PwmOutput() override;
+        hal::SynchronousSingleChannelPwm& PwmSinglePhaseOutput() override;
+        hal::SynchronousThreeChannelsPwm& PwmThreePhaseOutput() override;
         uint32_t ControlTimerId() const override;
         hal::HallSensor& HallSensor() override;
 
@@ -30,13 +33,14 @@ namespace application
         State Read() override;
 
     private:
-        class SynchronousPwmStub
-            : public hal::SynchronousPwm
+        class SynchronousAdcStub
+            : public hal::SynchronousAdc
         {
         public:
-            void SetBaseFrequency(hal::Hertz baseFrequency) override;
-            void Start(hal::Percent globalDutyCycle) override;
-            void Stop() override;
+            Samples Measure(std::size_t numberOfSamples) override
+            {
+                return Samples();
+            }
         };
 
         class SynchronousQuadratureEncoderStub
@@ -90,8 +94,10 @@ namespace application
     private:
         infra::Function<void()> onInitialized;
         static constexpr uint32_t timerId = 1;
+        SynchronousAdcStub phaseA;
+        SynchronousAdcStub phaseB;
         SynchronousQuadratureEncoderStub encoder;
-        SynchronousPwmStub pwm;
+        hal::SynchronousPwmImpl pwm;
         GpioPinStub pin;
         SerialCommunicationStub serial;
         TerminalAndTracer terminalAndTracer{ serial };

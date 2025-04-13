@@ -4,6 +4,8 @@
 #include "application/hardware/HardwareFactory.hpp"
 #include "hal/interfaces/Gpio.hpp"
 #include "hal/interfaces/SerialCommunication.hpp"
+#include "hal/synchronous_interfaces/SynchronousAdc.hpp"
+#include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "services/tracer/StreamWriterOnSerialCommunication.hpp"
 #include "services/tracer/TracerWithDateTime.hpp"
 
@@ -21,8 +23,11 @@ namespace application
         services::Tracer& Tracer() override;
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
+        hal::SynchronousAdc& PhaseA() override;
+        hal::SynchronousAdc& PhaseB() override;
         hal::SynchronousQuadratureEncoder& QuadratureEncoder() override;
-        hal::SynchronousPwm& PwmOutput() override;
+        hal::SynchronousSingleChannelPwm& PwmSinglePhaseOutput() override;
+        hal::SynchronousThreeChannelsPwm& PwmThreePhaseOutput() override;
         uint32_t ControlTimerId() const override;
         hal::HallSensor& HallSensor() override;
 
@@ -30,13 +35,14 @@ namespace application
         State Read() override;
 
     private:
-        class SynchronousPwmStub
-            : public hal::SynchronousPwm
+        class SynchronousAdcStub
+            : public hal::SynchronousAdc
         {
         public:
-            void SetBaseFrequency(hal::Hertz baseFrequency) override;
-            void Start(hal::Percent globalDutyCycle) override;
-            void Stop() override;
+            Samples Measure(std::size_t numberOfSamples) override
+            {
+                return Samples();
+            }
         };
 
         class SynchronousQuadratureEncoderStub
@@ -91,7 +97,9 @@ namespace application
         infra::Function<void()> onInitialized;
         static constexpr uint32_t timerId = 1;
         SynchronousQuadratureEncoderStub encoder;
-        SynchronousPwmStub pwm;
+        SynchronousAdcStub phaseA;
+        SynchronousAdcStub phaseB;
+        hal::SynchronousPwmImpl pwm;
         GpioPinStub pin;
         SerialCommunicationStub serial;
         TerminalAndTracer terminalAndTracer{ serial };

@@ -1,5 +1,5 @@
-#include "application/motors/DC/logic/MotorController.hpp"
-#include "application/motors/DC/logic/Terminal.hpp"
+#include "application/motors/DC/components/MotorController.hpp"
+#include "application/motors/DC/components/Terminal.hpp"
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
 #include "infra/util/ByteRange.hpp"
@@ -76,7 +76,7 @@ namespace
             } };
         services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<> terminalWithCommands{ communication, tracer };
         services::TerminalWithStorage::WithMaxSize<10> terminal{ terminalWithCommands, tracer };
-        application::TerminalInteractor terminalInteractor{ terminal, tracer, motorControllerMock };
+        application::TerminalInteractor terminalInteractor{ terminal, motorControllerMock };
 
         void InvokeCommand(std::string command, const std::function<void()>& onCommandReceived)
         {
@@ -118,6 +118,60 @@ TEST_F(TestMotorTerminal, set_pid_parameters)
     ExecuteAllActions();
 }
 
+TEST_F(TestMotorTerminal, set_pid_parameters_with_invalid_kp)
+{
+    InvokeCommand("set_pid abc 2.2222 3.3333", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float." };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestMotorTerminal, set_pid_parameters_with_invalid_ki)
+{
+    InvokeCommand("set_pid 2.2222 abc 3.3333", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float." };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestMotorTerminal, set_pid_parameters_with_invalid_kd)
+{
+    InvokeCommand("set_pid 2.2222 3.3333 abc", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float." };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
 TEST_F(TestMotorTerminal, set_speed)
 {
     application::MotorController::RevPerMinute speed{ 4.444f };
@@ -132,9 +186,7 @@ TEST_F(TestMotorTerminal, set_speed)
 
 TEST_F(TestMotorTerminal, set_speed_invalid)
 {
-    application::MotorController::RevPerMinute speed{ 4.444f };
-
-    InvokeCommand("set_speed abc", [this, speed]()
+    InvokeCommand("set_speed abc", [this]()
         {
             ::testing::InSequence _;
 

@@ -2,8 +2,8 @@
 #define APPLICATION_DC_LOGIC_HPP
 
 #include "application/hardware/HardwareFactory.hpp"
-#include "application/motors/DC/logic/MotorControllerImpl.hpp"
-#include "application/motors/DC/logic/Terminal.hpp"
+#include "application/motors/DC/components/MotorControllerImpl.hpp"
+#include "application/motors/DC/components/Terminal.hpp"
 #include "application/pid/instantiations/PidImpl.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 
