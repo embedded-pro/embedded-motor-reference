@@ -37,16 +37,10 @@ namespace application
                 this->terminal.ProcessResult(SetFocPid(params));
             } });
 
-        terminal.AddCommand({ { "set_speed_pid", "sspid", "Set speed PID parameters. set_speed_pid <kp> <ki> <kd>. Ex: sspid 1.0 0.765 -0.56" },
+        terminal.AddCommand({ { "set_torque", "st", "Set torque. set_torque <torque>. Ex: st 20.0" },
             [this](const auto& params)
             {
-                this->terminal.ProcessResult(SetSpeedPid(params));
-            } });
-
-        terminal.AddCommand({ { "set_speed", "ss", "Set speed. set_speed <speed>. Ex: ss 20.0" },
-            [this](const auto& params)
-            {
-                this->terminal.ProcessResult(SetSpeed(params));
+                this->terminal.ProcessResult(SetTorque(params));
             } });
 
         terminal.AddCommand({ { "start", "sts", "Start system. start. Ex: start" },
@@ -72,7 +66,7 @@ namespace application
     {
         infra::Tokenizer tokenizer(input, ' ');
 
-        if (tokenizer.Size() != 3)
+        if (tokenizer.Size() != 6)
             return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
 
         auto dkp = ParseInput(tokenizer.Token(0));
@@ -99,55 +93,41 @@ namespace application
         if (!qkd)
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        auto dPid = FocController::PidFocParameters{ *dkp, *dki, *dkd };
-        auto qPid = FocController::PidFocParameters{ *qkp, *qki, *qkd };
+        auto dPid = FocController::PidFocParameters{
+            std::optional<float>(*dkp),
+            std::optional<float>(*dki),
+            std::optional<float>(*dkd)
+        };
+        auto qPid = FocController::PidFocParameters{
+            std::optional<float>(*qkp),
+            std::optional<float>(*qki),
+            std::optional<float>(*qkd)
+        };
 
         focController.SetDQPidParameters(std::make_pair(dPid, qPid));
-        return TerminalInteractor::StatusWithMessage();
-    }
-
-    TerminalInteractor::StatusWithMessage TerminalInteractor::SetSpeedPid(const infra::BoundedConstString& input)
-    {
-        infra::Tokenizer tokenizer(input, ' ');
-
-        if (tokenizer.Size() != 3)
-            return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
-
-        auto kp = ParseInput(tokenizer.Token(0));
-        if (!kp)
-            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
-
-        auto ki = ParseInput(tokenizer.Token(1));
-        if (!ki)
-            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
-
-        auto kd = ParseInput(tokenizer.Token(2));
-        if (!kd)
-            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
-
-        focController.SetSpeedPidParameters(*kp, *ki, *kd);
-        return TerminalInteractor::StatusWithMessage();
-    }
-
-    TerminalInteractor::StatusWithMessage TerminalInteractor::SetSpeed(const infra::BoundedConstString& input)
-    {
-        infra::Tokenizer tokenizer(input, ' ');
-
-        if (tokenizer.Size() != 1)
-            return { services::TerminalWithStorage::Status::error, "invalid number of arguments." };
-
-        auto speed = ParseInput(tokenizer.Token(0));
-        if (!speed)
-            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
-
-        FocController::RevPerMinute revPerMinute(*speed);
-        focController.SetSpeed(revPerMinute);
         return TerminalInteractor::StatusWithMessage();
     }
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::Start()
     {
         focController.Start();
+        return TerminalInteractor::StatusWithMessage();
+    }
+
+    TerminalInteractor::StatusWithMessage TerminalInteractor::SetTorque(const infra::BoundedConstString& input)
+    {
+        infra::Tokenizer tokenizer(input, ' ');
+
+        if (tokenizer.Size() != 1)
+            return { services::TerminalWithStorage::Status::error, "invalid number of arguments." };
+
+        auto t = ParseInput(tokenizer.Token(0));
+        if (!t)
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
+
+        FocController::Torque torque(*t);
+
+        focController.SetTorque(torque);
         return TerminalInteractor::StatusWithMessage();
     }
 

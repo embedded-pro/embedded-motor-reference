@@ -17,8 +17,7 @@ namespace application
 
         StatusWithMessage AutoTune();
         StatusWithMessage SetFocPid(const infra::BoundedConstString& param);
-        StatusWithMessage SetSpeedPid(const infra::BoundedConstString& param);
-        StatusWithMessage SetSpeed(const infra::BoundedConstString& param);
+        StatusWithMessage SetTorque(const infra::BoundedConstString& param);
         StatusWithMessage Start();
         StatusWithMessage Stop();
 

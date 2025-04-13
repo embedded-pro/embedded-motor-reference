@@ -31,16 +31,9 @@ namespace application
         // Implementation of MotorController
         void AutoTune(const infra::Function<void()>& onDone) override;
         void SetDQPidParameters(const std::pair<PidFocParameters, PidFocParameters>& pidDAndQParameters) override;
-        void SetSpeedPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd) override;
-        void SetPositionPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd) override;
         void SetTorque(const Torque& torque) override;
-        void SetSpeed(const RevPerMinute& speed) override;
-        void SetPosition(const Degrees& position) override;
         void Start() override;
         void Stop() override;
-        void EnableTorqueControl() override;
-        void EnableSpeedControl() override;
-        void EnablePositionControl() override;
 
         // Implementation of FocInput
         FocInput::Input Read() override;

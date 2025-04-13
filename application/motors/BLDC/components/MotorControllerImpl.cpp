@@ -35,28 +35,12 @@ namespace application
         foc.SetTunnings(idAndIqTunnings);
     }
 
-    void FocControllerImpl::SetSpeedPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd)
-    {
-    }
-
-    void FocControllerImpl::SetPositionPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd)
-    {
-    }
-
     void FocControllerImpl::SetTorque(const Torque& speed)
     {
         focSetPoint.first = speed.Value();
         focSetPoint.second = 0.0;
 
         foc.SetPoint(focSetPoint);
-    }
-
-    void FocControllerImpl::SetSpeed(const RevPerMinute& speed)
-    {
-    }
-
-    void FocControllerImpl::SetPosition(const Degrees& position)
-    {
     }
 
     void FocControllerImpl::Start()
@@ -67,18 +51,6 @@ namespace application
     void FocControllerImpl::Stop()
     {
         foc.Disable();
-    }
-
-    void FocControllerImpl::EnableTorqueControl()
-    {
-    }
-
-    void FocControllerImpl::EnableSpeedControl()
-    {
-    }
-
-    void FocControllerImpl::EnablePositionControl()
-    {
     }
 
     FocControllerImpl::FocInput::Input FocControllerImpl::Read()

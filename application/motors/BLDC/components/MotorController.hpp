@@ -36,19 +36,11 @@ namespace application
         virtual void AutoTune(const infra::Function<void()>& onDone) = 0;
 
         virtual void SetDQPidParameters(const std::pair<PidFocParameters, PidFocParameters>& pidDAndQParameters) = 0;
-        virtual void SetSpeedPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd) = 0;
-        virtual void SetPositionPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd) = 0;
 
         virtual void SetTorque(const Torque& torque) = 0;
-        virtual void SetSpeed(const RevPerMinute& speed) = 0;
-        virtual void SetPosition(const Degrees& position) = 0;
 
         virtual void Start() = 0;
         virtual void Stop() = 0;
-
-        virtual void EnableTorqueControl() = 0;
-        virtual void EnableSpeedControl() = 0;
-        virtual void EnablePositionControl() = 0;
     };
 }
 
