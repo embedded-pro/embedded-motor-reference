@@ -9,6 +9,7 @@ target_link_libraries(motor_reference.bldc.components PUBLIC
     infra.util
     motor_reference.pid
     motor_reference.hardware
+    motor_reference.foc
     services.util
     services.tracer
 )

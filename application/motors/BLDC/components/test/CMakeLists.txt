@@ -11,5 +11,6 @@ target_link_libraries(motor_reference.motor.bldc.logic_test PUBLIC
 )
 
 target_sources(motor_reference.motor.bldc.logic_test PRIVATE
+    TestFocController.cpp
     TestTerminal.cpp
 )
