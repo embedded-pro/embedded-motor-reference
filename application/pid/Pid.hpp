@@ -1,24 +1,11 @@
-#ifndef APPLICATION_PID_WITH_TIMER_HPP
-#define APPLICATION_PID_WITH_TIMER_HPP
+#pragma once
 
+#include "application/pid/PidInterface.hpp"
 #include "infra/timer/Timer.hpp"
 #include "numerical/controllers/Pid.hpp"
 
 namespace application
 {
-    class Input
-    {
-    public:
-        virtual float Read() = 0;
-    };
-
-    class Output
-    {
-    public:
-        virtual void Update(float) = 0;
-        virtual void Disable() = 0;
-    };
-
     class Pid
     {
     public:
@@ -31,10 +18,10 @@ namespace application
         virtual float Process(float measuredProcessVariable) = 0;
     };
 
-    class PidWithTimer
+    class PidAsync
     {
     public:
-        PidWithTimer(Input& input, Output& output, Pid& pid, infra::Duration sampleTime, const uint32_t& timerId);
+        PidAsync(PidInterface& interface, Pid& pid);
 
         void SetTunnings(Pid::Tunnings tunnings);
         void SetPoint(float setPoint);
@@ -43,12 +30,9 @@ namespace application
         bool IsRunning() const;
 
     private:
-        Input& input;
-        Output& output;
+        PidInterface& interface;
         Pid& pid;
-        infra::TimerRepeating timer;
         infra::Duration sampleTime;
+        bool running = false;
     };
 }
-
-#endif

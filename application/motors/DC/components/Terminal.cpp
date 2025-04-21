@@ -21,7 +21,7 @@ namespace
 
 namespace application
 {
-    TerminalInteractor::TerminalInteractor(services::TerminalWithStorage& terminal, application::MotorController& motorController)
+    TerminalInteractor::TerminalInteractor(services::TerminalWithStorage& terminal, MotorPidController& motorController)
         : terminal(terminal)
         , motorController(motorController)
     {
@@ -96,7 +96,7 @@ namespace application
         if (!speed)
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        MotorController::RevPerMinute revPerMinute(*speed);
+        MotorPidController::RevPerMinute revPerMinute(*speed);
         motorController.SetSpeed(revPerMinute);
         return TerminalInteractor::StatusWithMessage();
     }

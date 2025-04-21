@@ -14,9 +14,9 @@ target_link_libraries(motor_reference.dc.components PUBLIC
 )
 
 target_sources(motor_reference.dc.components PRIVATE
-    MotorController.hpp
-    MotorControllerImpl.cpp
-    MotorControllerImpl.hpp
+    MotorPidController.hpp
+    MotorPidControllerImpl.cpp
+    MotorPidControllerImpl.hpp
     Terminal.cpp
     Terminal.hpp
 )

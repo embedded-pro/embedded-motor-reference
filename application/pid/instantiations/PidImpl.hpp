@@ -1,7 +1,6 @@
-#ifndef APPLICATION_PID_INSTANTIATIONS_HPP
-#define APPLICATION_PID_INSTANTIATIONS_HPP
+#pragma once
 
-#include "application/pid/PidWithTimer.hpp"
+#include "application/pid/Pid.hpp"
 
 namespace application
 {
@@ -21,5 +20,3 @@ namespace application
         controllers::Pid<float> pid{ Tunnings{ 0.0f, 0.0f, 0.0f }, controllers::Pid<float>::Limits{ 0.0f, 0.9999f } };
     };
 }
-
-#endif

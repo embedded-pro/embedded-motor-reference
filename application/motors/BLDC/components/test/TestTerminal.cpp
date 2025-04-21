@@ -1,11 +1,9 @@
-#include "application/motors/BLDC/components/MotorController.hpp"
+#include "application/motors/BLDC/components/FieldOrientedControllerInteractor.hpp"
 #include "application/motors/BLDC/components/Terminal.hpp"
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
 #include "infra/util/ByteRange.hpp"
 #include "infra/util/Function.hpp"
-#include "infra/util/MemoryRange.hpp"
-#include "infra/util/test_helper/MemoryRangeMatcher.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
 #include "services/util/Terminal.hpp"
 #include "gmock/gmock.h"
@@ -58,11 +56,11 @@ namespace
     };
 
     class FocControllerMock
-        : public application::FocController
+        : public application::FieldOrientedControllerInteractor
     {
     public:
         MOCK_METHOD(void, AutoTune, (const infra::Function<void()>& onDone), (override));
-        MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<PidFocParameters, PidFocParameters>&)dqPidParams), (override));
+        MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<PidParameters, PidParameters>&)dqPidParams), (override));
         MOCK_METHOD(void, SetTorque, (const Torque& torque), (override));
         MOCK_METHOD(void, Start, (), (override));
         MOCK_METHOD(void, Stop, (), (override));
@@ -124,19 +122,19 @@ TEST_F(TestBldcTerminal, auto_tune_alias)
 
 TEST_F(TestBldcTerminal, set_dq_pid)
 {
-    application::FocController::PidFocParameters dParams{
+    application::FieldOrientedControllerInteractor::PidParameters dParams{
         std::optional<float>(1.0f),
         std::optional<float>(0.765f),
         std::optional<float>(-0.56f)
     };
-    application::FocController::PidFocParameters qParams{
+    application::FieldOrientedControllerInteractor::PidParameters qParams{
         std::optional<float>(0.5f),
         std::optional<float>(-0.35f),
         std::optional<float>(0.75f)
     };
 
-    std::pair<application::FocController::PidFocParameters,
-        application::FocController::PidFocParameters>
+    std::pair<application::FieldOrientedControllerInteractor::PidParameters,
+        application::FieldOrientedControllerInteractor::PidParameters>
         expectedParams(dParams, qParams);
 
     InvokeCommand("sdqpid 1.0 0.765 -0.56 0.5 -0.35 0.75", [this, &expectedParams]()
@@ -315,7 +313,7 @@ TEST_F(TestBldcTerminal, stop_alias)
 
 TEST_F(TestBldcTerminal, set_torque)
 {
-    application::FocController::Torque torque{ 2.5f };
+    application::FieldOrientedControllerInteractor::Torque torque{ 2.5f };
 
     InvokeCommand("set_torque 2.5", [this, torque]()
         {

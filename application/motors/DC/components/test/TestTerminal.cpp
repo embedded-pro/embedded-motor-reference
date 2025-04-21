@@ -1,4 +1,4 @@
-#include "application/motors/DC/components/MotorController.hpp"
+#include "application/motors/DC/components/MotorPidController.hpp"
 #include "application/motors/DC/components/Terminal.hpp"
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
@@ -50,7 +50,7 @@ namespace
     };
 
     class MotorControllerMock
-        : public application::MotorController
+        : public application::MotorPidController
     {
     public:
         MOCK_METHOD(void, AutoTune, (const infra::Function<void()>& onDone), (override));
@@ -174,7 +174,7 @@ TEST_F(TestMotorTerminal, set_pid_parameters_with_invalid_kd)
 
 TEST_F(TestMotorTerminal, set_speed)
 {
-    application::MotorController::RevPerMinute speed{ 4.444f };
+    application::MotorPidController::RevPerMinute speed{ 4.444f };
 
     InvokeCommand("set_speed 4.444", [this, speed]()
         {
@@ -204,7 +204,7 @@ TEST_F(TestMotorTerminal, set_speed_invalid)
 
 TEST_F(TestMotorTerminal, set_speed_with_extra_args)
 {
-    application::MotorController::RevPerMinute speed{ 4.444f };
+    application::MotorPidController::RevPerMinute speed{ 4.444f };
 
     InvokeCommand("set_speed 1.1 abc", [this, speed]()
         {

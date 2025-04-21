@@ -15,9 +15,9 @@ target_link_libraries(motor_reference.bldc.components PUBLIC
 )
 
 target_sources(motor_reference.bldc.components PRIVATE
-    MotorController.hpp
-    MotorControllerImpl.cpp
-    MotorControllerImpl.hpp
+    FieldOrientedControllerInteractor.hpp
+    FieldOrientedControllerInteractorImpl.cpp
+    FieldOrientedControllerInteractorImpl.hpp
     Terminal.cpp
     Terminal.hpp
     TrigonometricImpl.cpp

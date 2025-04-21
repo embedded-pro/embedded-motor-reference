@@ -1,7 +1,6 @@
-#ifndef APPLICATION_DC_LOGIC_TERMINAL_HPP
-#define APPLICATION_DC_LOGIC_TERMINAL_HPP
+#pragma once
 
-#include "application/motors/DC/components/MotorController.hpp"
+#include "application/motors/DC/components/MotorPidController.hpp"
 #include "services/tracer/Tracer.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 
@@ -10,7 +9,7 @@ namespace application
     class TerminalInteractor
     {
     public:
-        TerminalInteractor(services::TerminalWithStorage& terminal, application::MotorController& motorController);
+        TerminalInteractor(services::TerminalWithStorage& terminal, MotorPidController& motorController);
 
     private:
         using StatusWithMessage = services::TerminalWithStorage::StatusWithMessage;
@@ -23,8 +22,6 @@ namespace application
 
     private:
         services::TerminalWithStorage& terminal;
-        application::MotorController& motorController;
+        application::MotorPidController& motorController;
     };
 }
-
-#endif

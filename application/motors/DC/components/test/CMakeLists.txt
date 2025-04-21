@@ -8,9 +8,10 @@ target_link_libraries(motor_reference.motor.dc.logic_test PUBLIC
     hal.interfaces_test_doubles
     infra.timer_test_helper
     infra.event_test_helper
+    motor_reference.pid_mock
 )
 
 target_sources(motor_reference.motor.dc.logic_test PRIVATE
-    TestMotorControllerImpl.cpp
+    TestMotorPidControllerImpl.cpp
     TestTerminal.cpp
 )

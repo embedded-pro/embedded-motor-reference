@@ -1,7 +1,7 @@
 #ifndef APPLICATION_FOC_INSTANTIATIONS_HPP
 #define APPLICATION_FOC_INSTANTIATIONS_HPP
 
-#include "application/foc/FocWithTimer.hpp"
+#include "application/foc/MotorFieldOrientedController.hpp"
 #include "numerical/controllers/SpaceVectorModulation.hpp"
 
 namespace application
@@ -12,7 +12,7 @@ namespace application
     public:
         SpaceVectorModulatorImpl() = default;
 
-        FocOutput::Output Generate(TwoVoltagePhase& voltagePhase) override;
+        std::tuple<Percent, Percent, Percent> Generate(TwoVoltagePhase& voltagePhase) override;
 
     private:
         controllers::SpaceVectorModulation<float> spaceVectorModulation;

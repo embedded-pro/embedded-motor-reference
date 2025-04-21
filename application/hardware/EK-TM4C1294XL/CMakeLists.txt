@@ -10,6 +10,7 @@ target_link_libraries(motor_reference.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM
     infra.event
     infra.timer
     services.tracer
+    hal_tiva.tiva
 )
 
 target_sources(motor_reference.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM} PRIVATE

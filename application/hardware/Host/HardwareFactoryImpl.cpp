@@ -28,64 +28,36 @@ namespace application
         return infra::MakeRangeFromSingleObject(pin);
     }
 
-    hal::SynchronousAdc& HardwareFactoryImpl::PhaseA()
+    void HardwareFactoryImpl::PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone)
     {
-        return phaseA;
     }
 
-    hal::SynchronousAdc& HardwareFactoryImpl::PhaseB()
+    void HardwareFactoryImpl::HallSensorInterrupt(const infra::Function<void(HallState state, Direction direction)>& onDone)
     {
-        return phaseB;
     }
 
-    hal::SynchronousQuadratureEncoder& HardwareFactoryImpl::QuadratureEncoder()
+    void HardwareFactoryImpl::ThreePhasePwmOutput(const std::tuple<Percent, Percent, Percent>& dutyPhases)
     {
-        return encoder;
     }
 
-    hal::SynchronousSingleChannelPwm& HardwareFactoryImpl::PwmSinglePhaseOutput()
+    void HardwareFactoryImpl::Start()
     {
-        return pwm;
     }
 
-    hal::SynchronousThreeChannelsPwm& HardwareFactoryImpl::PwmThreePhaseOutput()
+    void HardwareFactoryImpl::Stop()
     {
-        return pwm;
     }
 
-    uint32_t HardwareFactoryImpl::ControlTimerId() const
+    void HardwareFactoryImpl::Read(const infra::Function<void(float)>& onDone)
     {
-        return timerId;
     }
 
-    hal::HallSensor& HardwareFactoryImpl::HallSensor()
+    void HardwareFactoryImpl::ControlAction(float)
     {
-        return *this;
     }
 
-    hal::HallSensor::State HardwareFactoryImpl::Read()
+    void HardwareFactoryImpl::Start(infra::Duration sampleTime)
     {
-        return 0;
-    }
-
-    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Position()
-    {
-        return 0;
-    }
-
-    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Resolution()
-    {
-        return 0;
-    }
-
-    hal::SynchronousQuadratureEncoder::MotionDirection HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Direction()
-    {
-        return hal::SynchronousQuadratureEncoder::MotionDirection::forward;
-    }
-
-    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Speed()
-    {
-        return 0;
     }
 
     void HardwareFactoryImpl::SerialCommunicationStub::SendData(infra::ConstByteRange data, infra::Function<void()> actionOnCompletion)

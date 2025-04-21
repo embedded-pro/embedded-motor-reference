@@ -2,8 +2,10 @@
 
 namespace application
 {
-    FocOutput::Output SpaceVectorModulatorImpl::Generate(TwoVoltagePhase& voltagePhase)
+    std::tuple<Percent, Percent, Percent> SpaceVectorModulatorImpl::Generate(TwoVoltagePhase& voltagePhase)
     {
-        return spaceVectorModulation.Generate(voltagePhase);
+        auto duties = spaceVectorModulation.Generate(voltagePhase);
+
+        return std::make_tuple(Percent(duties.a), Percent(duties.b), Percent(duties.c));
     }
 }
