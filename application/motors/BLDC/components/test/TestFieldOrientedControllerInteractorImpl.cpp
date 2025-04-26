@@ -1,7 +1,6 @@
 #include "application/foc/MotorFieldOrientedController.hpp"
 #include "application/foc/test_doubles/FieldOrientedControllerInterfaceMock.hpp"
 #include "application/foc/test_doubles/FieldOrientedControllerMock.hpp"
-#include "application/foc/test_doubles/TrigonometricFunctionsMock.hpp"
 #include "application/motors/BLDC/components/FieldOrientedControllerInteractor.hpp"
 #include "application/motors/BLDC/components/FieldOrientedControllerInteractorImpl.hpp"
 #include <gmock/gmock.h>

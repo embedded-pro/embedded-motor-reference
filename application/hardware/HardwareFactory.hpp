@@ -55,17 +55,14 @@ namespace hal
 namespace application
 {
     class HardwareFactory
-        : public MotorFieldOrientedControllerInterface
-        , public PidInterface
     {
     public:
         virtual void Run() = 0;
         virtual services::Tracer& Tracer() = 0;
         virtual services::TerminalWithCommands& Terminal() = 0;
         virtual infra::MemoryRange<hal::GpioPin> Leds() = 0;
-        // virtual hal::SynchronousQuadratureEncoder& QuadratureEncoder() = 0;
-        // virtual hal::SynchronousSingleChannelPwm& PwmSinglePhaseOutput() = 0;
-        // virtual hal::SynchronousThreeChannelsPwm& PwmThreePhaseOutput() = 0;
-        // virtual uint32_t ControlTimerId() const = 0;
+
+        virtual PidInterface& MotorPid() = 0;
+        virtual MotorFieldOrientedControllerInterface& MotorFieldOrientedController() = 0;
     };
 }

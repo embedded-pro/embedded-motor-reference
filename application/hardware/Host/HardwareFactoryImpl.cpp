@@ -28,6 +28,16 @@ namespace application
         return infra::MakeRangeFromSingleObject(pin);
     }
 
+    PidInterface& HardwareFactoryImpl::MotorPid()
+    {
+        return *this;
+    }
+
+    MotorFieldOrientedControllerInterface& HardwareFactoryImpl::MotorFieldOrientedController()
+    {
+        return *this;
+    }
+
     void HardwareFactoryImpl::PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone)
     {
     }

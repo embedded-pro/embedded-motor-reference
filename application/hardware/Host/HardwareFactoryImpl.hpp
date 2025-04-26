@@ -13,6 +13,8 @@ namespace application
 {
     class HardwareFactoryImpl
         : public HardwareFactory
+        , private PidInterface
+        , private MotorFieldOrientedControllerInterface
     {
     public:
         explicit HardwareFactoryImpl(const infra::Function<void()>& onInitialized);
@@ -23,15 +25,20 @@ namespace application
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
 
+        PidInterface& MotorPid() override;
+        MotorFieldOrientedControllerInterface& MotorFieldOrientedController() override;
+
+        // Implementation of PidInterface
+        void Read(const infra::Function<void(float)>& onDone) override;
+        void ControlAction(float) override;
+        void Start(infra::Duration sampleTime) override;
+        void Stop() override;
+
+        // Implementation of MotorFieldOrientedControllerInterface
         void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone) override;
         void HallSensorInterrupt(const infra::Function<void(HallState state, Direction direction)>& onDone) override;
         void ThreePhasePwmOutput(const std::tuple<Percent, Percent, Percent>& dutyPhases) override;
         void Start() override;
-        void Stop() override;
-
-        void Read(const infra::Function<void(float)>& onDone) override;
-        void ControlAction(float) override;
-        void Start(infra::Duration sampleTime) override;
 
     private:
         class SynchronousAdcStub
