@@ -1,6 +1,4 @@
-#include "application/hardware/Host/HardwareFactoryImpl.hpp"
-#include "application/hardware/HardwareFactory.hpp"
-#include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
+#include "application/hardware/STM32F407G-DISC1/HardwareFactoryImpl.hpp"
 #include "infra/util/MemoryRange.hpp"
 #include DEVICE_HEADER
 
@@ -33,64 +31,14 @@ namespace application
         return infra::MakeRangeFromSingleObject(pin);
     }
 
-    hal::SynchronousAdc& HardwareFactoryImpl::PhaseA()
+    PidInterface& HardwareFactoryImpl::MotorPid()
     {
-        return phaseA;
+        return motorPid;
     }
 
-    hal::SynchronousAdc& HardwareFactoryImpl::PhaseB()
+    MotorFieldOrientedControllerInterface& HardwareFactoryImpl::MotorFieldOrientedController()
     {
-        return phaseB;
-    }
-
-    hal::SynchronousQuadratureEncoder& HardwareFactoryImpl::QuadratureEncoder()
-    {
-        return encoder;
-    }
-
-    hal::SynchronousSingleChannelPwm& HardwareFactoryImpl::PwmSinglePhaseOutput()
-    {
-        return pwm;
-    }
-
-    hal::SynchronousThreeChannelsPwm& HardwareFactoryImpl::PwmThreePhaseOutput()
-    {
-        return pwm;
-    }
-
-    uint32_t HardwareFactoryImpl::ControlTimerId() const
-    {
-        return timerId;
-    }
-
-    hal::HallSensor& HardwareFactoryImpl::HallSensor()
-    {
-        return *this;
-    }
-
-    hal::HallSensor::State HardwareFactoryImpl::Read()
-    {
-        return 0;
-    }
-
-    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Position()
-    {
-        return 0;
-    }
-
-    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Resolution()
-    {
-        return 0;
-    }
-
-    hal::SynchronousQuadratureEncoder::MotionDirection HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Direction()
-    {
-        return hal::SynchronousQuadratureEncoder::MotionDirection::forward;
-    }
-
-    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Speed()
-    {
-        return 0;
+        return motorFieldOrientedController;
     }
 
     void HardwareFactoryImpl::SerialCommunicationStub::SendData(infra::ConstByteRange data, infra::Function<void()> actionOnCompletion)

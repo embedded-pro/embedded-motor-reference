@@ -11,7 +11,6 @@ namespace application
 {
     class HardwareFactoryImpl
         : public HardwareFactory
-        , private hal::HallSensor
     {
     public:
         explicit HardwareFactoryImpl(const infra::Function<void()>& onInitialized);
@@ -21,37 +20,11 @@ namespace application
         services::Tracer& Tracer() override;
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
-        hal::SynchronousAdc& PhaseA() override;
-        hal::SynchronousAdc& PhaseB() override;
-        hal::SynchronousQuadratureEncoder& QuadratureEncoder() override;
-        hal::SynchronousSingleChannelPwm& PwmSinglePhaseOutput() override;
-        hal::SynchronousThreeChannelsPwm& PwmThreePhaseOutput() override;
-        uint32_t ControlTimerId() const override;
-        hal::HallSensor& HallSensor() override;
 
-        // Implementation of hal::HallSensor
-        State Read() override;
+        PidInterface& MotorPid() override;
+        MotorFieldOrientedControllerInterface& MotorFieldOrientedController() override;
 
     private:
-        class SynchronousAdcStub
-            : public hal::SynchronousAdc
-        {
-        public:
-            Samples Measure(std::size_t numberOfSamples) override
-            {
-                return Samples();
-            }
-        };
-
-        class SynchronousQuadratureEncoderStub
-            : public hal::SynchronousQuadratureEncoder
-        {
-            uint32_t Position() override;
-            uint32_t Resolution() override;
-            MotionDirection Direction() override;
-            uint32_t Speed() override;
-        };
-
         class SerialCommunicationStub
             : public hal::SerialCommunication
         {
@@ -76,6 +49,50 @@ namespace application
             void DisableInterrupt() override;
         };
 
+        struct PidInterfaceImpl
+            : public PidInterface
+        {
+            void Read(const infra::Function<void(float)>& onDone) override
+            {
+            }
+
+            void ControlAction(float) override
+            {
+            }
+
+            void Start(infra::Duration sampleTime) override
+            {
+            }
+
+            void Stop() override
+            {
+            }
+        };
+
+        struct MotorFieldOrientedControllerInterfaceImpl
+            : public MotorFieldOrientedControllerInterface
+        {
+            void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone) override
+            {
+            }
+
+            void HallSensorInterrupt(const infra::Function<void(HallState state, Direction direction)>& onDone) override
+            {
+            }
+
+            void ThreePhasePwmOutput(const std::tuple<Percent, Percent, Percent>& dutyPhases) override
+            {
+            }
+
+            void Start() override
+            {
+            }
+
+            void Stop() override
+            {
+            }
+        };
+
         struct TerminalAndTracer
         {
             explicit TerminalAndTracer(hal::SerialCommunication& com)
@@ -94,10 +111,8 @@ namespace application
     private:
         infra::Function<void()> onInitialized;
         static constexpr uint32_t timerId = 1;
-        SynchronousAdcStub phaseA;
-        SynchronousAdcStub phaseB;
-        SynchronousQuadratureEncoderStub encoder;
-        hal::SynchronousPwmImpl pwm;
+        PidInterfaceImpl motorPid;
+        MotorFieldOrientedControllerInterfaceImpl motorFieldOrientedController;
         GpioPinStub pin;
         SerialCommunicationStub serial;
         TerminalAndTracer terminalAndTracer{ serial };

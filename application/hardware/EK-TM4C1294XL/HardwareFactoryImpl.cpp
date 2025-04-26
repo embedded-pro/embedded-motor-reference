@@ -28,6 +28,17 @@ namespace application
         return infra::MakeRangeFromSingleObject(application::Pins::led1);
     }
 
+    PidInterface& HardwareFactoryImpl::MotorPid()
+    {
+        return motorPid;
+    }
+
+    MotorFieldOrientedControllerInterface& HardwareFactoryImpl::MotorFieldOrientedController()
+    {
+        return motorFieldOrientedController;
+    }
+
+#if 0
     hal::SynchronousQuadratureEncoder& HardwareFactoryImpl::QuadratureEncoder()
     {
         return encoder;
@@ -57,4 +68,5 @@ namespace application
     {
         hallSensorInterrupt = onDone;
     }
+#endif
 }
