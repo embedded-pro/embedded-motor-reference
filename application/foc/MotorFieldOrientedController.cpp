@@ -1,24 +1,16 @@
 #include "application/foc/MotorFieldOrientedController.hpp"
-#include "numerical/controllers/TransformsClarkePark.hpp"
 
 namespace application
 {
-    MotorFieldOrientedController::MotorFieldOrientedController(FieldOrientedControllerInterface& interface, Components& components)
-        : interface(interface)
-        , spaceVectorModulator(components.spaceVectorModulator)
-        , dPid(components.dPid)
-        , qPid(components.qPid)
-        , park(components.trigonometricFunctions)
+    MotorFieldOrientedController::MotorFieldOrientedController(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc)
+        : interface{ interface }
+        , foc{ foc }
+        , dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true }
+        , qPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true }
     {
         interface.PhaseCurrentsReady([this](std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)
             {
-                auto threePhaseCurrent = controllers::ThreePhase<float>{ std::get<0>(voltagePhases).Value(), std::get<1>(voltagePhases).Value(), std::get<2>(voltagePhases).Value() };
-                auto angle = position.value_or(Degrees(0.0f));
-                auto idAndIq = park.Forward(clarke.Forward(threePhaseCurrent), angle.Value());
-                auto twoPhaseVoltage = controllers::RotatingFrame<float>{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) };
-                auto voltageAlphaBeta = park.Inverse(twoPhaseVoltage, angle.Value());
-
-                this->interface.ThreePhasePwmOutput(spaceVectorModulator.Generate(voltageAlphaBeta));
+                this->interface.ThreePhasePwmOutput(this->foc.Calculate(dPid, qPid, voltagePhases, position));
             });
     }
 

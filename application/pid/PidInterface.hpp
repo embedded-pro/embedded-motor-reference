@@ -2,6 +2,7 @@
 
 #include "infra/timer/Timer.hpp"
 #include "infra/util/Function.hpp"
+#include "numerical/controllers/Pid.hpp"
 
 namespace application
 {
@@ -12,5 +13,16 @@ namespace application
         virtual void ControlAction(float) = 0;
         virtual void Start(infra::Duration sampleTime) = 0;
         virtual void Stop() = 0;
+    };
+
+    class Pid
+    {
+    public:
+        using Tunnings = controllers::Pid<float>::Tunnings;
+
+        virtual void SetTunnings(Tunnings tunnings) = 0;
+        virtual void SetPoint(float setPoint) = 0;
+        virtual void Enable() = 0;
+        virtual void Disable() = 0;
     };
 }

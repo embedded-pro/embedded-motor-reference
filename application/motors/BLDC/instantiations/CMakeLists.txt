@@ -8,7 +8,6 @@ target_include_directories(motor_reference.bldc.instantiations PUBLIC
 
 target_link_libraries(motor_reference.bldc.instantiations PUBLIC
     motor_reference.hardware
-    motor_reference.pid.instantiations
     motor_reference.bldc.components
     motor_reference.foc.instantiations
     numerical.controllers

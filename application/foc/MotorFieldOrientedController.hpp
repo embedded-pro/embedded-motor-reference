@@ -1,36 +1,16 @@
-#ifndef APPLICATION_FOC_WITH_TIMER_HPP
-#define APPLICATION_FOC_WITH_TIMER_HPP
+#pragma once
 
-#include "application/foc/FieldOrientedControllerInterface.hpp"
-#include "application/pid/Pid.hpp"
-#include "numerical/controllers/TransformsClarkePark.hpp"
-#include "numerical/math/TrigonometricFunctions.hpp"
+#include "application/foc/FieldOrientedController.hpp"
 
 namespace application
 {
-    class SpaceVectorModulator
-    {
-    public:
-        using TwoVoltagePhase = controllers::TwoPhase<float>;
-
-        virtual std::tuple<Percent, Percent, Percent> Generate(TwoVoltagePhase& voltagePhase) = 0;
-    };
-
     class MotorFieldOrientedController
     {
     public:
-        struct Components
-        {
-            math::TrigonometricFunctions<float>& trigonometricFunctions;
-            SpaceVectorModulator& spaceVectorModulator;
-            Pid& dPid;
-            Pid& qPid;
-        };
-
         using IdAndIqTunnings = std::pair<controllers::Pid<float>::Tunnings, controllers::Pid<float>::Tunnings>;
         using IdAndIqPoint = std::pair<float, float>;
 
-        MotorFieldOrientedController(FieldOrientedControllerInterface& interface, Components& components);
+        MotorFieldOrientedController(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc);
 
         void SetTunnings(IdAndIqTunnings tunnings);
         void SetPoint(const IdAndIqPoint& point);
@@ -39,14 +19,10 @@ namespace application
         bool IsRunning() const;
 
     protected:
-        FieldOrientedControllerInterface& interface;
-        SpaceVectorModulator& spaceVectorModulator;
-        Pid& dPid;
-        Pid& qPid;
-        controllers::Clarke<float> clarke;
-        controllers::Park<float> park;
+        MotorFieldOrientedControllerInterface& interface;
+        FieldOrientedController& foc;
+        controllers::Pid<float> dPid;
+        controllers::Pid<float> qPid;
         bool enabled = false;
     };
 }
-
-#endif

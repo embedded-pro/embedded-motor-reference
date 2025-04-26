@@ -1,7 +1,7 @@
 #pragma once
 
 #include "application/motors/DC/components/MotorPidController.hpp"
-#include "application/pid/Pid.hpp"
+#include "application/pid/PidImpl.hpp"
 
 namespace application
 {
@@ -9,7 +9,7 @@ namespace application
         : public MotorPidController
     {
     public:
-        MotorPidControllerImpl(PidInterface& interface, Pid& pid);
+        MotorPidControllerImpl(Pid& pid);
 
         // Implementation of MotorController
         void AutoTune(const infra::Function<void()>& onDone) override;
@@ -20,6 +20,6 @@ namespace application
 
     private:
         Pid::Tunnings tunnings{ 0.0f, 0.0f, 0.0f };
-        PidAsync pidAsync;
+        Pid& pid;
     };
 }

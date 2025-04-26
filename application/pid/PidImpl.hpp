@@ -1,6 +1,7 @@
 #pragma once
 
-#include "application/pid/Pid.hpp"
+#include "application/pid/PidInterface.hpp"
+#include "numerical/controllers/Pid.hpp"
 
 namespace application
 {
@@ -8,15 +9,16 @@ namespace application
         : public Pid
     {
     public:
-        PidImpl() = default;
+        PidImpl(PidInterface& interface);
 
         void SetTunnings(Tunnings tunnings) override;
         void SetPoint(float setPoint) override;
         void Enable() override;
         void Disable() override;
-        float Process(float measuredProcessVariable) override;
 
     private:
-        controllers::Pid<float> pid{ Tunnings{ 0.0f, 0.0f, 0.0f }, controllers::Pid<float>::Limits{ 0.0f, 0.9999f } };
+        PidInterface& interface;
+        infra::Duration sampleTime;
+        controllers::Pid<float> pid;
     };
 }

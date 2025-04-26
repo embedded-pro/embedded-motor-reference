@@ -1,9 +1,7 @@
 #include "application/motors/DC/components/MotorPidControllerImpl.hpp"
-#include "application/pid/test_doubles/PidInterfaceMock.hpp"
 #include "application/pid/test_doubles/PidMock.hpp"
 #include "infra/util/Function.hpp"
 #include "gmock/gmock.h"
-#include <chrono>
 #include <optional>
 
 namespace
@@ -17,9 +15,8 @@ namespace
         : public ::testing::Test
     {
     public:
-        ::testing::StrictMock<application::PidInterfaceMock> pidInterfaceMock;
         ::testing::StrictMock<application::PidMock> pidMock;
-        application::MotorPidControllerImpl controller{ pidInterfaceMock, pidMock };
+        application::MotorPidControllerImpl controller{ pidMock };
     };
 }
 
@@ -64,20 +61,6 @@ TEST_F(TestMotorControllerImpl, enable)
 
 TEST_F(TestMotorControllerImpl, disable)
 {
-    EXPECT_CALL(pidInterfaceMock, Stop());
     EXPECT_CALL(pidMock, Disable());
     controller.Stop();
 }
-
-// TEST_F(TestMotorControllerImpl, input_output)
-// {
-//     ::testing::InSequence _;
-
-//     EXPECT_CALL(pidMock, Enable());
-//     EXPECT_CALL(inputMock, Speed()).WillOnce(::testing::Return(256));
-//     EXPECT_CALL(pidMock, Process(256.0f)).WillOnce(::testing::Return(0.5f));
-//     EXPECT_CALL(outputMock, Start(PercentEq(hal::Percent(50.f))));
-
-//     controller.Start();
-//     timer.TimeProgressed(std::chrono::milliseconds(5));
-// }

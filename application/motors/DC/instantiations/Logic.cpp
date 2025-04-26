@@ -3,8 +3,9 @@
 namespace application
 {
     Logic::Logic(application::HardwareFactory& hardware)
-        : motorController(hardware, pid)
-        , terminalWithStorage(hardware.Terminal(), hardware.Tracer())
-        , terminal(terminalWithStorage, motorController)
+        : pid{ hardware }
+        , motorController{ pid }
+        , terminalWithStorage{ hardware.Terminal(), hardware.Tracer() }
+        , terminal{ terminalWithStorage, motorController }
     {}
 }

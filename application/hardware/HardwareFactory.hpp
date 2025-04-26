@@ -1,6 +1,6 @@
 #pragma once
 
-#include "application/foc/FieldOrientedControllerInterface.hpp"
+#include "application/foc/MotorFieldOrientedControllerInterface.hpp"
 #include "application/pid/PidInterface.hpp"
 #include "hal/interfaces/Gpio.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
@@ -55,7 +55,7 @@ namespace hal
 namespace application
 {
     class HardwareFactory
-        : public FieldOrientedControllerInterface
+        : public MotorFieldOrientedControllerInterface
         , public PidInterface
     {
     public:

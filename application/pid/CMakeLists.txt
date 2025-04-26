@@ -12,11 +12,10 @@ target_link_libraries(motor_reference.pid PUBLIC
 )
 
 target_sources(motor_reference.pid PRIVATE
-    Pid.cpp
-    Pid.hpp
+    PidImpl.cpp
+    PidImpl.hpp
     PidInterface.hpp
 )
 
-add_subdirectory(instantiations)
 add_subdirectory(test)
 add_subdirectory(test_doubles)

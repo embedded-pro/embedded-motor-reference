@@ -23,7 +23,7 @@ namespace application
         reverse,
     };
 
-    class FieldOrientedControllerInterface
+    class MotorFieldOrientedControllerInterface
     {
     public:
         virtual void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone) = 0;

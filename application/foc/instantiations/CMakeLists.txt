@@ -10,6 +10,6 @@ target_link_libraries(motor_reference.foc.instantiations PUBLIC
 )
 
 target_sources(motor_reference.foc.instantiations PRIVATE
-    SpaceVectorModulatorImpl.cpp
-    SpaceVectorModulatorImpl.hpp
+    FieldOrientedControllerImpl.cpp
+    FieldOrientedControllerImpl.hpp
 )

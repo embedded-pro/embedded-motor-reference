@@ -2,8 +2,8 @@
 
 namespace application
 {
-    FieldOrientedControllerInteractorImpl::FieldOrientedControllerInteractorImpl(FieldOrientedControllerInterface& interface, MotorFieldOrientedController::Components& components)
-        : foc{ interface, components }
+    FieldOrientedControllerInteractorImpl::FieldOrientedControllerInteractorImpl(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc)
+        : motorFoc{ interface, foc }
     {}
 
     void FieldOrientedControllerInteractorImpl::AutoTune(const infra::Function<void()>& onDone)
@@ -30,7 +30,7 @@ namespace application
         if (pidDAndQParameters.second.kd)
             idAndIqTunnings.second.kd = *pidDAndQParameters.second.kd;
 
-        foc.SetTunnings(idAndIqTunnings);
+        motorFoc.SetTunnings(idAndIqTunnings);
     }
 
     void FieldOrientedControllerInteractorImpl::SetTorque(const Torque& speed)
@@ -38,16 +38,16 @@ namespace application
         focSetPoint.first = speed.Value();
         focSetPoint.second = 0.0;
 
-        foc.SetPoint(focSetPoint);
+        motorFoc.SetPoint(focSetPoint);
     }
 
     void FieldOrientedControllerInteractorImpl::Start()
     {
-        foc.Enable();
+        motorFoc.Enable();
     }
 
     void FieldOrientedControllerInteractorImpl::Stop()
     {
-        foc.Disable();
+        motorFoc.Disable();
     }
 }

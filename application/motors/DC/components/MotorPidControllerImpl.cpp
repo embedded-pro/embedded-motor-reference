@@ -2,8 +2,8 @@
 
 namespace application
 {
-    MotorPidControllerImpl::MotorPidControllerImpl(PidInterface& interface, Pid& pid)
-        : pidAsync{ interface, pid }
+    MotorPidControllerImpl::MotorPidControllerImpl(Pid& pid)
+        : pid{ pid }
     {}
 
     void MotorPidControllerImpl::AutoTune(const infra::Function<void()>& onDone)
@@ -21,21 +21,21 @@ namespace application
         if (kd)
             tunnings.kd = *kd;
 
-        pidAsync.SetTunnings(tunnings);
+        pid.SetTunnings(tunnings);
     }
 
     void MotorPidControllerImpl::SetSpeed(const RevPerMinute& speed)
     {
-        pidAsync.SetPoint(speed.Value());
+        pid.SetPoint(speed.Value());
     }
 
     void MotorPidControllerImpl::Start()
     {
-        pidAsync.Enable();
+        pid.Enable();
     }
 
     void MotorPidControllerImpl::Stop()
     {
-        pidAsync.Disable();
+        pid.Disable();
     }
 }

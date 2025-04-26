@@ -1,6 +1,6 @@
 #pragma once
 
-#include "application/pid/Pid.hpp"
+#include "application/pid/PidInterface.hpp"
 #include <gmock/gmock.h>
 
 namespace application
@@ -18,6 +18,5 @@ namespace application
         MOCK_METHOD(void, SetPoint, (float), (override));
         MOCK_METHOD(void, Enable, (), (override));
         MOCK_METHOD(void, Disable, (), (override));
-        MOCK_METHOD(float, Process, (float), (override));
     };
 }

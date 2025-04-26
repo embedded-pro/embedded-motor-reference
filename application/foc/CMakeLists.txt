@@ -13,7 +13,8 @@ target_link_libraries(motor_reference.foc PUBLIC
 )
 
 target_sources(motor_reference.foc PRIVATE
-    FieldOrientedControllerInterface.hpp
+    FieldOrientedController.hpp
+    MotorFieldOrientedControllerInterface.hpp
     MotorFieldOrientedController.cpp
     MotorFieldOrientedController.hpp
 )

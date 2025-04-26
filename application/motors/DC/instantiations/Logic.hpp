@@ -3,7 +3,7 @@
 #include "application/hardware/HardwareFactory.hpp"
 #include "application/motors/DC/components/MotorPidControllerImpl.hpp"
 #include "application/motors/DC/components/Terminal.hpp"
-#include "application/pid/instantiations/PidImpl.hpp"
+#include "application/pid/PidImpl.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 
 namespace application

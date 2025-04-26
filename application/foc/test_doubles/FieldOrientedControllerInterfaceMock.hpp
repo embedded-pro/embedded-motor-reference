@@ -1,12 +1,12 @@
 #pragma once
 
-#include "application/foc/FieldOrientedControllerInterface.hpp"
+#include "application/foc/MotorFieldOrientedControllerInterface.hpp"
 #include <gmock/gmock.h>
 
 namespace application
 {
     class FieldOrientedControllerInterfaceMock
-        : public FieldOrientedControllerInterface
+        : public MotorFieldOrientedControllerInterface
     {
     public:
         MOCK_METHOD(void, PhaseCurrentsReady, (const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone), (override));

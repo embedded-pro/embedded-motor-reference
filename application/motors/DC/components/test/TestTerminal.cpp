@@ -3,8 +3,6 @@
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
 #include "infra/util/ByteRange.hpp"
-#include "infra/util/MemoryRange.hpp"
-#include "infra/util/test_helper/MemoryRangeMatcher.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
 #include "services/util/Terminal.hpp"
 #include "gmock/gmock.h"
@@ -49,7 +47,7 @@ namespace
         MOCK_METHOD1(Overwrite, infra::ByteRange(std::size_t marker));
     };
 
-    class MotorControllerMock
+    class MotorPidControllerMock
         : public application::MotorPidController
     {
     public:
@@ -60,12 +58,12 @@ namespace
         MOCK_METHOD(void, Stop, (), (override));
     };
 
-    class TestMotorTerminal
+    class TestMotorPidTerminal
         : public ::testing::Test
         , public infra::EventDispatcherWithWeakPtrFixture
     {
     public:
-        ::testing::StrictMock<MotorControllerMock> motorControllerMock;
+        ::testing::StrictMock<MotorPidControllerMock> motorControllerMock;
         ::testing::StrictMock<StreamWriterMock> streamWriterMock;
         infra::TextOutputStream::WithErrorPolicy stream{ streamWriterMock };
         services::TracerToStream tracer{ stream };
@@ -94,7 +92,7 @@ namespace
     };
 }
 
-TEST_F(TestMotorTerminal, set_auto_tune)
+TEST_F(TestMotorPidTerminal, set_auto_tune)
 {
     InvokeCommand("auto_tune", [this]()
         {
@@ -104,7 +102,7 @@ TEST_F(TestMotorTerminal, set_auto_tune)
     ExecuteAllActions();
 }
 
-TEST_F(TestMotorTerminal, set_pid_parameters)
+TEST_F(TestMotorPidTerminal, set_pid_parameters)
 {
     std::optional<float> kp{ 1.1111f };
     std::optional<float> ki{ 2.2222f };
@@ -118,7 +116,7 @@ TEST_F(TestMotorTerminal, set_pid_parameters)
     ExecuteAllActions();
 }
 
-TEST_F(TestMotorTerminal, set_pid_parameters_with_invalid_kp)
+TEST_F(TestMotorPidTerminal, set_pid_parameters_with_invalid_kp)
 {
     InvokeCommand("set_pid abc 2.2222 3.3333", [this]()
         {
@@ -136,7 +134,7 @@ TEST_F(TestMotorTerminal, set_pid_parameters_with_invalid_kp)
     ExecuteAllActions();
 }
 
-TEST_F(TestMotorTerminal, set_pid_parameters_with_invalid_ki)
+TEST_F(TestMotorPidTerminal, set_pid_parameters_with_invalid_ki)
 {
     InvokeCommand("set_pid 2.2222 abc 3.3333", [this]()
         {
@@ -154,7 +152,7 @@ TEST_F(TestMotorTerminal, set_pid_parameters_with_invalid_ki)
     ExecuteAllActions();
 }
 
-TEST_F(TestMotorTerminal, set_pid_parameters_with_invalid_kd)
+TEST_F(TestMotorPidTerminal, set_pid_parameters_with_invalid_kd)
 {
     InvokeCommand("set_pid 2.2222 3.3333 abc", [this]()
         {
@@ -172,7 +170,7 @@ TEST_F(TestMotorTerminal, set_pid_parameters_with_invalid_kd)
     ExecuteAllActions();
 }
 
-TEST_F(TestMotorTerminal, set_speed)
+TEST_F(TestMotorPidTerminal, set_speed)
 {
     application::MotorPidController::RevPerMinute speed{ 4.444f };
 
@@ -184,7 +182,7 @@ TEST_F(TestMotorTerminal, set_speed)
     ExecuteAllActions();
 }
 
-TEST_F(TestMotorTerminal, set_speed_invalid)
+TEST_F(TestMotorPidTerminal, set_speed_invalid)
 {
     InvokeCommand("set_speed abc", [this]()
         {
@@ -202,7 +200,7 @@ TEST_F(TestMotorTerminal, set_speed_invalid)
     ExecuteAllActions();
 }
 
-TEST_F(TestMotorTerminal, set_speed_with_extra_args)
+TEST_F(TestMotorPidTerminal, set_speed_with_extra_args)
 {
     application::MotorPidController::RevPerMinute speed{ 4.444f };
 
@@ -222,7 +220,7 @@ TEST_F(TestMotorTerminal, set_speed_with_extra_args)
     ExecuteAllActions();
 }
 
-TEST_F(TestMotorTerminal, start)
+TEST_F(TestMotorPidTerminal, start)
 {
     InvokeCommand("start", [this]()
         {
@@ -232,7 +230,7 @@ TEST_F(TestMotorTerminal, start)
     ExecuteAllActions();
 }
 
-TEST_F(TestMotorTerminal, stop)
+TEST_F(TestMotorPidTerminal, stop)
 {
     InvokeCommand("stop", [this]()
         {
