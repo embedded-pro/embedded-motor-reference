@@ -14,5 +14,19 @@ namespace application
         MOCK_METHOD(void, ThreePhasePwmOutput, ((const std::tuple<Percent, Percent, Percent>&)), (override));
         MOCK_METHOD(void, Start, (), (override));
         MOCK_METHOD(void, Stop, (), (override));
+
+        void StorePhaseCurrentsCallback(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone)
+        {
+            phaseCurrentsCallback = onDone;
+        }
+
+        void TriggerPhaseCurrentsCallback(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)
+        {
+            if (phaseCurrentsCallback)
+                phaseCurrentsCallback(voltagePhases, position);
+        }
+
+    private:
+        infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)> phaseCurrentsCallback;
     };
 }
