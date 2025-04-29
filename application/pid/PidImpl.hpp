@@ -9,7 +9,7 @@ namespace application
         : public Pid
     {
     public:
-        PidImpl(PidInterface& interface);
+        explicit PidImpl(PidInterface& interface);
 
         void SetTunnings(Tunnings tunnings) override;
         void SetPoint(float setPoint) override;

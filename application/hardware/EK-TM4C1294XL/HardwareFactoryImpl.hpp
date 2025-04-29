@@ -7,7 +7,7 @@
 #include "hal/interfaces/SerialCommunication.hpp"
 #include "hal/ti/hal_tiva/synchronous_tiva/SynchronousPwm.hpp"
 #include "hal/ti/hal_tiva/synchronous_tiva/SynchronousQuadratureEncoder.hpp"
-#include "hal/ti/hal_tiva/tiva/Adc.hpp"
+// #include "hal/ti/hal_tiva/tiva/Adc.hpp"
 #include "hal/ti/hal_tiva/tiva/Uart.hpp"
 #include "hal_tiva/tiva/Gpio.hpp"
 #include "services/tracer/StreamWriterOnSerialCommunication.hpp"
@@ -98,9 +98,9 @@ namespace application
 
         hal::tiva::QuadratureEncoder::Config qeiConfig;
         hal::tiva::QuadratureEncoder encoder{ Peripheral::QeiIndex, Pins::encoderA, Pins::encoderB, Pins::encoderZ, qeiConfig };
-        hal::tiva::Adc::Config adcConfig{ false, 0, hal::tiva::Adc::Trigger::pwmGenerator0, hal::tiva::Adc::SampleAndHold::sampleAndHold4 };
-        std::array<hal::tiva::AnalogPin, 2> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB } } };
-        hal::tiva::Adc adcCurrentPhases{ Peripheral::AdcIndex, Peripheral::AdcSequencerIndex, currentPhaseAnalogPins, adcConfig };
+        // hal::tiva::Adc::Config adcConfig{ false, 0, hal::tiva::Adc::Trigger::pwmGenerator0, hal::tiva::Adc::SampleAndHold::sampleAndHold4 };
+        // std::array<hal::tiva::AnalogPin, 2> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB } } };
+        // hal::tiva::Adc adcCurrentPhases{ Peripheral::AdcIndex, Peripheral::AdcSequencerIndex, currentPhaseAnalogPins, adcConfig };
         hal::tiva::SynchronousPwm::Config::Control controlConfig{};
         hal::tiva::SynchronousPwm::Config::Generator generatorAConfig{ hal::tiva::SynchronousPwm::Config::Generator::Action::doNothing, hal::tiva::SynchronousPwm::Config::Generator::Action::doNothing };
         hal::tiva::SynchronousPwm::Config::Generator generatorBConfig{ hal::tiva::SynchronousPwm::Config::Generator::Action::doNothing, hal::tiva::SynchronousPwm::Config::Generator::Action::doNothing };
