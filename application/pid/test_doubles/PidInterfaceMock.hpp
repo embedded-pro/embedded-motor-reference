@@ -9,9 +9,13 @@ namespace application
         : public PidInterface
     {
     public:
-        void Read(const infra::Function<void(float)>& onDone) override
+        MOCK_METHOD(void, Read, (const infra::Function<void(float)>&), (override));
+        MOCK_METHOD(void, ControlAction, (float), (override));
+        MOCK_METHOD(void, Start, (infra::Duration sampleTime), (override));
+        MOCK_METHOD(void, Stop, (), (override));
+
+        void StoreReadCallback(const infra::Function<void(float)>& onDone)
         {
-            MockRead(onDone);
             savedCallback = onDone;
         }
 
@@ -20,11 +24,6 @@ namespace application
             if (savedCallback)
                 savedCallback(value);
         }
-
-        MOCK_METHOD(void, MockRead, (const infra::Function<void(float)>&));
-        MOCK_METHOD(void, ControlAction, (float), (override));
-        MOCK_METHOD(void, Start, (infra::Duration sampleTime), (override));
-        MOCK_METHOD(void, Stop, (), (override));
 
     private:
         infra::Function<void(float)> savedCallback;

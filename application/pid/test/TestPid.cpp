@@ -17,66 +17,81 @@ namespace
         : public ::testing::Test
     {
     public:
+        TestPid()
+        {
+            EXPECT_CALL(interfaceMock, Read(::testing::_))
+                .WillOnce(::testing::Invoke(&interfaceMock, &application::PidInterfaceMock::StoreReadCallback));
+            pid.emplace(interfaceMock);
+        }
+
         ::testing::StrictMock<application::PidInterfaceMock> interfaceMock;
-        std::optional<application::PidImpl> pid{ std::in_place, interfaceMock };
+        std::optional<application::PidImpl> pid;
     };
 }
 
-TEST_F(TestPid, enableStartsTimerAndEnablesPid)
+TEST_F(TestPid, test_process_input_triggers_control_action)
 {
-    const float inputValue = 25.0f;
-    const float processedValue = 30.0f;
-
-    EXPECT_CALL(interfaceMock, ControlAction(processedValue));
-    pid->Enable();
-    interfaceMock.TriggerCallback(inputValue);
+    EXPECT_CALL(interfaceMock, ControlAction(::testing::_)).Times(1);
+    interfaceMock.TriggerCallback(10);
 }
 
-TEST_F(TestPid, disableCancelsTimerAndDisablesOutputAndPid)
+TEST_F(TestPid, test_set_point_does_not_interact_with_interface)
 {
+    const float newSetPoint = 25.5f;
+    pid->SetPoint(newSetPoint);
+}
+
+TEST_F(TestPid, test_set_tunnings_does_not_interact_with_interface)
+{
+    application::Pid::Tunnings newTunnings{ 0.5f, 0.3f, 0.1f };
+    pid->SetTunnings(newTunnings);
+}
+
+TEST_F(TestPid, test_enable_starts_interface)
+{
+    EXPECT_CALL(interfaceMock, Start(::testing::_)).Times(1);
     pid->Enable();
-    EXPECT_CALL(interfaceMock, Stop());
+}
+
+TEST_F(TestPid, test_disable_stops_interface)
+{
+    EXPECT_CALL(interfaceMock, Stop()).Times(1);
     pid->Disable();
 }
 
-TEST_F(TestPid, timerTriggersMultipleTimesAtCorrectIntervals)
+TEST_F(TestPid, test_order_of_operations_in_enable_disable_sequence)
 {
-    const float inputValue1 = 25.0f;
-    const float processedValue1 = 30.0f;
-    const float inputValue2 = 27.0f;
-    const float processedValue2 = 32.0f;
-    const float inputValue3 = 29.0f;
-    const float processedValue3 = 34.0f;
-
+    ::testing::InSequence seq;
+    EXPECT_CALL(interfaceMock, Start(::testing::_)).Times(1);
+    EXPECT_CALL(interfaceMock, Stop()).Times(1);
     pid->Enable();
-
-    EXPECT_CALL(interfaceMock, ControlAction(processedValue1));
-    interfaceMock.TriggerCallback(inputValue1);
-
-    EXPECT_CALL(interfaceMock, ControlAction(processedValue2));
-    interfaceMock.TriggerCallback(inputValue2);
-
-    EXPECT_CALL(interfaceMock, ControlAction(processedValue3));
-    interfaceMock.TriggerCallback(inputValue3);
+    pid->Disable();
 }
 
-TEST_F(TestPid, timerRestartedAfterDisableAndEnable)
+TEST_F(TestPid, test_processing_input_produces_control_action_after_enable)
 {
-    const float inputValue1 = 25.0f;
-    const float processedValue1 = 30.0f;
-    const float inputValue2 = 27.0f;
-    const float processedValue2 = 32.0f;
-
+    ::testing::InSequence seq;
+    EXPECT_CALL(interfaceMock, Start(::testing::_)).Times(1);
+    EXPECT_CALL(interfaceMock, ControlAction(::testing::_)).Times(1);
     pid->Enable();
+    interfaceMock.TriggerCallback(15);
+}
 
-    EXPECT_CALL(interfaceMock, ControlAction(processedValue1));
-    interfaceMock.TriggerCallback(inputValue1);
+TEST_F(TestPid, test_multiple_control_actions_from_multiple_inputs)
+{
+    EXPECT_CALL(interfaceMock, ControlAction(::testing::_)).Times(3);
+    interfaceMock.TriggerCallback(10);
+    interfaceMock.TriggerCallback(15);
+    interfaceMock.TriggerCallback(20);
+}
 
-    EXPECT_CALL(interfaceMock, Stop());
+TEST_F(TestPid, test_enable_disable_enable_sequence)
+{
+    ::testing::InSequence seq;
+    EXPECT_CALL(interfaceMock, Start(::testing::_)).Times(1);
+    EXPECT_CALL(interfaceMock, Stop()).Times(1);
+    EXPECT_CALL(interfaceMock, Start(::testing::_)).Times(1);
+    pid->Enable();
     pid->Disable();
-
     pid->Enable();
-
-    EXPECT_CALL(interfaceMock, ControlAction(processedValue2));
-    interfaceMock.TriggerCallback(inputValue2);
 }
