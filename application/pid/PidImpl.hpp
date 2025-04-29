@@ -19,6 +19,6 @@ namespace application
     private:
         PidInterface& interface;
         infra::Duration sampleTime;
-        controllers::Pid<float> pid;
+        controllers::Pid<float> pid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true };
     };
 }

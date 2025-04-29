@@ -5,8 +5,6 @@ namespace application
     MotorFieldOrientedControllerImpl::MotorFieldOrientedControllerImpl(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc)
         : interface{ interface }
         , foc{ foc }
-        , dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true }
-        , qPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true }
     {
         interface.PhaseCurrentsReady([this](std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)
             {

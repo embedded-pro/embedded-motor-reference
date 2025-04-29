@@ -32,11 +32,11 @@ namespace application
         void Disable() override;
         bool IsRunning() const override;
 
-    protected:
+    private:
         MotorFieldOrientedControllerInterface& interface;
         FieldOrientedController& foc;
-        controllers::Pid<float> dPid;
-        controllers::Pid<float> qPid;
+        controllers::Pid<float> dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true };
+        controllers::Pid<float> qPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true };
         bool enabled = false;
     };
 }

@@ -9,7 +9,7 @@ namespace application
         : public MotorPidController
     {
     public:
-        MotorPidControllerImpl(Pid& pid);
+        explicit MotorPidControllerImpl(Pid& pid);
 
         // Implementation of MotorController
         void AutoTune(const infra::Function<void()>& onDone) override;

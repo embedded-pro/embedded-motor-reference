@@ -9,7 +9,7 @@ namespace application
         : public FieldOrientedControllerInteractor
     {
     public:
-        FieldOrientedControllerInteractorImpl(MotorFieldOrientedController& motorFoc);
+        explicit FieldOrientedControllerInteractorImpl(MotorFieldOrientedController& motorFoc);
 
         // Implementation of MotorController
         void AutoTune(const infra::Function<void()>& onDone) override;

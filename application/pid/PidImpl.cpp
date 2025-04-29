@@ -4,7 +4,6 @@ namespace application
 {
     PidImpl::PidImpl(PidInterface& interface)
         : interface{ interface }
-        , pid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true }
     {
         interface.Read([this](float input)
             {
