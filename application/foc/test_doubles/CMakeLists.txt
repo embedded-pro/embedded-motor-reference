@@ -1,7 +1,7 @@
-add_library(motor_reference.foc_mock)
+add_library(motor_reference.foc_mock INTERFACE)
 emil_build_for(motor_reference.foc_mock HOST All BOOL MOTOR_REFERENCE_BUILD_TESTS)
 
-target_link_libraries(motor_reference.foc_mock PUBLIC
+target_link_libraries(motor_reference.foc_mock INTERFACE
     gmock_main
     motor_reference.foc
     numerical.math_test_helper
