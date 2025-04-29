@@ -18,6 +18,7 @@ namespace application
     private:
         TrigonometricFunctions trigonometricFunctions;
         FieldOrientedControllerImpl focImpl{ trigonometricFunctions };
+        MotorFieldOrientedControllerImpl motorFocImpl;
         FieldOrientedControllerInteractorImpl focInteractor;
         services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;
         application::TerminalInteractor terminal;

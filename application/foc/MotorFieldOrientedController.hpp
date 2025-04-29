@@ -10,13 +10,27 @@ namespace application
         using IdAndIqTunnings = std::pair<controllers::Pid<float>::Tunnings, controllers::Pid<float>::Tunnings>;
         using IdAndIqPoint = std::pair<float, float>;
 
-        MotorFieldOrientedController(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc);
+        virtual void SetTunnings(IdAndIqTunnings tunnings) = 0;
+        virtual void SetPoint(const IdAndIqPoint& point) = 0;
+        virtual void Enable() = 0;
+        virtual void Disable() = 0;
+        virtual bool IsRunning() const = 0;
+    };
 
-        void SetTunnings(IdAndIqTunnings tunnings);
-        void SetPoint(const IdAndIqPoint& point);
-        virtual void Enable();
-        void Disable();
-        bool IsRunning() const;
+    class MotorFieldOrientedControllerImpl
+        : public MotorFieldOrientedController
+    {
+    public:
+        using IdAndIqTunnings = std::pair<controllers::Pid<float>::Tunnings, controllers::Pid<float>::Tunnings>;
+        using IdAndIqPoint = std::pair<float, float>;
+
+        MotorFieldOrientedControllerImpl(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc);
+
+        void SetTunnings(IdAndIqTunnings tunnings) override;
+        void SetPoint(const IdAndIqPoint& point) override;
+        void Enable() override;
+        void Disable() override;
+        bool IsRunning() const override;
 
     protected:
         MotorFieldOrientedControllerInterface& interface;

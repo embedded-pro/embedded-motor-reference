@@ -19,7 +19,7 @@ namespace
 
         ::testing::StrictMock<application::FieldOrientedControllerInterfaceMock> interfaceMock;
         ::testing::StrictMock<application::FieldOrientedControllerMock> focMock;
-        std::optional<application::MotorFieldOrientedController> foc;
+        std::optional<application::MotorFieldOrientedControllerImpl> foc;
     };
 }
 

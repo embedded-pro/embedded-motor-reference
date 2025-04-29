@@ -2,8 +2,8 @@
 
 namespace application
 {
-    FieldOrientedControllerInteractorImpl::FieldOrientedControllerInteractorImpl(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc)
-        : motorFoc{ interface, foc }
+    FieldOrientedControllerInteractorImpl::FieldOrientedControllerInteractorImpl(MotorFieldOrientedController& motorFoc)
+        : motorFoc{ motorFoc }
     {}
 
     void FieldOrientedControllerInteractorImpl::AutoTune(const infra::Function<void()>& onDone)

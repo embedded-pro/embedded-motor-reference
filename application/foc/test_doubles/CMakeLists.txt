@@ -11,4 +11,5 @@ target_link_libraries(motor_reference.foc_mock PUBLIC
 target_sources(motor_reference.foc_mock PRIVATE
     FieldOrientedControllerInterfaceMock.hpp
     FieldOrientedControllerMock.hpp
+    MotorFieldOrientedControllerMock.hpp
 )

@@ -2,7 +2,7 @@
 
 namespace application
 {
-    MotorFieldOrientedController::MotorFieldOrientedController(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc)
+    MotorFieldOrientedControllerImpl::MotorFieldOrientedControllerImpl(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc)
         : interface{ interface }
         , foc{ foc }
         , dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true }
@@ -14,19 +14,19 @@ namespace application
             });
     }
 
-    void MotorFieldOrientedController::SetTunnings(IdAndIqTunnings tunnings)
+    void MotorFieldOrientedControllerImpl::SetTunnings(IdAndIqTunnings tunnings)
     {
         dPid.SetTunnings(tunnings.first);
         qPid.SetTunnings(tunnings.second);
     }
 
-    void MotorFieldOrientedController::SetPoint(const IdAndIqPoint& point)
+    void MotorFieldOrientedControllerImpl::SetPoint(const IdAndIqPoint& point)
     {
         dPid.SetPoint(point.first);
         qPid.SetPoint(point.second);
     }
 
-    void MotorFieldOrientedController::Enable()
+    void MotorFieldOrientedControllerImpl::Enable()
     {
         enabled = true;
         dPid.Enable();
@@ -34,7 +34,7 @@ namespace application
         interface.Start();
     }
 
-    void MotorFieldOrientedController::Disable()
+    void MotorFieldOrientedControllerImpl::Disable()
     {
         enabled = false;
         interface.Stop();
@@ -42,7 +42,7 @@ namespace application
         qPid.Disable();
     }
 
-    bool MotorFieldOrientedController::IsRunning() const
+    bool MotorFieldOrientedControllerImpl::IsRunning() const
     {
         return enabled;
     }

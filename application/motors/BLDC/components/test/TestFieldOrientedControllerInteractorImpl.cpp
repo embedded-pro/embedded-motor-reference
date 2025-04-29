@@ -1,7 +1,4 @@
-#include "application/foc/MotorFieldOrientedController.hpp"
-#include "application/foc/test_doubles/FieldOrientedControllerInterfaceMock.hpp"
-#include "application/foc/test_doubles/FieldOrientedControllerMock.hpp"
-#include "application/motors/BLDC/components/FieldOrientedControllerInteractor.hpp"
+#include "application/foc/test_doubles/MotorFieldOrientedControllerMock.hpp"
 #include "application/motors/BLDC/components/FieldOrientedControllerInteractorImpl.hpp"
 #include <gmock/gmock.h>
 
@@ -9,176 +6,141 @@ namespace
 {
     using namespace testing;
 
+    MATCHER_P(IdAndIqTunningsEq, expected, "")
+    {
+        return arg.first.kp == expected.first.kp &&
+               arg.first.ki == expected.first.ki &&
+               arg.first.kd == expected.first.kd &&
+               arg.second.kp == expected.second.kp &&
+               arg.second.ki == expected.second.ki &&
+               arg.second.kd == expected.second.kd;
+    }
+
+    MATCHER_P(IdAndIqPointEq, expected, "")
+    {
+        return arg.first == expected.first && arg.second == expected.second;
+    }
+
     class FieldOrientedControllerInteractorTest
         : public testing::Test
     {
     public:
-        testing::StrictMock<application::FieldOrientedControllerMock> focMock;
-        testing::StrictMock<application::FieldOrientedControllerInterfaceMock> interfaceMock;
-        application::FieldOrientedControllerInteractorImpl interactor{ interfaceMock, focMock };
+        testing::StrictMock<application::MotorFieldOrientedControllerMock> motorFocMock;
+        application::FieldOrientedControllerInteractorImpl interactor{ motorFocMock };
     };
 }
 
-TEST_F(FieldOrientedControllerInteractorTest, interactor_is_constructed_with_valid_dependencies)
+TEST_F(FieldOrientedControllerInteractorTest, StartEnablesMotorFoc)
 {
-}
-
-TEST_F(FieldOrientedControllerInteractorTest, set_dq_pid_parameters_with_all_values_present_updates_all_parameters)
-{
-    application::FieldOrientedControllerInteractor::PidParameters dParams;
-    dParams.kp = 0.5f;
-    dParams.ki = 0.2f;
-    dParams.kd = 0.1f;
-
-    application::FieldOrientedControllerInteractor::PidParameters qParams;
-    qParams.kp = 0.6f;
-    qParams.ki = 0.3f;
-    qParams.kd = 0.15f;
-
-    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
-
-    EXPECT_CALL(interfaceMock, Start());
-    EXPECT_CALL(interfaceMock, PhaseCurrentsReady(testing::_));
-    interactor.Start();
-}
-
-TEST_F(FieldOrientedControllerInteractorTest, set_dq_pid_parameters_with_partial_d_parameters_only_updates_provided_values)
-{
-    application::FieldOrientedControllerInteractor::PidParameters dParams;
-    dParams.kp = 0.5f;
-
-    application::FieldOrientedControllerInteractor::PidParameters qParams;
-
-    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
-
-    EXPECT_CALL(interfaceMock, Start());
-    EXPECT_CALL(interfaceMock, PhaseCurrentsReady(testing::_));
-    interactor.Start();
-}
-
-TEST_F(FieldOrientedControllerInteractorTest, set_dq_pid_parameters_with_partial_q_parameters_only_updates_provided_values)
-{
-    application::FieldOrientedControllerInteractor::PidParameters dParams;
-
-    application::FieldOrientedControllerInteractor::PidParameters qParams;
-    qParams.ki = 0.3f;
-
-    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
-
-    EXPECT_CALL(interfaceMock, Start());
-    EXPECT_CALL(interfaceMock, PhaseCurrentsReady(testing::_));
-    interactor.Start();
-}
-
-TEST_F(FieldOrientedControllerInteractorTest, set_torque_updates_foc_setpoint_with_torque_value_and_zero_quadrature)
-{
-    application::FieldOrientedControllerInteractor::Torque torque(10.0f);
-
-    interactor.SetTorque(torque);
-
-    EXPECT_CALL(interfaceMock, Start());
-    EXPECT_CALL(interfaceMock, PhaseCurrentsReady(testing::_));
-    interactor.Start();
-}
-
-TEST_F(FieldOrientedControllerInteractorTest, start_enables_field_oriented_controller)
-{
-    EXPECT_CALL(interfaceMock, Start());
-    EXPECT_CALL(interfaceMock, PhaseCurrentsReady(testing::_));
+    EXPECT_CALL(motorFocMock, Enable()).Times(1);
 
     interactor.Start();
 }
 
-TEST_F(FieldOrientedControllerInteractorTest, stop_disables_field_oriented_controller)
+TEST_F(FieldOrientedControllerInteractorTest, StopDisablesMotorFoc)
 {
-    EXPECT_CALL(interfaceMock, Stop());
+    EXPECT_CALL(motorFocMock, Disable()).Times(1);
 
     interactor.Stop();
 }
 
-TEST_F(FieldOrientedControllerInteractorTest, auto_tune_calls_callback_immediately)
+TEST_F(FieldOrientedControllerInteractorTest, SetTorqueUpdatesSetPoint)
+{
+    const float torqueValue = 0.75f;
+    application::MotorFieldOrientedController::IdAndIqPoint expectedPoint{ torqueValue, 0.0 };
+    EXPECT_CALL(motorFocMock, SetPoint(IdAndIqPointEq(expectedPoint))).Times(1);
+
+    interactor.SetTorque(application::FieldOrientedControllerInteractor::Torque(torqueValue));
+}
+
+TEST_F(FieldOrientedControllerInteractorTest, SetDQPidParametersWithAllValuesPresent)
+{
+    const float kpD = 1.0f;
+    const float kiD = 2.0f;
+    const float kdD = 3.0f;
+    const float kpQ = 4.0f;
+    const float kiQ = 5.0f;
+    const float kdQ = 6.0f;
+
+    application::MotorFieldOrientedController::IdAndIqTunnings expectedTunnings{
+        { kpD, kiD, kdD },
+        { kpQ, kiQ, kdQ }
+    };
+
+    EXPECT_CALL(motorFocMock, SetTunnings(IdAndIqTunningsEq(expectedTunnings))).Times(1);
+
+    application::FieldOrientedControllerInteractor::PidParameters dParams;
+    dParams.kp = kpD;
+    dParams.ki = kiD;
+    dParams.kd = kdD;
+
+    application::FieldOrientedControllerInteractor::PidParameters qParams;
+    qParams.kp = kpQ;
+    qParams.ki = kiQ;
+    qParams.kd = kdQ;
+
+    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
+}
+
+TEST_F(FieldOrientedControllerInteractorTest, SetDQPidParametersWithPartialValues)
+{
+    const float kpD = 1.0f;
+    const float kiQ = 5.0f;
+
+    application::MotorFieldOrientedController::IdAndIqTunnings expectedTunnings{
+        { kpD, 0.0f, 0.0f },
+        { 0.0f, kiQ, 0.0f }
+    };
+
+    EXPECT_CALL(motorFocMock, SetTunnings(IdAndIqTunningsEq(expectedTunnings))).Times(1);
+
+    application::FieldOrientedControllerInteractor::PidParameters dParams;
+    dParams.kp = kpD;
+
+    application::FieldOrientedControllerInteractor::PidParameters qParams;
+    qParams.ki = kiQ;
+
+    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
+}
+
+TEST_F(FieldOrientedControllerInteractorTest, ExecutionOrder_StartThenSetTorque)
+{
+    {
+        InSequence seq;
+        EXPECT_CALL(motorFocMock, Enable()).Times(1);
+        EXPECT_CALL(motorFocMock, SetPoint(_)).Times(1);
+    }
+
+    interactor.Start();
+    interactor.SetTorque(application::FieldOrientedControllerInteractor::Torque(0.5f));
+}
+
+TEST_F(FieldOrientedControllerInteractorTest, ExecutionOrder_ConfigureThenStartThenStop)
+{
+    {
+        InSequence seq;
+        EXPECT_CALL(motorFocMock, SetTunnings(_)).Times(1);
+        EXPECT_CALL(motorFocMock, Enable()).Times(1);
+        EXPECT_CALL(motorFocMock, Disable()).Times(1);
+    }
+
+    application::FieldOrientedControllerInteractor::PidParameters dParams;
+    dParams.kp = 1.0f;
+    application::FieldOrientedControllerInteractor::PidParameters qParams;
+    qParams.kp = 2.0f;
+
+    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
+    interactor.Start();
+    interactor.Stop();
+}
+
+TEST_F(FieldOrientedControllerInteractorTest, AutoTuneDoesNotCallMock)
 {
     bool callbackCalled = false;
-    auto onDone = [&callbackCalled]()
-    {
-        callbackCalled = true;
-    };
+    interactor.AutoTune([&callbackCalled]()
+        {
+            callbackCalled = true;
+        });
 
-    interactor.AutoTune(onDone);
-
-    EXPECT_TRUE(callbackCalled);
-}
-
-TEST_F(FieldOrientedControllerInteractorTest, typical_workflow_configures_pid_sets_torque_and_starts_controller)
-{
-    application::FieldOrientedControllerInteractor::PidParameters dParams;
-    dParams.kp = 0.5f;
-    dParams.ki = 0.2f;
-    dParams.kd = 0.1f;
-
-    application::FieldOrientedControllerInteractor::PidParameters qParams;
-    qParams.kp = 0.6f;
-    qParams.ki = 0.3f;
-    qParams.kd = 0.15f;
-
-    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
-
-    application::FieldOrientedControllerInteractor::Torque torque(5.0f);
-    interactor.SetTorque(torque);
-
-    EXPECT_CALL(interfaceMock, Start());
-    EXPECT_CALL(interfaceMock, PhaseCurrentsReady(testing::_));
-    interactor.Start();
-
-    EXPECT_CALL(interfaceMock, Stop());
-    interactor.Stop();
-}
-
-TEST_F(FieldOrientedControllerInteractorTest, multiple_starts_and_stops_work_as_expected)
-{
-    EXPECT_CALL(interfaceMock, Start());
-    EXPECT_CALL(interfaceMock, PhaseCurrentsReady(testing::_));
-    interactor.Start();
-
-    EXPECT_CALL(interfaceMock, Stop());
-    interactor.Stop();
-
-    EXPECT_CALL(interfaceMock, Start());
-    EXPECT_CALL(interfaceMock, PhaseCurrentsReady(testing::_));
-    interactor.Start();
-
-    EXPECT_CALL(interfaceMock, Stop());
-    interactor.Stop();
-}
-
-TEST_F(FieldOrientedControllerInteractorTest, field_oriented_controller_processes_phase_currents_correctly)
-{
-    EXPECT_CALL(interfaceMock, Start());
-    EXPECT_CALL(interfaceMock, PhaseCurrentsReady(testing::_))
-        .WillOnce(testing::Invoke([this](const auto& callback)
-            {
-                std::tuple<application::MilliVolt, application::MilliVolt, application::MilliVolt> voltagePhases{
-                    application::MilliVolt(100.0f),
-                    application::MilliVolt(200.0f),
-                    application::MilliVolt(300.0f)
-                };
-                std::optional<application::Degrees> position = application::Degrees(45.0f);
-
-                // EXPECT_CALL(trigFunctions, Sin(testing::_)).WillOnce(Return(0.707f));
-                // EXPECT_CALL(trigFunctions, Cos(testing::_)).WillOnce(Return(0.707f));
-
-                std::tuple<application::Percent, application::Percent, application::Percent> expectedDutyPhases{
-                    application::Percent(50.0f),
-                    application::Percent(50.0f),
-                    application::Percent(50.0f)
-                };
-                // EXPECT_CALL(spaceVectorModulator, Generate(testing::_))
-                //     .WillOnce(Return(expectedDutyPhases));
-
-                EXPECT_CALL(interfaceMock, ThreePhasePwmOutput(testing::_));
-
-                callback(voltagePhases, position);
-            }));
-
-    interactor.Start();
+    EXPECT_FALSE(callbackCalled);
 }
