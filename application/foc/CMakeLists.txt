@@ -13,9 +13,12 @@ target_link_libraries(motor_reference.foc PUBLIC
 )
 
 target_sources(motor_reference.foc PRIVATE
-    FocWithTimer.cpp
-    FocWithTimer.hpp
+    FieldOrientedController.hpp
+    MotorFieldOrientedControllerInterface.hpp
+    MotorFieldOrientedController.cpp
+    MotorFieldOrientedController.hpp
 )
 
 add_subdirectory(instantiations)
 add_subdirectory(test)
+add_subdirectory(test_doubles)

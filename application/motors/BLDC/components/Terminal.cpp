@@ -21,9 +21,9 @@ namespace
 
 namespace application
 {
-    TerminalInteractor::TerminalInteractor(services::TerminalWithStorage& terminal, application::FocController& focController)
+    TerminalInteractor::TerminalInteractor(services::TerminalWithStorage& terminal, FieldOrientedControllerInteractor& focInteractor)
         : terminal(terminal)
-        , focController(focController)
+        , focInteractor(focInteractor)
     {
         terminal.AddCommand({ { "auto_tune", "at", "Run auto tune" },
             [this](const auto&)
@@ -58,7 +58,7 @@ namespace application
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::AutoTune()
     {
-        focController.AutoTune(infra::emptyFunction);
+        focInteractor.AutoTune(infra::emptyFunction);
         return TerminalInteractor::StatusWithMessage();
     }
 
@@ -93,24 +93,24 @@ namespace application
         if (!qkd)
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        auto dPid = FocController::PidFocParameters{
+        auto dPid = FieldOrientedControllerInteractor::PidParameters{
             std::optional<float>(*dkp),
             std::optional<float>(*dki),
             std::optional<float>(*dkd)
         };
-        auto qPid = FocController::PidFocParameters{
+        auto qPid = FieldOrientedControllerInteractor::PidParameters{
             std::optional<float>(*qkp),
             std::optional<float>(*qki),
             std::optional<float>(*qkd)
         };
 
-        focController.SetDQPidParameters(std::make_pair(dPid, qPid));
+        focInteractor.SetDQPidParameters(std::make_pair(dPid, qPid));
         return TerminalInteractor::StatusWithMessage();
     }
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::Start()
     {
-        focController.Start();
+        focInteractor.Start();
         return TerminalInteractor::StatusWithMessage();
     }
 
@@ -125,15 +125,15 @@ namespace application
         if (!t)
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        FocController::Torque torque(*t);
+        FieldOrientedControllerInteractor::Torque torque(*t);
 
-        focController.SetTorque(torque);
+        focInteractor.SetTorque(torque);
         return TerminalInteractor::StatusWithMessage();
     }
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::Stop()
     {
-        focController.Stop();
+        focInteractor.Stop();
         return TerminalInteractor::StatusWithMessage();
     }
 }

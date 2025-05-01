@@ -1,7 +1,6 @@
-#ifndef APPLICATION_BLDC_LOGIC_TERMINAL_HPP
-#define APPLICATION_BLDC_LOGIC_TERMINAL_HPP
+#pragma once
 
-#include "application/motors/BLDC/components/MotorController.hpp"
+#include "application/motors/BLDC/components/FieldOrientedControllerInteractor.hpp"
 #include "services/tracer/Tracer.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 
@@ -10,7 +9,7 @@ namespace application
     class TerminalInteractor
     {
     public:
-        TerminalInteractor(services::TerminalWithStorage& terminal, application::FocController& focController);
+        TerminalInteractor(services::TerminalWithStorage& terminal, FieldOrientedControllerInteractor& focInteractor);
 
     private:
         using StatusWithMessage = services::TerminalWithStorage::StatusWithMessage;
@@ -23,8 +22,6 @@ namespace application
 
     private:
         services::TerminalWithStorage& terminal;
-        application::FocController& focController;
+        FieldOrientedControllerInteractor& focInteractor;
     };
 }
-
-#endif

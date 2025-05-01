@@ -1,12 +1,12 @@
 #ifndef APPLICATION_BLDC_LOGIC_HPP
 #define APPLICATION_BLDC_LOGIC_HPP
 
-#include "application/foc/instantiations/SpaceVectorModulatorImpl.hpp"
+#include "application/foc/MotorFieldOrientedController.hpp"
+#include "application/foc/instantiations/FieldOrientedControllerImpl.hpp"
 #include "application/hardware/HardwareFactory.hpp"
-#include "application/motors/BLDC/components/MotorControllerImpl.hpp"
+#include "application/motors/BLDC/components/FieldOrientedControllerInteractorImpl.hpp"
 #include "application/motors/BLDC/components/Terminal.hpp"
 #include "application/motors/BLDC/components/TrigonometricImpl.hpp"
-#include <chrono>
 
 namespace application
 {
@@ -17,12 +17,9 @@ namespace application
 
     private:
         TrigonometricFunctions trigonometricFunctions;
-        SpaceVectorModulatorImpl spaceVectorModulation;
-        PidImpl dPid;
-        PidImpl qPid;
-        FocWithTimer::Components components;
-        FocControllerImpl::Input input;
-        FocControllerImpl focController;
+        FieldOrientedControllerImpl focImpl{ trigonometricFunctions };
+        MotorFieldOrientedControllerImpl motorFocImpl;
+        FieldOrientedControllerInteractorImpl focInteractor;
         services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;
         application::TerminalInteractor terminal;
     };

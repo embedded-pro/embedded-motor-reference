@@ -7,8 +7,9 @@ target_link_libraries(motor_reference.pid_test PUBLIC
     motor_reference.pid
     numerical.math_test_helper
     infra.timer_test_helper
+    motor_reference.pid_mock
 )
 
 target_sources(motor_reference.pid_test PRIVATE
-    TestPidWithTimer.cpp
+    TestPid.cpp
 )

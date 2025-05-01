@@ -28,64 +28,46 @@ namespace application
         return infra::MakeRangeFromSingleObject(pin);
     }
 
-    hal::SynchronousAdc& HardwareFactoryImpl::PhaseA()
-    {
-        return phaseA;
-    }
-
-    hal::SynchronousAdc& HardwareFactoryImpl::PhaseB()
-    {
-        return phaseB;
-    }
-
-    hal::SynchronousQuadratureEncoder& HardwareFactoryImpl::QuadratureEncoder()
-    {
-        return encoder;
-    }
-
-    hal::SynchronousSingleChannelPwm& HardwareFactoryImpl::PwmSinglePhaseOutput()
-    {
-        return pwm;
-    }
-
-    hal::SynchronousThreeChannelsPwm& HardwareFactoryImpl::PwmThreePhaseOutput()
-    {
-        return pwm;
-    }
-
-    uint32_t HardwareFactoryImpl::ControlTimerId() const
-    {
-        return timerId;
-    }
-
-    hal::HallSensor& HardwareFactoryImpl::HallSensor()
+    PidInterface& HardwareFactoryImpl::MotorPid()
     {
         return *this;
     }
 
-    hal::HallSensor::State HardwareFactoryImpl::Read()
+    MotorFieldOrientedControllerInterface& HardwareFactoryImpl::MotorFieldOrientedController()
     {
-        return 0;
+        return *this;
     }
 
-    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Position()
+    void HardwareFactoryImpl::PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone)
     {
-        return 0;
     }
 
-    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Resolution()
+    void HardwareFactoryImpl::HallSensorInterrupt(const infra::Function<void(HallState state, Direction direction)>& onDone)
     {
-        return 0;
     }
 
-    hal::SynchronousQuadratureEncoder::MotionDirection HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Direction()
+    void HardwareFactoryImpl::ThreePhasePwmOutput(const std::tuple<Percent, Percent, Percent>& dutyPhases)
     {
-        return hal::SynchronousQuadratureEncoder::MotionDirection::forward;
     }
 
-    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Speed()
+    void HardwareFactoryImpl::Start()
     {
-        return 0;
+    }
+
+    void HardwareFactoryImpl::Stop()
+    {
+    }
+
+    void HardwareFactoryImpl::Read(const infra::Function<void(float)>& onDone)
+    {
+    }
+
+    void HardwareFactoryImpl::ControlAction(float)
+    {
+    }
+
+    void HardwareFactoryImpl::Start(infra::Duration sampleTime)
+    {
     }
 
     void HardwareFactoryImpl::SerialCommunicationStub::SendData(infra::ConstByteRange data, infra::Function<void()> actionOnCompletion)

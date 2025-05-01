@@ -7,8 +7,10 @@ target_link_libraries(motor_reference.foc_test PUBLIC
     motor_reference.foc
     numerical.math_test_helper
     infra.timer_test_helper
+    motor_reference.foc_mock
+    motor_reference.pid_mock
 )
 
 target_sources(motor_reference.foc_test PRIVATE
-    TestFocWithTimer.cpp
+    TestMotorFieldOrientedController.cpp
 )

@@ -1,24 +1,17 @@
-#ifndef HARDWARE_FACTORY_HPP
-#define HARDWARE_FACTORY_HPP
+#pragma once
 
+#include "application/foc/MotorFieldOrientedControllerInterface.hpp"
+#include "application/pid/PidInterface.hpp"
 #include "hal/interfaces/Gpio.hpp"
-#include "hal/synchronous_interfaces/SynchronousAdc.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include "infra/util/MemoryRange.hpp"
+#include "infra/util/Unit.hpp"
 #include "services/tracer/Tracer.hpp"
 #include "services/util/Terminal.hpp"
 
 namespace hal
 {
-    class HallSensor
-    {
-    public:
-        using State = uint8_t;
-
-        virtual State Read() = 0;
-    };
-
     class PerformanceTracker
     {
     public:
@@ -68,14 +61,8 @@ namespace application
         virtual services::Tracer& Tracer() = 0;
         virtual services::TerminalWithCommands& Terminal() = 0;
         virtual infra::MemoryRange<hal::GpioPin> Leds() = 0;
-        virtual hal::SynchronousAdc& PhaseA() = 0;
-        virtual hal::SynchronousAdc& PhaseB() = 0;
-        virtual hal::SynchronousQuadratureEncoder& QuadratureEncoder() = 0;
-        virtual hal::SynchronousSingleChannelPwm& PwmSinglePhaseOutput() = 0;
-        virtual hal::SynchronousThreeChannelsPwm& PwmThreePhaseOutput() = 0;
-        virtual uint32_t ControlTimerId() const = 0;
-        virtual hal::HallSensor& HallSensor() = 0;
+
+        virtual PidInterface& MotorPid() = 0;
+        virtual MotorFieldOrientedControllerInterface& MotorFieldOrientedController() = 0;
     };
 }
-
-#endif
