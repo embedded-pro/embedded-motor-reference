@@ -3,7 +3,7 @@
 namespace application
 {
     Logic::Logic(application::HardwareFactory& hardware)
-        : motorFocImpl{ hardware.MotorFieldOrientedController(), focImpl }
+        : motorFocImpl{ hardware.MotorFieldOrientedController(), hardware.MotorPosition(), focImpl }
         , focInteractor{ motorFocImpl }
         , terminalWithStorage(hardware.Terminal(), hardware.Tracer())
         , terminal(terminalWithStorage, focInteractor)
