@@ -41,6 +41,11 @@ namespace application
         return motorFieldOrientedController;
     }
 
+    Encoder& HardwareFactoryImpl::MotorPosition()
+    {
+        return encoderImpl;
+    }
+
     void HardwareFactoryImpl::SerialCommunicationStub::SendData(infra::ConstByteRange data, infra::Function<void()> actionOnCompletion)
     {}
 

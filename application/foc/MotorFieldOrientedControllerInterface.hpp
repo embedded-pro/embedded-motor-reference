@@ -23,11 +23,24 @@ namespace application
         reverse,
     };
 
+    class Encoder
+    {
+    public:
+        virtual Degrees Read() = 0;
+        virtual void Set(Degrees value) = 0;
+        virtual void SetZero() = 0;
+    };
+
+    class HallSensor
+    {
+    public:
+        virtual std::pair<HallState, Direction> Read() const = 0;
+    };
+
     class MotorFieldOrientedControllerInterface
     {
     public:
-        virtual void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone) = 0;
-        virtual void HallSensorInterrupt(const infra::Function<void(HallState state, Direction direction)>& onDone) = 0;
+        virtual void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone) = 0;
         virtual void ThreePhasePwmOutput(const std::tuple<Percent, Percent, Percent>& dutyPhases) = 0;
         virtual void Start() = 0;
         virtual void Stop() = 0;

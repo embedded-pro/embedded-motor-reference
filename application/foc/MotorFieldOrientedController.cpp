@@ -2,13 +2,15 @@
 
 namespace application
 {
-    MotorFieldOrientedControllerImpl::MotorFieldOrientedControllerImpl(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc)
+    MotorFieldOrientedControllerImpl::MotorFieldOrientedControllerImpl(MotorFieldOrientedControllerInterface& interface, Encoder& position, FieldOrientedController& foc)
         : interface{ interface }
+        , position{ position }
         , foc{ foc }
     {
-        interface.PhaseCurrentsReady([this](std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)
+        interface.PhaseCurrentsReady([this](std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)
             {
-                this->interface.ThreePhasePwmOutput(this->foc.Calculate(dPid, qPid, voltagePhases, position));
+                auto positionValue = this->position.Read();
+                this->interface.ThreePhasePwmOutput(this->foc.Calculate(dPid, qPid, voltagePhases, positionValue));
             });
     }
 

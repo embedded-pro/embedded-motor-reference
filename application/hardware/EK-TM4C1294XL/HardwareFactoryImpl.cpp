@@ -38,6 +38,11 @@ namespace application
         return motorFieldOrientedController;
     }
 
+    Encoder& HardwareFactoryImpl::MotorPosition()
+    {
+        return encoderImpl;
+    }
+
 #if 0
     hal::SynchronousQuadratureEncoder& HardwareFactoryImpl::QuadratureEncoder()
     {

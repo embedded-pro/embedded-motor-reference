@@ -29,6 +29,7 @@ namespace application
 
         PidInterface& MotorPid() override;
         MotorFieldOrientedControllerInterface& MotorFieldOrientedController() override;
+        Encoder& MotorPosition() override;
 
     private:
         struct TerminalAndTracer
@@ -69,11 +70,7 @@ namespace application
         struct MotorFieldOrientedControllerInterfaceImpl
             : public MotorFieldOrientedControllerInterface
         {
-            void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone) override
-            {
-            }
-
-            void HallSensorInterrupt(const infra::Function<void(HallState state, Direction direction)>& onDone) override
+            void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone) override
             {
             }
 
@@ -86,6 +83,23 @@ namespace application
             }
 
             void Stop() override
+            {
+            }
+        };
+
+        struct EncoderImpl
+            : public Encoder
+        {
+            Degrees Read() override
+            {
+                return Degrees(0.0f);
+            }
+
+            void Set(Degrees value) override
+            {
+            }
+
+            void SetZero() override
             {
             }
         };
@@ -113,6 +127,7 @@ namespace application
         hal::tiva::Uart uart{ Peripheral::UartIndex, Pins::uartTx, Pins::uartRx, uartConfig };
         hal::SynchronousPwmImpl pwm;
         TerminalAndTracer terminalAndTracer{ uart };
+        EncoderImpl encoderImpl;
 
         PidInterfaceImpl motorPid;
         MotorFieldOrientedControllerInterfaceImpl motorFieldOrientedController;
