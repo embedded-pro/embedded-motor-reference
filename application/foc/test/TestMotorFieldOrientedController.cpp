@@ -63,12 +63,12 @@ TEST_F(TestMotorFieldOrientedController, set_point_updates_pid_controllers)
 TEST_F(TestMotorFieldOrientedController, phase_currents_callback_triggers_foc_calculation_and_output)
 {
     std::tuple<application::MilliVolt, application::MilliVolt, application::MilliVolt> voltagePhases{ 100, 200, 300 };
-    auto position = application::Degrees{ 45.0f };
     std::tuple<application::Percent, application::Percent, application::Percent> pwmOutput{ 0.25, 0.5, 0.75 };
 
-    EXPECT_CALL(focMock, Calculate(::testing::_, ::testing::_, voltagePhases, position))
+    EXPECT_CALL(encoderMock, Read())
+        .WillOnce(::testing::Return(application::Degrees{ 0.0f }));
+    EXPECT_CALL(focMock, Calculate(::testing::_, ::testing::_, voltagePhases, ::testing::_))
         .WillOnce(::testing::Return(pwmOutput));
-
     EXPECT_CALL(interfaceMock, ThreePhasePwmOutput(pwmOutput)).Times(1);
 
     interfaceMock.TriggerPhaseCurrentsCallback(voltagePhases);
@@ -85,10 +85,11 @@ TEST_F(TestMotorFieldOrientedController, disabled_pid_controllers_are_reenabled_
     EXPECT_TRUE(foc->IsRunning());
 
     std::tuple<application::MilliVolt, application::MilliVolt, application::MilliVolt> voltagePhases{ 100, 200, 300 };
-    auto position = application::Degrees{ 90.0f };
     std::tuple<application::Percent, application::Percent, application::Percent> pwmOutput{ 0.3, 0.6, 0.9 };
 
-    EXPECT_CALL(focMock, Calculate(::testing::_, ::testing::_, voltagePhases, position))
+    EXPECT_CALL(encoderMock, Read())
+        .WillOnce(::testing::Return(application::Degrees{ 0.0f }));
+    EXPECT_CALL(focMock, Calculate(::testing::_, ::testing::_, voltagePhases, ::testing::_))
         .WillOnce(::testing::Return(pwmOutput));
     EXPECT_CALL(interfaceMock, ThreePhasePwmOutput(pwmOutput)).Times(1);
 
@@ -106,12 +107,12 @@ TEST_F(TestMotorFieldOrientedController, phase_currents_with_modified_pid_values
     foc->SetPoint({ dSetpoint, qSetpoint });
 
     std::tuple<application::MilliVolt, application::MilliVolt, application::MilliVolt> voltagePhases{ 150, 250, 350 };
-    auto position = application::Degrees{ 60.0f };
     std::tuple<application::Percent, application::Percent, application::Percent> pwmOutput{ 0.4, 0.6, 0.8 };
 
-    EXPECT_CALL(focMock, Calculate(::testing::_, ::testing::_, voltagePhases, position))
+    EXPECT_CALL(encoderMock, Read())
+        .WillOnce(::testing::Return(application::Degrees{ 0.0f }));
+    EXPECT_CALL(focMock, Calculate(::testing::_, ::testing::_, voltagePhases, ::testing::_))
         .WillOnce(::testing::Return(pwmOutput));
-
     EXPECT_CALL(interfaceMock, ThreePhasePwmOutput(pwmOutput)).Times(1);
 
     interfaceMock.TriggerPhaseCurrentsCallback(voltagePhases);
