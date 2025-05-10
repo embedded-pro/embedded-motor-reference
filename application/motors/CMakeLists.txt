@@ -1,3 +1,2 @@
-add_subdirectory(BLDC)
-add_subdirectory(DC)
-add_subdirectory(PSMS)
+add_subdirectory(dc)
+add_subdirectory(synchrounous_foc_sensored)

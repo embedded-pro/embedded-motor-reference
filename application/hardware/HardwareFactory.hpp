@@ -64,5 +64,6 @@ namespace application
 
         virtual PidInterface& MotorPid() = 0;
         virtual MotorFieldOrientedControllerInterface& MotorFieldOrientedController() = 0;
+        virtual Encoder& MotorPosition() = 0;
     };
 }

@@ -38,15 +38,29 @@ namespace application
         return *this;
     }
 
-    void HardwareFactoryImpl::PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone)
+    Encoder& HardwareFactoryImpl::MotorPosition()
     {
+        return *this;
     }
 
-    void HardwareFactoryImpl::HallSensorInterrupt(const infra::Function<void(HallState state, Direction direction)>& onDone)
+    void HardwareFactoryImpl::PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone)
     {
     }
 
     void HardwareFactoryImpl::ThreePhasePwmOutput(const std::tuple<Percent, Percent, Percent>& dutyPhases)
+    {
+    }
+
+    Degrees HardwareFactoryImpl::Read()
+    {
+        return Degrees(0.0f);
+    }
+
+    void HardwareFactoryImpl::SetZero()
+    {
+    }
+
+    void HardwareFactoryImpl::Set(Degrees position)
     {
     }
 

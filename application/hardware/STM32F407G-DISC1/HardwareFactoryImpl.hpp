@@ -23,6 +23,7 @@ namespace application
 
         PidInterface& MotorPid() override;
         MotorFieldOrientedControllerInterface& MotorFieldOrientedController() override;
+        Encoder& MotorPosition() override;
 
     private:
         class SerialCommunicationStub
@@ -72,11 +73,7 @@ namespace application
         struct MotorFieldOrientedControllerInterfaceImpl
             : public MotorFieldOrientedControllerInterface
         {
-            void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases, std::optional<Degrees> position)>& onDone) override
-            {
-            }
-
-            void HallSensorInterrupt(const infra::Function<void(HallState state, Direction direction)>& onDone) override
+            void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone) override
             {
             }
 
@@ -89,6 +86,23 @@ namespace application
             }
 
             void Stop() override
+            {
+            }
+        };
+
+        struct EncoderImpl
+            : public Encoder
+        {
+            Degrees Read() override
+            {
+                return Degrees(0.0f);
+            }
+
+            void Set(Degrees value) override
+            {
+            }
+
+            void SetZero() override
             {
             }
         };
@@ -113,6 +127,7 @@ namespace application
         static constexpr uint32_t timerId = 1;
         PidInterfaceImpl motorPid;
         MotorFieldOrientedControllerInterfaceImpl motorFieldOrientedController;
+        EncoderImpl encoderImpl;
         GpioPinStub pin;
         SerialCommunicationStub serial;
         TerminalAndTracer terminalAndTracer{ serial };

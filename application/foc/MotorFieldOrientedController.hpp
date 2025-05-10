@@ -24,7 +24,7 @@ namespace application
         using IdAndIqTunnings = std::pair<controllers::Pid<float>::Tunnings, controllers::Pid<float>::Tunnings>;
         using IdAndIqPoint = std::pair<float, float>;
 
-        MotorFieldOrientedControllerImpl(MotorFieldOrientedControllerInterface& interface, FieldOrientedController& foc);
+        MotorFieldOrientedControllerImpl(MotorFieldOrientedControllerInterface& interface, Encoder& position, FieldOrientedController& foc);
 
         void SetTunnings(IdAndIqTunnings tunnings) override;
         void SetPoint(const IdAndIqPoint& point) override;
@@ -34,6 +34,7 @@ namespace application
 
     private:
         MotorFieldOrientedControllerInterface& interface;
+        Encoder& position;
         FieldOrientedController& foc;
         controllers::Pid<float> dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true };
         controllers::Pid<float> qPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true };

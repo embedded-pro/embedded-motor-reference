@@ -13,7 +13,7 @@ namespace application
     public:
         explicit FieldOrientedControllerImpl(math::TrigonometricFunctions<float>& trigFunctions);
 
-        std::tuple<Percent, Percent, Percent> Calculate(controllers::Pid<float>& dPid, controllers::Pid<float>& qPid, const std::tuple<MilliVolt, MilliVolt, MilliVolt>& voltagePhases, std::optional<Degrees> position) override;
+        std::tuple<Percent, Percent, Percent> Calculate(controllers::Pid<float>& dPid, controllers::Pid<float>& qPid, const std::tuple<MilliVolt, MilliVolt, MilliVolt>& voltagePhases, Degrees& position) override;
 
     private:
         controllers::Park<float> park;
