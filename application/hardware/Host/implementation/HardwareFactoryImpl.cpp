@@ -1,6 +1,4 @@
-#include "application/hardware/Host/HardwareFactoryImpl.hpp"
-#include "application/hardware/HardwareFactory.hpp"
-#include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
+#include "application/hardware/Host/implementation/HardwareFactoryImpl.hpp"
 #include "infra/util/MemoryRange.hpp"
 
 namespace application

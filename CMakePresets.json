@@ -57,7 +57,8 @@
                 "CMAKE_TOOLCHAIN_FILE": ""
             },
             "cacheVariables": {
-                "TARGET_MCU_VENDOR": "ti"
+                "TARGET_MCU_VENDOR": "ti",
+                "MOTOR_REFERENCE_TARGET_PLATFORM": "ti"
             }
         },
         {
@@ -68,7 +69,8 @@
                 "CMAKE_TOOLCHAIN_FILE": ""
             },
             "cacheVariables": {
-                "TARGET_MCU_VENDOR": "st"
+                "TARGET_MCU_VENDOR": "st",
+                "MOTOR_REFERENCE_TARGET_PLATFORM": "st"
             }
         },
         {
@@ -81,7 +83,7 @@
                 "TARGET_CORTEX": "m4",
                 "TARGET_MCU_FAMILY": "TM4C129",
                 "TARGET_MCU": "tm4c1294ncpdt",
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "EK-TM4C1294XL"
+                "MOTOR_REFERENCE_TARGET_BOARD": "EK-TM4C1294XL"
             }
         },
         {
@@ -94,7 +96,7 @@
                 "TARGET_CORTEX": "m4",
                 "TARGET_MCU_FAMILY": "TM4C123",
                 "TARGET_MCU": "tm4c123gh6pm",
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "EK-TM4C123GXL"
+                "MOTOR_REFERENCE_TARGET_BOARD": "EK-TM4C123GXL"
             }
         },
         {
@@ -107,7 +109,7 @@
                 "TARGET_CORTEX": "m4",
                 "TARGET_MCU_FAMILY": "stm32f4xx",
                 "TARGET_MCU": "stm32f407",
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "STM32F407G-DISC1"
+                "MOTOR_REFERENCE_TARGET_BOARD": "STM32F407G-DISC1"
             }
         },
         {
@@ -115,12 +117,12 @@
             "displayName": "NUCLEO-H563ZI",
             "description": "Build for stm32f407",
             "inherits": "stm32",
-            "toolchainFile": "${sourceDir}/embedded-infra-lib/cmake/toolchain-arm-gcc-m33-fpv4-sp-d16.cmake",
+            "toolchainFile": "${sourceDir}/embedded-infra-lib/cmake/toolchain-arm-gcc-m33-fpv5-sp-d16.cmake",
             "cacheVariables": {
                 "TARGET_CORTEX": "m33",
                 "TARGET_MCU_FAMILY": "stm32h5xx",
-                "TARGET_MCU": "stm32h563zi",
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "NUCLEO-H563ZI"
+                "TARGET_MCU": "stm32h563",
+                "MOTOR_REFERENCE_TARGET_BOARD": "NUCLEO-H563ZI"
             }
         }
     ],

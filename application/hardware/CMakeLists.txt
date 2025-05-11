@@ -25,7 +25,7 @@ add_subdirectory(${MOTOR_REFERENCE_TARGET_PLATFORM})
 add_library(motor_reference.hardware_impl INTERFACE)
 
 target_compile_definitions(motor_reference.hardware_impl INTERFACE
-    HARDWARE_FACTORY_IMPL_HEADER="application/hardware/${MOTOR_REFERENCE_TARGET_PLATFORM}/HardwareFactoryImpl.hpp"
+    HARDWARE_FACTORY_IMPL_HEADER="application/hardware/${MOTOR_REFERENCE_TARGET_PLATFORM}/implementation/HardwareFactoryImpl.hpp"
 )
 
 target_link_libraries(motor_reference.hardware_impl INTERFACE
