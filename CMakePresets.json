@@ -115,7 +115,7 @@
         {
             "name": "NUCLEO-H563ZI",
             "displayName": "NUCLEO-H563ZI",
-            "description": "Build for stm32f407",
+            "description": "Build for STM32H563ZI",
             "inherits": "stm32",
             "toolchainFile": "${sourceDir}/embedded-infra-lib/cmake/toolchain-arm-gcc-m33-fpv5-sp-d16.cmake",
             "cacheVariables": {
