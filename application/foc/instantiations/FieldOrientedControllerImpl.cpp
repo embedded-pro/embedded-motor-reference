@@ -6,7 +6,7 @@ namespace application
         : park{ trigFunctions }
     {}
 
-    std::tuple<Percent, Percent, Percent> FieldOrientedControllerImpl::Calculate(controllers::Pid<float>& dPid, controllers::Pid<float>& qPid, const std::tuple<MilliVolt, MilliVolt, MilliVolt>& voltagePhases, Degrees& position)
+    std::tuple<hal::Percent, hal::Percent, hal::Percent> FieldOrientedControllerImpl::Calculate(controllers::Pid<float>& dPid, controllers::Pid<float>& qPid, const std::tuple<MilliVolt, MilliVolt, MilliVolt>& voltagePhases, Degrees& position)
     {
         auto threePhaseCurrent = controllers::ThreePhase<float>{ std::get<0>(voltagePhases).Value(), std::get<1>(voltagePhases).Value(), std::get<2>(voltagePhases).Value() };
         auto angle = position.Value();
@@ -15,6 +15,6 @@ namespace application
         auto voltageAlphaBeta = park.Inverse(twoPhaseVoltage, angle);
         auto output = spaceVectorModulator.Generate(voltageAlphaBeta);
 
-        return std::tuple<Percent, Percent, Percent>{ output.a, output.b, output.c };
+        return std::tuple<hal::Percent, hal::Percent, hal::Percent>{ output.a, output.b, output.c };
     }
 }

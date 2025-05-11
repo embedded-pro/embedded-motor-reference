@@ -9,6 +9,6 @@ namespace application
         : public FieldOrientedController
     {
     public:
-        MOCK_METHOD((std::tuple<Percent, Percent, Percent>), Calculate, ((controllers::Pid<float>&), (controllers::Pid<float>&), (const std::tuple<MilliVolt, MilliVolt, MilliVolt>&), (Degrees&)), (override));
+        MOCK_METHOD((std::tuple<hal::Percent, hal::Percent, hal::Percent>), Calculate, ((controllers::Pid<float>&), (controllers::Pid<float>&), (const std::tuple<MilliVolt, MilliVolt, MilliVolt>&), (Degrees&)), (override));
     };
 }

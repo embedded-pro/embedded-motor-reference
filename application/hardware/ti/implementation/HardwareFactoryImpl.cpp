@@ -5,20 +5,25 @@ namespace application
 {
     HardwareFactoryImpl::HardwareFactoryImpl(const infra::Function<void()>& onInitialized)
         : onInitialized(onInitialized)
-    {}
+    {
+        application::Clocks::Initialize();
+        peripherals.emplace();
+        this->onInitialized();
+    }
 
     void HardwareFactoryImpl::Run()
     {
+        peripherals->cortex.eventDispatcher.Run();
     }
 
     services::Tracer& HardwareFactoryImpl::Tracer()
     {
-        return terminalAndTracer.tracer;
+        return peripherals->terminalAndTracer.tracer;
     }
 
     services::TerminalWithCommands& HardwareFactoryImpl::Terminal()
     {
-        return terminalAndTracer.terminal;
+        return peripherals->terminalAndTracer.terminal;
     }
 
     infra::MemoryRange<hal::GpioPin> HardwareFactoryImpl::Leds()
@@ -28,48 +33,72 @@ namespace application
 
     PidInterface& HardwareFactoryImpl::MotorPid()
     {
-        return motorPid;
+        return peripherals->motorPid;
     }
 
     MotorFieldOrientedControllerInterface& HardwareFactoryImpl::MotorFieldOrientedController()
     {
-        return motorFieldOrientedController;
+        return peripherals->motorFieldOrientedController;
     }
 
     Encoder& HardwareFactoryImpl::MotorPosition()
     {
-        return encoderImpl;
+        return peripherals->encoderImpl;
     }
 
-#if 0
-    hal::SynchronousQuadratureEncoder& HardwareFactoryImpl::QuadratureEncoder()
+    void HardwareFactoryImpl::PidInterfaceImpl::Read(const infra::Function<void(float)>& onDone)
     {
-        return encoder;
     }
 
-    hal::SynchronousSingleChannelPwm& HardwareFactoryImpl::PwmSinglePhaseOutput()
+    void HardwareFactoryImpl::PidInterfaceImpl::ControlAction(float)
     {
-        return pwm;
     }
 
-    hal::SynchronousThreeChannelsPwm& HardwareFactoryImpl::PwmThreePhaseOutput()
+    void HardwareFactoryImpl::PidInterfaceImpl::Start(infra::Duration sampleTime)
     {
-        return pwm;
     }
 
-    uint32_t HardwareFactoryImpl::ControlTimerId() const
+    void HardwareFactoryImpl::PidInterfaceImpl::Stop()
     {
-        return timerId;
     }
 
-    void HardwareFactoryImpl::PhaseCurrentsReady(const infra::Function<void(MilliVolt phaseA, MilliVolt phaseB, MilliVolt phaseC)>& onDone)
+    void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt>)>& onDone)
     {
         phaseCurrentsReady = onDone;
+        pwmBrushless.SetBaseFrequency(hal::Hertz(10000.0f));
+        adcCurrentPhases.Measure([this](auto samples)
+            {
+                auto voltagePhases = std::make_tuple(MilliVolt{ static_cast<float>(samples[0]) }, MilliVolt{ static_cast<float>(samples[1]) }, MilliVolt{ static_cast<float>(samples[2]) });
+                this->phaseCurrentsReady(voltagePhases);
+            });
     }
 
-    void HardwareFactoryImpl::HallSensorInterrupt(const infra::Function<void(HallState state, Direction direction)>& onDone)
+    void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases)
     {
-        hallSensorInterrupt = onDone;
+        pwmBrushless.Start(std::get<0>(dutyPhases), std::get<1>(dutyPhases), std::get<2>(dutyPhases));
     }
-#endif
+
+    void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::Start()
+    {
+    }
+
+    void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::Stop()
+    {
+        pwmBrushless.Stop();
+    }
+
+    Degrees HardwareFactoryImpl::EncoderImpl::Read()
+    {
+        auto resolution = static_cast<float>(this->encoder.Resolution());
+        auto position = static_cast<float>(this->encoder.Position());
+        return Degrees((position / resolution) * 360.0f);
+    }
+
+    void HardwareFactoryImpl::EncoderImpl::Set(Degrees)
+    {
+    }
+
+    void HardwareFactoryImpl::EncoderImpl::SetZero()
+    {
+    }
 }

@@ -45,7 +45,7 @@ namespace application
     {
     }
 
-    void HardwareFactoryImpl::ThreePhasePwmOutput(const std::tuple<Percent, Percent, Percent>& dutyPhases)
+    void HardwareFactoryImpl::ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases)
     {
     }
 
