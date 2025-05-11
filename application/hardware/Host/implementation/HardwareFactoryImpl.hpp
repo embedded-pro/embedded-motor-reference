@@ -1,5 +1,4 @@
-#ifndef HARDWARE_FACTORY_IMPL_HPP
-#define HARDWARE_FACTORY_IMPL_HPP
+#pragma once
 
 #include "application/hardware/HardwareFactory.hpp"
 #include "hal/interfaces/Gpio.hpp"
@@ -103,5 +102,3 @@ namespace application
         TerminalAndTracer terminalAndTracer{ serial };
     };
 }
-
-#endif

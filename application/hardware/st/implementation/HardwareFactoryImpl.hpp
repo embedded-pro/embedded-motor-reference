@@ -1,6 +1,6 @@
-#ifndef HARDWARE_FACTORY_IMPL_HPP
-#define HARDWARE_FACTORY_IMPL_HPP
+#pragma once
 
+#include HARDWARE_PINS_AND_PERIPHERALS_HEADER
 #include "application/hardware/HardwareFactory.hpp"
 #include "hal/interfaces/Gpio.hpp"
 #include "hal/interfaces/SerialCommunication.hpp"
@@ -133,5 +133,3 @@ namespace application
         TerminalAndTracer terminalAndTracer{ serial };
     };
 }
-
-#endif

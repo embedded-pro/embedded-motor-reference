@@ -1,6 +1,4 @@
-#include "application/hardware/EK-TM4C1294XL/HardwareFactoryImpl.hpp"
-#include "application/hardware/HardwareFactory.hpp"
-#include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
+#include "application/hardware/ti/implementation/HardwareFactoryImpl.hpp"
 #include "infra/util/MemoryRange.hpp"
 
 namespace application

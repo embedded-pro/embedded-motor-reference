@@ -1,4 +1,4 @@
-#include "application/hardware/STM32F407G-DISC1/HardwareFactoryImpl.hpp"
+#include "application/hardware/st/implementation/HardwareFactoryImpl.hpp"
 #include "infra/util/MemoryRange.hpp"
 #include DEVICE_HEADER
 

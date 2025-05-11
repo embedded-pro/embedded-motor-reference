@@ -1,7 +1,7 @@
 add_library(motor_reference.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM})
 
 target_include_directories(motor_reference.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM} PUBLIC
-    "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../..>"
+    "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../../..>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
@@ -10,8 +10,11 @@ target_link_libraries(motor_reference.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM
     infra.event
     infra.timer
     services.tracer
-    hal_st.stm32fxxx
-    hal_st.synchronous_stm32fxxx
+    motor_reference.hardware_${MOTOR_REFERENCE_TARGET_BOARD}
+)
+
+target_compile_definitions(motor_reference.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM} PUBLIC
+    HARDWARE_PINS_AND_PERIPHERALS_HEADER="application/hardware/${MOTOR_REFERENCE_TARGET_PLATFORM}/${MOTOR_REFERENCE_TARGET_BOARD}/PinsAndPeripherals.hpp"
 )
 
 target_sources(motor_reference.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM} PRIVATE

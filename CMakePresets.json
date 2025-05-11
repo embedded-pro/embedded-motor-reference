@@ -57,7 +57,8 @@
                 "CMAKE_TOOLCHAIN_FILE": ""
             },
             "cacheVariables": {
-                "TARGET_MCU_VENDOR": "ti"
+                "TARGET_MCU_VENDOR": "ti",
+                "MOTOR_REFERENCE_TARGET_PLATFORM": "ti"
             }
         },
         {
@@ -68,7 +69,8 @@
                 "CMAKE_TOOLCHAIN_FILE": ""
             },
             "cacheVariables": {
-                "TARGET_MCU_VENDOR": "st"
+                "TARGET_MCU_VENDOR": "st",
+                "MOTOR_REFERENCE_TARGET_PLATFORM": "st"
             }
         },
         {
@@ -81,7 +83,20 @@
                 "TARGET_CORTEX": "m4",
                 "TARGET_MCU_FAMILY": "TM4C129",
                 "TARGET_MCU": "tm4c1294ncpdt",
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "EK-TM4C1294XL"
+                "MOTOR_REFERENCE_TARGET_BOARD": "EK-TM4C1294XL"
+            }
+        },
+        {
+            "name": "EK-TM4C123GXL",
+            "displayName": "EK-TM4C123GXL",
+            "description": "Build for tm4c123gh6pm",
+            "inherits": "tiva",
+            "toolchainFile": "${sourceDir}/embedded-infra-lib/cmake/toolchain-arm-gcc-m4-fpv4-sp-d16.cmake",
+            "cacheVariables": {
+                "TARGET_CORTEX": "m4",
+                "TARGET_MCU_FAMILY": "TM4C123",
+                "TARGET_MCU": "tm4c123gh6pm",
+                "MOTOR_REFERENCE_TARGET_BOARD": "EK-TM4C123GXL"
             }
         },
         {
@@ -94,7 +109,20 @@
                 "TARGET_CORTEX": "m4",
                 "TARGET_MCU_FAMILY": "stm32f4xx",
                 "TARGET_MCU": "stm32f407",
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "STM32F407G-DISC1"
+                "MOTOR_REFERENCE_TARGET_BOARD": "STM32F407G-DISC1"
+            }
+        },
+        {
+            "name": "NUCLEO-H563ZI",
+            "displayName": "NUCLEO-H563ZI",
+            "description": "Build for STM32H563ZI",
+            "inherits": "stm32",
+            "toolchainFile": "${sourceDir}/embedded-infra-lib/cmake/toolchain-arm-gcc-m33-fpv5-sp-d16.cmake",
+            "cacheVariables": {
+                "TARGET_CORTEX": "m33",
+                "TARGET_MCU_FAMILY": "stm32h5xx",
+                "TARGET_MCU": "stm32h563",
+                "MOTOR_REFERENCE_TARGET_BOARD": "NUCLEO-H563ZI"
             }
         }
     ],
@@ -125,6 +153,16 @@
             "configurePreset": "EK-TM4C1294XL"
         },
         {
+            "name": "EK-TM4C123GXL-RelWithDebInfo",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "EK-TM4C123GXL"
+        },
+        {
+            "name": "EK-TM4C123GXL-Debug",
+            "configuration": "Debug",
+            "configurePreset": "EK-TM4C123GXL"
+        },
+        {
             "name": "STM32F407G-DISC1-RelWithDebInfo",
             "configuration": "RelWithDebInfo",
             "configurePreset": "STM32F407G-DISC1"
@@ -133,6 +171,16 @@
             "name": "STM32F407G-DISC1-Debug",
             "configuration": "Debug",
             "configurePreset": "STM32F407G-DISC1"
+        },
+        {
+            "name": "NUCLEO-H563ZI-RelWithDebInfo",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "NUCLEO-H563ZI"
+        },
+        {
+            "name": "NUCLEO-H563ZI-Debug",
+            "configuration": "Debug",
+            "configurePreset": "NUCLEO-H563ZI"
         }
     ],
     "testPresets": [
