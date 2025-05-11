@@ -1,6 +1,8 @@
 #pragma once
 
 #include "hal/ti/hal_tiva/tiva/Gpio.hpp"
+#include "hal/ti/hal_tiva/tiva/PinoutTableDefaultTm4c129.hpp"
+#include "hal_tiva/tiva/ClockTm4c129.hpp"
 
 namespace application
 {
@@ -37,5 +39,18 @@ namespace application
         constexpr static uint8_t AdcSequencerIndex = 0;
         constexpr static uint8_t UartIndex = 0;
         constexpr static uint8_t PwmIndex = 0;
+    }
+
+    namespace Clocks
+    {
+        inline void Initialize()
+        {
+            uint32_t frequency = 120000000;
+            hal::tiva::crystalFrequency hseValue = hal::tiva::crystalFrequency::_25_MHz;
+            hal::tiva::oscillatorSource oscSource = hal::tiva::oscillatorSource::main;
+            hal::tiva::systemClockVco systemClockVco = hal::tiva::systemClockVco::_240_MHz;
+            bool usesPll = true;
+            hal::tiva::ConfigureClock(frequency, hseValue, oscSource, systemClockVco, usesPll);
+        }
     }
 }

@@ -7,6 +7,7 @@
 #include "application/motors/synchrounous_foc_sensored/torque/components/FieldOrientedControllerInteractorImpl.hpp"
 #include "application/motors/synchrounous_foc_sensored/torque/components/Terminal.hpp"
 #include "application/motors/synchrounous_foc_sensored/torque/components/TrigonometricImpl.hpp"
+#include "services/util/DebugLed.hpp"
 
 namespace application
 {
@@ -22,6 +23,7 @@ namespace application
         FieldOrientedControllerInteractorImpl focInteractor;
         services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;
         application::TerminalInteractor terminal;
+        services::DebugLed debugLed;
     };
 }
 

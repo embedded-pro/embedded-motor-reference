@@ -37,7 +37,7 @@ namespace application
 
         // Implementation of MotorFieldOrientedControllerInterface
         void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone) override;
-        void ThreePhasePwmOutput(const std::tuple<Percent, Percent, Percent>& dutyPhases) override;
+        void ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases) override;
         void Start() override;
 
         // Implementation of Encoder
