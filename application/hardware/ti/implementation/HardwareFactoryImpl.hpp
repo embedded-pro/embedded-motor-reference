@@ -44,10 +44,10 @@ namespace application
         {
             hal::tiva::Uart::Config uartConfig{ true, true, hal::tiva::Uart::Baudrate::_921000_bps, hal::tiva::Uart::FlowControl::none, hal::tiva::Uart::Parity::none, hal::tiva::Uart::StopBits::one, hal::tiva::Uart::NumberOfBytes::_8_bytes, infra::none };
             hal::tiva::Uart uart{ Peripheral::UartIndex, Pins::uartTx, Pins::uartRx, uartConfig };
-            services::StreamWriterOnSerialCommunication::WithStorage<8192> streamWriterOnSerialCommunication{ uart };
+            services::StreamWriterOnSerialCommunication::WithStorage<2048> streamWriterOnSerialCommunication{ uart };
             infra::TextOutputStream::WithErrorPolicy tracerStream{ streamWriterOnSerialCommunication };
             services::TracerWithDateTime tracer{ tracerStream };
-            services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<> terminal{ uart, tracer };
+            services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<256, 2> terminal{ uart, tracer };
         };
 
         struct PidInterfaceImpl
@@ -70,16 +70,13 @@ namespace application
             void Stop() override;
 
             hal::tiva::Adc::Config adcConfig{ false, 0, hal::tiva::Adc::Trigger::pwmGenerator0, hal::tiva::Adc::SampleAndHold::sampleAndHold4 };
-            std::array<hal::tiva::AnalogPin, 2> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB } } };
+            std::array<hal::tiva::AnalogPin, 3> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB }, hal::tiva::AnalogPin{ Pins::powerSupplyVoltage } } };
             hal::tiva::Adc adcCurrentPhases{ Peripheral::AdcIndex, Peripheral::AdcSequencerIndex, currentPhaseAnalogPins, adcConfig };
             hal::tiva::SynchronousPwm::Config::Control controlConfig{ hal::tiva::SynchronousPwm::Config::Control::Mode::centerAligned, hal::tiva::SynchronousPwm::Config::Control::UpdateMode::globally, true };
             hal::tiva::SynchronousPwm::Config::DeadTime deadTimeConfig{ 0, 0 };
             hal::tiva::SynchronousPwm::Config::Trigger triggerConfig{ hal::tiva::SynchronousPwm::Config::Trigger::countLoad };
             hal::tiva::SynchronousPwm::Config pwmConfig{ false, false, controlConfig, hal::tiva::SynchronousPwm::Config::ClockDivisor::divisor1, std::make_optional(deadTimeConfig), std::make_optional(triggerConfig) };
-            hal::tiva::SynchronousPwm::PinChannel pwmPhase1{ Pins::pwmPhase1a, Pins::pwmPhase1b, true, true };
-            hal::tiva::SynchronousPwm::PinChannel pwmPhase2{ Pins::pwmPhase2a, Pins::pwmPhase2b, true, true };
-            hal::tiva::SynchronousPwm::PinChannel pwmPhase3{ Pins::pwmPhase3a, Pins::pwmPhase3b, true, true };
-            hal::tiva::SynchronousPwm pwmBrushless{ Peripheral::PwmIndex, pwmPhase1, pwmPhase2, pwmPhase3, pwmConfig };
+            hal::tiva::SynchronousPwm pwmBrushless{ Peripheral::PwmIndex, Peripheral::pwmPhases, pwmConfig };
             infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)> phaseCurrentsReady;
         };
 
