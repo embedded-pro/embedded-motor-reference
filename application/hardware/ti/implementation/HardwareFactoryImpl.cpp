@@ -31,6 +31,16 @@ namespace application
         return infra::MakeRangeFromSingleObject(application::Pins::led1);
     }
 
+    infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& HardwareFactoryImpl::SynchronousThreeChannelsPwmCreator()
+    {
+        return peripherals->motorFieldOrientedController.pwmBrushless;
+    }
+
+    infra::CreatorBase<hal::AdcMultiChannel, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
+    {
+        return peripherals->motorFieldOrientedController.adcCurrentPhases;
+    }
+
     PidInterface& HardwareFactoryImpl::MotorPid()
     {
         return peripherals->motorPid;
@@ -65,8 +75,8 @@ namespace application
     void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt>)>& onDone)
     {
         phaseCurrentsReady = onDone;
-        pwmBrushless.SetBaseFrequency(hal::Hertz(10000.0f));
-        adcCurrentPhases.Measure([this](auto samples)
+        pwmBrushless->SetBaseFrequency(hal::Hertz(10000.0f));
+        adcCurrentPhases->Measure([this](auto samples)
             {
                 auto voltagePhases = std::make_tuple(MilliVolt{ static_cast<float>(samples[0]) }, MilliVolt{ static_cast<float>(samples[1]) }, MilliVolt{ static_cast<float>(samples[2]) });
                 this->phaseCurrentsReady(voltagePhases);
@@ -75,7 +85,7 @@ namespace application
 
     void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases)
     {
-        pwmBrushless.Start(std::get<0>(dutyPhases), std::get<1>(dutyPhases), std::get<2>(dutyPhases));
+        pwmBrushless->Start(std::get<0>(dutyPhases), std::get<1>(dutyPhases), std::get<2>(dutyPhases));
     }
 
     void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::Start()
@@ -84,7 +94,7 @@ namespace application
 
     void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::Stop()
     {
-        pwmBrushless.Stop();
+        pwmBrushless->Stop();
     }
 
     Degrees HardwareFactoryImpl::EncoderImpl::Read()

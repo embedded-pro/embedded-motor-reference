@@ -2,13 +2,16 @@
 
 #include "application/foc/MotorFieldOrientedControllerInterface.hpp"
 #include "application/pid/PidInterface.hpp"
+#include "hal/interfaces/AdcMultiChannel.hpp"
 #include "hal/interfaces/Gpio.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include "infra/util/MemoryRange.hpp"
+#include "infra/util/ProxyCreator.hpp"
 #include "infra/util/Unit.hpp"
 #include "services/tracer/Tracer.hpp"
 #include "services/util/Terminal.hpp"
+#include <chrono>
 
 namespace hal
 {
@@ -57,10 +60,21 @@ namespace application
     class HardwareFactory
     {
     public:
+        enum class SampleAndHold
+        {
+            shortest,
+            shorter,
+            medium,
+            longer,
+            longest,
+        };
+
         virtual void Run() = 0;
         virtual services::Tracer& Tracer() = 0;
         virtual services::TerminalWithCommands& Terminal() = 0;
         virtual infra::MemoryRange<hal::GpioPin> Leds() = 0;
+        virtual infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() = 0;
+        virtual infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() = 0;
 
         virtual PidInterface& MotorPid() = 0;
         virtual MotorFieldOrientedControllerInterface& MotorFieldOrientedController() = 0;
