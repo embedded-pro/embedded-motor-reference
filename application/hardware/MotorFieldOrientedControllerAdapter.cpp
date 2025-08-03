@@ -1,4 +1,4 @@
-#include "application/motors/synchrounous_foc_sensored/torque/instantiations/HardwareAdapter.hpp"
+#include "application/hardware/MotorFieldOrientedControllerAdapter.hpp"
 #include <chrono>
 
 namespace application

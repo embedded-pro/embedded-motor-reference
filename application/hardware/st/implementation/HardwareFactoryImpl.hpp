@@ -49,6 +49,34 @@ namespace application
             void DisableInterrupt() override;
         };
 
+        class AdcMultiChannelStub
+            : public hal::AdcMultiChannel
+        {
+        public:
+            // Implementation of hal::AdcMultiChannel
+            void Measure(const infra::Function<void(Samples)>& onDone) override;
+        };
+
+        class SynchronousThreeChannelsPwmStub
+            : public hal::SynchronousThreeChannelsPwm
+        {
+        public:
+            // Implementation of hal::SynchronousThreeChannelsPwm
+            void SetBaseFrequency(hal::Hertz baseFrequency) override;
+            void Stop() override;
+            void Start(hal::Percent dutyCycle1, hal::Percent dutyCycle2, hal::Percent dutyCycle3) override;
+        };
+
+        class SynchronousQuadratureEncoderStub
+            : public hal::SynchronousQuadratureEncoder
+        {
+        public:
+            uint32_t Position() override;
+            uint32_t Resolution() override;
+            MotionDirection Direction() override;
+            uint32_t Speed() override;
+        };
+
         struct TerminalAndTracer
         {
             explicit TerminalAndTracer(hal::SerialCommunication& com)
@@ -70,5 +98,17 @@ namespace application
         GpioPinStub pin;
         SerialCommunicationStub serial;
         TerminalAndTracer terminalAndTracer{ serial };
+        infra::Creator<hal::AdcMultiChannel, AdcMultiChannelStub, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
+            {
+                object.Emplace();
+            } };
+        infra::Creator<hal::SynchronousThreeChannelsPwm, SynchronousThreeChannelsPwmStub, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)> pwmBrushless{ [this](auto& object, auto deadTime, auto frequency)
+            {
+                object.Emplace();
+            } };
+        infra::Creator<hal::SynchronousQuadratureEncoder, SynchronousQuadratureEncoderStub, void()> synchronousQuadratureEncoderCreator{ [this](auto& object)
+            {
+                object.Emplace();
+            } };
     };
 }

@@ -6,7 +6,6 @@
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include "infra/util/MemoryRange.hpp"
 #include "infra/util/ProxyCreator.hpp"
-#include "infra/util/Unit.hpp"
 #include "services/tracer/Tracer.hpp"
 #include "services/util/Terminal.hpp"
 #include <chrono>
@@ -18,38 +17,6 @@ namespace hal
     public:
         virtual void Start() = 0;
         virtual uint32_t ElapsedCycles() = 0;
-    };
-
-    class SynchronousPwmImpl
-        : public SynchronousSingleChannelPwm
-        , public SynchronousTwoChannelsPwm
-        , public SynchronousThreeChannelsPwm
-        , public SynchronousFourChannelsPwm
-    {
-    public:
-        void SetBaseFrequency(Hertz baseFrequency) override
-        {
-        }
-
-        void Stop() override
-        {
-        }
-
-        void Start(Percent dutyCycle1) override
-        {
-        }
-
-        void Start(Percent dutyCycle1, Percent dutyCycle2) override
-        {
-        }
-
-        void Start(Percent dutyCycle1, Percent dutyCycle2, Percent dutyCycle3) override
-        {
-        }
-
-        void Start(Percent dutyCycle1, Percent dutyCycle2, Percent dutyCycle3, Percent dutyCycle4) override
-        {
-        }
     };
 }
 

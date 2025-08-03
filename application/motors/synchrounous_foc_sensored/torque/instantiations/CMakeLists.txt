@@ -14,8 +14,6 @@ target_link_libraries(motor_reference.synchrounous_foc_sensored.torque.instantia
 )
 
 target_sources(motor_reference.synchrounous_foc_sensored.torque.instantiations PRIVATE
-    HardwareAdapter.cpp
-    HardwareAdapter.hpp
     Logic.cpp
     Logic.hpp
 )

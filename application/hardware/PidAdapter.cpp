@@ -1,4 +1,4 @@
-#include "application/motors/dc/instantiations/HardwareAdapter.hpp"
+#include "application/hardware/PidAdapter.hpp"
 
 namespace application
 {

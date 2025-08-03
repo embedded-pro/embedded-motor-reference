@@ -1,9 +1,9 @@
 #pragma once
 
 #include "application/hardware/HardwareFactory.hpp"
+#include "application/hardware/PidAdapter.hpp"
 #include "application/motors/dc/components/MotorPidControllerImpl.hpp"
 #include "application/motors/dc/components/Terminal.hpp"
-#include "application/motors/dc/instantiations/HardwareAdapter.hpp"
 #include "application/pid/PidImpl.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 
