@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hal/interfaces/AdcMultiChannel.hpp"
+#include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include HARDWARE_PINS_AND_PERIPHERALS_HEADER
 #include "application/hardware/HardwareFactory.hpp"
 #include "hal/interfaces/Gpio.hpp"
@@ -31,10 +32,7 @@ namespace application
         infra::MemoryRange<hal::GpioPin> Leds() override;
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
         infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
-
-        PidInterface& MotorPid() override;
-        MotorFieldOrientedControllerInterface& MotorFieldOrientedController() override;
-        Encoder& MotorPosition() override;
+        infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;
 
     private:
         struct Cortex
@@ -56,24 +54,12 @@ namespace application
         };
 
         struct PidInterfaceImpl
-            : public PidInterface
         {
-            void Read(const infra::Function<void(float)>& onDone) override;
-            void ControlAction(float) override;
-            void Start(infra::Duration sampleTime) override;
-            void Stop() override;
-
             hal::SynchronousPwmImpl pwm;
         };
 
         struct MotorFieldOrientedControllerInterfaceImpl
-            : public MotorFieldOrientedControllerInterface
         {
-            void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone) override;
-            void ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases) override;
-            void Start() override;
-            void Stop() override;
-
             const std::array<hal::tiva::Adc::SampleAndHold, 5> toSampleAndHold{ { hal::tiva::Adc::SampleAndHold::sampleAndHold4,
                 hal::tiva::Adc::SampleAndHold::sampleAndHold16,
                 hal::tiva::Adc::SampleAndHold::sampleAndHold32,
@@ -102,19 +88,17 @@ namespace application
                     object.Emplace(Peripheral::PwmIndex, Peripheral::pwmPhases, pwmConfig);
                     object->SetBaseFrequency(frequency);
                 } };
-            infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>
+            infra::Function<void(std::tuple<infra::MilliVolt, infra::MilliVolt, infra::MilliVolt> voltagePhases)>
                 phaseCurrentsReady;
         };
 
         struct EncoderImpl
-            : public Encoder
         {
-            Degrees Read() override;
-            void Set(Degrees value) override;
-            void SetZero() override;
-
             hal::tiva::QuadratureEncoder::Config qeiConfig;
-            hal::tiva::QuadratureEncoder encoder{ Peripheral::QeiIndex, Pins::encoderA, Pins::encoderB, Pins::encoderZ, qeiConfig };
+            infra::Creator<hal::SynchronousQuadratureEncoder, hal::tiva::QuadratureEncoder, void()> synchronousQuadratureEncoderCreator{ [this](auto& object)
+                {
+                    object.Emplace(Peripheral::QeiIndex, Pins::encoderA, Pins::encoderB, Pins::encoderZ, qeiConfig);
+                } };
         };
 
         struct Peripherals

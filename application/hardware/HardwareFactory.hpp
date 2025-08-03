@@ -1,7 +1,5 @@
 #pragma once
 
-#include "application/foc/MotorFieldOrientedControllerInterface.hpp"
-#include "application/pid/PidInterface.hpp"
 #include "hal/interfaces/AdcMultiChannel.hpp"
 #include "hal/interfaces/Gpio.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
@@ -75,9 +73,10 @@ namespace application
         virtual infra::MemoryRange<hal::GpioPin> Leds() = 0;
         virtual infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() = 0;
         virtual infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() = 0;
+        virtual infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() = 0;
 
-        virtual PidInterface& MotorPid() = 0;
-        virtual MotorFieldOrientedControllerInterface& MotorFieldOrientedController() = 0;
-        virtual Encoder& MotorPosition() = 0;
+        // virtual PidInterface& MotorPid() = 0;
+        // virtual MotorFieldOrientedControllerInterface& MotorFieldOrientedController() = 0;
+        // virtual Encoder& MotorPosition() = 0;
     };
 }

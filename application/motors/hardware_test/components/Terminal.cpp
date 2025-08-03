@@ -3,6 +3,7 @@
 #include "infra/util/Function.hpp"
 #include "infra/util/Tokenizer.hpp"
 #include "services/util/TerminalWithStorage.hpp"
+#include <optional>
 
 namespace
 {

@@ -7,7 +7,7 @@ namespace application
         , position{ position }
         , foc{ foc }
     {
-        interface.PhaseCurrentsReady([this](std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)
+        interface.PhaseCurrentsReady(hal::Hertz{ 10000 }, [this](std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)
             {
                 auto positionValue = this->position.Read();
                 this->interface.ThreePhasePwmOutput(this->foc.Calculate(dPid, qPid, voltagePhases, positionValue));

@@ -13,6 +13,8 @@ target_link_libraries(motor_reference.dc.instantiations PUBLIC
 )
 
 target_sources(motor_reference.dc.instantiations PRIVATE
+    HardwareAdapter.cpp
+    HardwareAdapter.hpp
     Logic.cpp
     Logic.hpp
 )
