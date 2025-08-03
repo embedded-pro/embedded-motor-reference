@@ -26,60 +26,19 @@ namespace application
         return infra::MakeRangeFromSingleObject(pin);
     }
 
-    PidInterface& HardwareFactoryImpl::MotorPid()
+    infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& HardwareFactoryImpl::SynchronousThreeChannelsPwmCreator()
     {
-        return *this;
+        return pwmBrushless;
     }
 
-    MotorFieldOrientedControllerInterface& HardwareFactoryImpl::MotorFieldOrientedController()
+    infra::CreatorBase<hal::AdcMultiChannel, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
     {
-        return *this;
+        return adcCurrentPhases;
     }
 
-    Encoder& HardwareFactoryImpl::MotorPosition()
+    infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& HardwareFactoryImpl::SynchronousQuadratureEncoderCreator()
     {
-        return *this;
-    }
-
-    void HardwareFactoryImpl::PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone)
-    {
-    }
-
-    void HardwareFactoryImpl::ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases)
-    {
-    }
-
-    Degrees HardwareFactoryImpl::Read()
-    {
-        return Degrees(0.0f);
-    }
-
-    void HardwareFactoryImpl::SetZero()
-    {
-    }
-
-    void HardwareFactoryImpl::Set(Degrees position)
-    {
-    }
-
-    void HardwareFactoryImpl::Start()
-    {
-    }
-
-    void HardwareFactoryImpl::Stop()
-    {
-    }
-
-    void HardwareFactoryImpl::Read(const infra::Function<void(float)>& onDone)
-    {
-    }
-
-    void HardwareFactoryImpl::ControlAction(float)
-    {
-    }
-
-    void HardwareFactoryImpl::Start(infra::Duration sampleTime)
-    {
+        return synchronousQuadratureEncoderCreator;
     }
 
     void HardwareFactoryImpl::SerialCommunicationStub::SendData(infra::ConstByteRange data, infra::Function<void()> actionOnCompletion)
@@ -123,4 +82,41 @@ namespace application
 
     void HardwareFactoryImpl::GpioPinStub::DisableInterrupt()
     {}
+
+    void HardwareFactoryImpl::AdcMultiChannelStub::Measure(const infra::Function<void(Samples)>& onDone)
+    {
+        onDone(Samples());
+    }
+
+    void HardwareFactoryImpl::SynchronousThreeChannelsPwmStub::SetBaseFrequency(hal::Hertz baseFrequency)
+    {
+    }
+
+    void HardwareFactoryImpl::SynchronousThreeChannelsPwmStub::Stop()
+    {
+    }
+
+    void HardwareFactoryImpl::SynchronousThreeChannelsPwmStub::Start(hal::Percent dutyCycle1, hal::Percent dutyCycle2, hal::Percent dutyCycle3)
+    {
+    }
+
+    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Position()
+    {
+        return 0;
+    }
+
+    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Resolution()
+    {
+        return 0;
+    }
+
+    hal::SynchronousQuadratureEncoder::MotionDirection HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Direction()
+    {
+        return MotionDirection::forward;
+    }
+
+    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Speed()
+    {
+        return 0;
+    }
 }

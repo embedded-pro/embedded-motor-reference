@@ -12,9 +12,6 @@ namespace application
 {
     class HardwareFactoryImpl
         : public HardwareFactory
-        , private PidInterface
-        , private MotorFieldOrientedControllerInterface
-        , private Encoder
     {
     public:
         explicit HardwareFactoryImpl(const infra::Function<void()>& onInitialized);
@@ -25,27 +22,39 @@ namespace application
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
 
-        PidInterface& MotorPid() override;
-        MotorFieldOrientedControllerInterface& MotorFieldOrientedController() override;
-        Encoder& MotorPosition() override;
-
-        // Implementation of PidInterface
-        void Read(const infra::Function<void(float)>& onDone) override;
-        void ControlAction(float) override;
-        void Start(infra::Duration sampleTime) override;
-        void Stop() override;
-
-        // Implementation of MotorFieldOrientedControllerInterface
-        void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone) override;
-        void ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases) override;
-        void Start() override;
-
-        // Implementation of Encoder
-        Degrees Read() override;
-        void SetZero() override;
-        void Set(Degrees position) override;
+        infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
+        infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
+        infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;
 
     private:
+        class AdcMultiChannelStub
+            : public hal::AdcMultiChannel
+        {
+        public:
+            // Implementation of hal::AdcMultiChannel
+            void Measure(const infra::Function<void(Samples)>& onDone) override;
+        };
+
+        class SynchronousThreeChannelsPwmStub
+            : public hal::SynchronousThreeChannelsPwm
+        {
+        public:
+            // Implementation of hal::SynchronousThreeChannelsPwm
+            void SetBaseFrequency(hal::Hertz baseFrequency) override;
+            void Stop() override;
+            void Start(hal::Percent dutyCycle1, hal::Percent dutyCycle2, hal::Percent dutyCycle3) override;
+        };
+
+        class SynchronousQuadratureEncoderStub
+            : public hal::SynchronousQuadratureEncoder
+        {
+        public:
+            uint32_t Position() override;
+            uint32_t Resolution() override;
+            MotionDirection Direction() override;
+            uint32_t Speed() override;
+        };
+
         class SynchronousAdcStub
             : public hal::SynchronousAdc
         {
@@ -100,5 +109,17 @@ namespace application
         GpioPinStub pin;
         SerialCommunicationStub serial;
         TerminalAndTracer terminalAndTracer{ serial };
+        infra::Creator<hal::AdcMultiChannel, AdcMultiChannelStub, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
+            {
+                object.Emplace();
+            } };
+        infra::Creator<hal::SynchronousThreeChannelsPwm, SynchronousThreeChannelsPwmStub, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)> pwmBrushless{ [this](auto& object, auto deadTime, auto frequency)
+            {
+                object.Emplace();
+            } };
+        infra::Creator<hal::SynchronousQuadratureEncoder, SynchronousQuadratureEncoderStub, void()> synchronousQuadratureEncoderCreator{ [this](auto& object)
+            {
+                object.Emplace();
+            } };
     };
 }

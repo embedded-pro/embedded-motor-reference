@@ -74,9 +74,5 @@ namespace application
         virtual infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() = 0;
         virtual infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() = 0;
         virtual infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() = 0;
-
-        // virtual PidInterface& MotorPid() = 0;
-        // virtual MotorFieldOrientedControllerInterface& MotorFieldOrientedController() = 0;
-        // virtual Encoder& MotorPosition() = 0;
     };
 }
