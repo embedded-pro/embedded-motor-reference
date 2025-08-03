@@ -53,11 +53,6 @@ namespace application
             services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<256, 2> terminal{ uart, tracer };
         };
 
-        struct PidInterfaceImpl
-        {
-            hal::SynchronousPwmImpl pwm;
-        };
-
         struct MotorFieldOrientedControllerInterfaceImpl
         {
             const std::array<hal::tiva::Adc::SampleAndHold, 5> toSampleAndHold{ { hal::tiva::Adc::SampleAndHold::sampleAndHold4,
@@ -108,7 +103,6 @@ namespace application
             Cortex cortex;
             TerminalAndTracer terminalAndTracer;
             EncoderImpl encoderImpl;
-            PidInterfaceImpl motorPid;
             MotorFieldOrientedControllerInterfaceImpl motorFieldOrientedController;
         };
 
