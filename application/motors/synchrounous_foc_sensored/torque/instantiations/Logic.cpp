@@ -1,4 +1,4 @@
-#include "application/motors/synchrounous_foc_sensored/torque/instantiations/Logic.hpp"
+#include "application/motors/synchronous_foc_sensored/torque/instantiations/Logic.hpp"
 
 namespace application
 {
