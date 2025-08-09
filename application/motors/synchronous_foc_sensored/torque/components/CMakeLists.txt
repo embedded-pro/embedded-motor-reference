@@ -20,8 +20,6 @@ target_sources(motor_reference.synchronous_foc_sensored.torque.components PRIVAT
     FieldOrientedControllerInteractorImpl.hpp
     Terminal.cpp
     Terminal.hpp
-    TrigonometricImpl.cpp
-    TrigonometricImpl.hpp
 )
 
 add_subdirectory(test)

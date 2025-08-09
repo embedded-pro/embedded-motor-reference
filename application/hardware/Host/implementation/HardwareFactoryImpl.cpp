@@ -26,6 +26,25 @@ namespace application
         return infra::MakeRangeFromSingleObject(pin);
     }
 
+    hal::PerformanceTracker& HardwareFactoryImpl::PerformanceTimer()
+    {
+        return *this;
+    }
+
+    hal::Hertz HardwareFactoryImpl::BaseFrequency() const
+    {
+        return hal::Hertz(0);
+    }
+
+    void HardwareFactoryImpl::Start()
+    {
+    }
+
+    uint32_t HardwareFactoryImpl::ElapsedCycles()
+    {
+        return 0;
+    }
+
     infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& HardwareFactoryImpl::SynchronousThreeChannelsPwmCreator()
     {
         return pwmBrushless;

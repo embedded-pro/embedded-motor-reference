@@ -3,6 +3,8 @@
 
 namespace application
 {
+    extern "C" uint32_t SystemCoreClock;
+
     HardwareFactoryImpl::HardwareFactoryImpl(const infra::Function<void()>& onInitialized)
         : onInitialized(onInitialized)
     {
@@ -29,6 +31,26 @@ namespace application
     infra::MemoryRange<hal::GpioPin> HardwareFactoryImpl::Leds()
     {
         return infra::MakeRangeFromSingleObject(application::Pins::led1);
+    }
+
+    hal::PerformanceTracker& HardwareFactoryImpl::PerformanceTimer()
+    {
+        return *this;
+    }
+
+    hal::Hertz HardwareFactoryImpl::BaseFrequency() const
+    {
+        return hal::Hertz(SystemCoreClock);
+    }
+
+    void HardwareFactoryImpl::Start()
+    {
+        return peripherals->cortex.dataWatchPointAndTrace.Start();
+    }
+
+    uint32_t HardwareFactoryImpl::ElapsedCycles()
+    {
+        return peripherals->cortex.dataWatchPointAndTrace.Stop();
     }
 
     infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& HardwareFactoryImpl::SynchronousThreeChannelsPwmCreator()

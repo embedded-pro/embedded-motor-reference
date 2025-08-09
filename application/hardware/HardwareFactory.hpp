@@ -38,6 +38,8 @@ namespace application
         virtual services::Tracer& Tracer() = 0;
         virtual services::TerminalWithCommands& Terminal() = 0;
         virtual infra::MemoryRange<hal::GpioPin> Leds() = 0;
+        virtual hal::PerformanceTracker& PerformanceTimer() = 0;
+        virtual hal::Hertz BaseFrequency() const = 0;
         virtual infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() = 0;
         virtual infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() = 0;
         virtual infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() = 0;

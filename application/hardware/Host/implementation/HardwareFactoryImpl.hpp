@@ -12,6 +12,7 @@ namespace application
 {
     class HardwareFactoryImpl
         : public HardwareFactory
+        , public hal::PerformanceTracker
     {
     public:
         explicit HardwareFactoryImpl(const infra::Function<void()>& onInitialized);
@@ -21,10 +22,16 @@ namespace application
         services::Tracer& Tracer() override;
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
+        hal::PerformanceTracker& PerformanceTimer() override;
+        hal::Hertz BaseFrequency() const override;
 
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
         infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
         infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;
+
+        // Implementation of hal::PerformanceTracker
+        void Start() override;
+        uint32_t ElapsedCycles() override;
 
     private:
         class AdcMultiChannelStub

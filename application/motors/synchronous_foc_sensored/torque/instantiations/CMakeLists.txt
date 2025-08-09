@@ -16,4 +16,6 @@ target_link_libraries(motor_reference.synchronous_foc_sensored.torque.instantiat
 target_sources(motor_reference.synchronous_foc_sensored.torque.instantiations PRIVATE
     Logic.cpp
     Logic.hpp
+    TrigonometricImpl.cpp
+    TrigonometricImpl.hpp
 )

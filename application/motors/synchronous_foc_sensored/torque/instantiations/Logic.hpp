@@ -7,7 +7,7 @@
 #include "application/hardware/MotorFieldOrientedControllerAdapter.hpp"
 #include "application/motors/synchronous_foc_sensored/torque/components/FieldOrientedControllerInteractorImpl.hpp"
 #include "application/motors/synchronous_foc_sensored/torque/components/Terminal.hpp"
-#include "application/motors/synchronous_foc_sensored/torque/components/TrigonometricImpl.hpp"
+#include "application/motors/synchronous_foc_sensored/torque/instantiations/TrigonometricImpl.hpp"
 #include "services/util/DebugLed.hpp"
 
 namespace application

@@ -5,6 +5,7 @@
 #include HARDWARE_PINS_AND_PERIPHERALS_HEADER
 #include "application/hardware/HardwareFactory.hpp"
 #include "hal/interfaces/Gpio.hpp"
+#include "hal/ti/hal_tiva/cortex/DataWatchpointAndTrace.hpp"
 #include "hal/ti/hal_tiva/cortex/SystemTickTimerService.hpp"
 #include "hal/ti/hal_tiva/synchronous_tiva/SynchronousPwm.hpp"
 #include "hal/ti/hal_tiva/synchronous_tiva/SynchronousQuadratureEncoder.hpp"
@@ -21,6 +22,7 @@ namespace application
 
     class HardwareFactoryImpl
         : public HardwareFactory
+        , public hal::PerformanceTracker
     {
     public:
         explicit HardwareFactoryImpl(const infra::Function<void()>& onInitialized);
@@ -30,15 +32,22 @@ namespace application
         services::Tracer& Tracer() override;
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
+        hal::PerformanceTracker& PerformanceTimer() override;
+        hal::Hertz BaseFrequency() const override;
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
         infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
         infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;
+
+        // Implementation of hal::PerformanceTracker
+        void Start() override;
+        uint32_t ElapsedCycles() override;
 
     private:
         struct Cortex
         {
             hal::InterruptTable::WithStorage<128> interruptTable;
             hal::tiva::Gpio gpio{ hal::tiva::pinoutTableDefault, hal::tiva::analogTableDefault };
+            hal::DataWatchPointAndTrace dataWatchPointAndTrace;
             hal::cortex::SystemTickTimerService systemTick{ std::chrono::milliseconds(1) };
             infra::EventDispatcherWithWeakPtr::WithSize<50> eventDispatcher;
         };
