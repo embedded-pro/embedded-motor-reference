@@ -1,6 +1,7 @@
 #pragma once
 
 #include "application/hardware/HardwareFactory.hpp"
+#include "application/hardware/PidAdapter.hpp"
 #include "application/motors/dc/components/MotorPidControllerImpl.hpp"
 #include "application/motors/dc/components/Terminal.hpp"
 #include "application/pid/PidImpl.hpp"
@@ -14,6 +15,7 @@ namespace application
         explicit Logic(application::HardwareFactory& hardware);
 
     private:
+        application::HardwareAdapter hardwareAdapter;
         application::PidImpl pid;
         application::MotorPidControllerImpl motorController;
         services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;

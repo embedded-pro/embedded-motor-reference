@@ -1,4 +1,4 @@
-#include "application/motors/synchrounous_foc_sensored/torque/components/FieldOrientedControllerInteractorImpl.hpp"
+#include "application/motors/synchronous_foc_sensored/torque/components/FieldOrientedControllerInteractorImpl.hpp"
 
 namespace application
 {

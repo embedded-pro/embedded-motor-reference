@@ -3,6 +3,8 @@
 
 namespace application
 {
+    extern "C" uint32_t SystemCoreClock;
+
     HardwareFactoryImpl::HardwareFactoryImpl(const infra::Function<void()>& onInitialized)
         : onInitialized(onInitialized)
     {
@@ -31,74 +33,38 @@ namespace application
         return infra::MakeRangeFromSingleObject(application::Pins::led1);
     }
 
-    PidInterface& HardwareFactoryImpl::MotorPid()
+    hal::PerformanceTracker& HardwareFactoryImpl::PerformanceTimer()
     {
-        return peripherals->motorPid;
+        return *this;
     }
 
-    MotorFieldOrientedControllerInterface& HardwareFactoryImpl::MotorFieldOrientedController()
+    hal::Hertz HardwareFactoryImpl::BaseFrequency() const
     {
-        return peripherals->motorFieldOrientedController;
+        return hal::Hertz(SystemCoreClock);
     }
 
-    Encoder& HardwareFactoryImpl::MotorPosition()
+    void HardwareFactoryImpl::Start()
     {
-        return peripherals->encoderImpl;
+        return peripherals->cortex.dataWatchPointAndTrace.Start();
     }
 
-    void HardwareFactoryImpl::PidInterfaceImpl::Read(const infra::Function<void(float)>& onDone)
+    uint32_t HardwareFactoryImpl::ElapsedCycles()
     {
+        return peripherals->cortex.dataWatchPointAndTrace.Stop();
     }
 
-    void HardwareFactoryImpl::PidInterfaceImpl::ControlAction(float)
+    infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& HardwareFactoryImpl::SynchronousThreeChannelsPwmCreator()
     {
+        return peripherals->motorFieldOrientedController.pwmBrushless;
     }
 
-    void HardwareFactoryImpl::PidInterfaceImpl::Start(infra::Duration sampleTime)
+    infra::CreatorBase<hal::AdcMultiChannel, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
     {
+        return peripherals->motorFieldOrientedController.adcCurrentPhases;
     }
 
-    void HardwareFactoryImpl::PidInterfaceImpl::Stop()
+    infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& HardwareFactoryImpl::SynchronousQuadratureEncoderCreator()
     {
-    }
-
-    void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt>)>& onDone)
-    {
-        phaseCurrentsReady = onDone;
-        pwmBrushless.SetBaseFrequency(hal::Hertz(10000.0f));
-        adcCurrentPhases.Measure([this](auto samples)
-            {
-                auto voltagePhases = std::make_tuple(MilliVolt{ static_cast<float>(samples[0]) }, MilliVolt{ static_cast<float>(samples[1]) }, MilliVolt{ static_cast<float>(samples[2]) });
-                this->phaseCurrentsReady(voltagePhases);
-            });
-    }
-
-    void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases)
-    {
-        pwmBrushless.Start(std::get<0>(dutyPhases), std::get<1>(dutyPhases), std::get<2>(dutyPhases));
-    }
-
-    void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::Start()
-    {
-    }
-
-    void HardwareFactoryImpl::MotorFieldOrientedControllerInterfaceImpl::Stop()
-    {
-        pwmBrushless.Stop();
-    }
-
-    Degrees HardwareFactoryImpl::EncoderImpl::Read()
-    {
-        auto resolution = static_cast<float>(this->encoder.Resolution());
-        auto position = static_cast<float>(this->encoder.Position());
-        return Degrees((position / resolution) * 360.0f);
-    }
-
-    void HardwareFactoryImpl::EncoderImpl::Set(Degrees)
-    {
-    }
-
-    void HardwareFactoryImpl::EncoderImpl::SetZero()
-    {
+        return peripherals->encoderImpl.synchronousQuadratureEncoderCreator;
     }
 }

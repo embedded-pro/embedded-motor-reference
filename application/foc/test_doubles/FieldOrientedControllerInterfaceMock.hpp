@@ -25,7 +25,7 @@ namespace application
         : public MotorFieldOrientedControllerInterface
     {
     public:
-        MOCK_METHOD(void, PhaseCurrentsReady, (const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone), (override));
+        MOCK_METHOD(void, PhaseCurrentsReady, (hal::Hertz baseFrequency, const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone), (override));
         MOCK_METHOD(void, ThreePhasePwmOutput, ((const std::tuple<hal::Percent, hal::Percent, hal::Percent>&)), (override));
         MOCK_METHOD(void, Start, (), (override));
         MOCK_METHOD(void, Stop, (), (override));

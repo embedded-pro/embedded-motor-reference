@@ -12,8 +12,11 @@ namespace
     public:
         TestMotorFieldOrientedController()
         {
-            EXPECT_CALL(interfaceMock, PhaseCurrentsReady(::testing::_))
-                .WillOnce(::testing::Invoke(&interfaceMock, &application::FieldOrientedControllerInterfaceMock::StorePhaseCurrentsCallback));
+            EXPECT_CALL(interfaceMock, PhaseCurrentsReady(::testing::_, ::testing::_))
+                .WillOnce([&](auto baseFrequency, const auto& onDone)
+                    {
+                        interfaceMock.StorePhaseCurrentsCallback(onDone);
+                    });
 
             foc.emplace(interfaceMock, encoderMock, focMock);
         }

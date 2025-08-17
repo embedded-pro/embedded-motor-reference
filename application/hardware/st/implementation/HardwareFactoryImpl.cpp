@@ -31,19 +31,38 @@ namespace application
         return infra::MakeRangeFromSingleObject(pin);
     }
 
-    PidInterface& HardwareFactoryImpl::MotorPid()
+    hal::PerformanceTracker& HardwareFactoryImpl::PerformanceTimer()
     {
-        return motorPid;
+        return *this;
     }
 
-    MotorFieldOrientedControllerInterface& HardwareFactoryImpl::MotorFieldOrientedController()
+    hal::Hertz HardwareFactoryImpl::BaseFrequency() const
     {
-        return motorFieldOrientedController;
+        return hal::Hertz(SystemCoreClock);
     }
 
-    Encoder& HardwareFactoryImpl::MotorPosition()
+    void HardwareFactoryImpl::Start()
     {
-        return encoderImpl;
+    }
+
+    uint32_t HardwareFactoryImpl::ElapsedCycles()
+    {
+        return 0;
+    }
+
+    infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& HardwareFactoryImpl::SynchronousThreeChannelsPwmCreator()
+    {
+        return pwmBrushless;
+    }
+
+    infra::CreatorBase<hal::AdcMultiChannel, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
+    {
+        return adcCurrentPhases;
+    }
+
+    infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& HardwareFactoryImpl::SynchronousQuadratureEncoderCreator()
+    {
+        return synchronousQuadratureEncoderCreator;
     }
 
     void HardwareFactoryImpl::SerialCommunicationStub::SendData(infra::ConstByteRange data, infra::Function<void()> actionOnCompletion)
@@ -87,4 +106,41 @@ namespace application
 
     void HardwareFactoryImpl::GpioPinStub::DisableInterrupt()
     {}
+
+    void HardwareFactoryImpl::AdcMultiChannelStub::Measure(const infra::Function<void(Samples)>& onDone)
+    {
+        onDone(Samples());
+    }
+
+    void HardwareFactoryImpl::SynchronousThreeChannelsPwmStub::SetBaseFrequency(hal::Hertz baseFrequency)
+    {
+    }
+
+    void HardwareFactoryImpl::SynchronousThreeChannelsPwmStub::Stop()
+    {
+    }
+
+    void HardwareFactoryImpl::SynchronousThreeChannelsPwmStub::Start(hal::Percent dutyCycle1, hal::Percent dutyCycle2, hal::Percent dutyCycle3)
+    {
+    }
+
+    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Position()
+    {
+        return 0;
+    }
+
+    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Resolution()
+    {
+        return 0;
+    }
+
+    hal::SynchronousQuadratureEncoder::MotionDirection HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Direction()
+    {
+        return MotionDirection::forward;
+    }
+
+    uint32_t HardwareFactoryImpl::SynchronousQuadratureEncoderStub::Speed()
+    {
+        return 0;
+    }
 }

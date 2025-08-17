@@ -1,8 +1,11 @@
 #pragma once
 
+#include "hal/interfaces/AdcMultiChannel.hpp"
+#include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include HARDWARE_PINS_AND_PERIPHERALS_HEADER
 #include "application/hardware/HardwareFactory.hpp"
 #include "hal/interfaces/Gpio.hpp"
+#include "hal/ti/hal_tiva/cortex/DataWatchpointAndTrace.hpp"
 #include "hal/ti/hal_tiva/cortex/SystemTickTimerService.hpp"
 #include "hal/ti/hal_tiva/synchronous_tiva/SynchronousPwm.hpp"
 #include "hal/ti/hal_tiva/synchronous_tiva/SynchronousQuadratureEncoder.hpp"
@@ -15,8 +18,11 @@
 
 namespace application
 {
+    using namespace std::chrono_literals;
+
     class HardwareFactoryImpl
         : public HardwareFactory
+        , public hal::PerformanceTracker
     {
     public:
         explicit HardwareFactoryImpl(const infra::Function<void()>& onInitialized);
@@ -26,16 +32,22 @@ namespace application
         services::Tracer& Tracer() override;
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
+        hal::PerformanceTracker& PerformanceTimer() override;
+        hal::Hertz BaseFrequency() const override;
+        infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
+        infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
+        infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;
 
-        PidInterface& MotorPid() override;
-        MotorFieldOrientedControllerInterface& MotorFieldOrientedController() override;
-        Encoder& MotorPosition() override;
+        // Implementation of hal::PerformanceTracker
+        void Start() override;
+        uint32_t ElapsedCycles() override;
 
     private:
         struct Cortex
         {
             hal::InterruptTable::WithStorage<128> interruptTable;
             hal::tiva::Gpio gpio{ hal::tiva::pinoutTableDefault, hal::tiva::analogTableDefault };
+            hal::DataWatchPointAndTrace dataWatchPointAndTrace;
             hal::cortex::SystemTickTimerService systemTick{ std::chrono::milliseconds(1) };
             infra::EventDispatcherWithWeakPtr::WithSize<50> eventDispatcher;
         };
@@ -50,45 +62,47 @@ namespace application
             services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<256, 2> terminal{ uart, tracer };
         };
 
-        struct PidInterfaceImpl
-            : public PidInterface
-        {
-            void Read(const infra::Function<void(float)>& onDone) override;
-            void ControlAction(float) override;
-            void Start(infra::Duration sampleTime) override;
-            void Stop() override;
-
-            hal::SynchronousPwmImpl pwm;
-        };
-
         struct MotorFieldOrientedControllerInterfaceImpl
-            : public MotorFieldOrientedControllerInterface
         {
-            void PhaseCurrentsReady(const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone) override;
-            void ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases) override;
-            void Start() override;
-            void Stop() override;
-
+            const std::array<hal::tiva::Adc::SampleAndHold, 5> toSampleAndHold{ { hal::tiva::Adc::SampleAndHold::sampleAndHold4,
+                hal::tiva::Adc::SampleAndHold::sampleAndHold16,
+                hal::tiva::Adc::SampleAndHold::sampleAndHold32,
+                hal::tiva::Adc::SampleAndHold::sampleAndHold64,
+                hal::tiva::Adc::SampleAndHold::sampleAndHold256 } };
             hal::tiva::Adc::Config adcConfig{ false, 0, hal::tiva::Adc::Trigger::pwmGenerator0, hal::tiva::Adc::SampleAndHold::sampleAndHold4 };
             std::array<hal::tiva::AnalogPin, 3> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB }, hal::tiva::AnalogPin{ Pins::powerSupplyVoltage } } };
-            hal::tiva::Adc adcCurrentPhases{ Peripheral::AdcIndex, Peripheral::AdcSequencerIndex, currentPhaseAnalogPins, adcConfig };
+            infra::Creator<hal::AdcMultiChannel, hal::tiva::Adc, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
+                {
+                    adcConfig.sampleAndHold = toSampleAndHold.at(static_cast<std::size_t>(sampleAndHold));
+
+                    object.Emplace(Peripheral::AdcIndex, Peripheral::AdcSequencerIndex, currentPhaseAnalogPins, adcConfig);
+                } };
+            hal::tiva::SynchronousPwm::Config::ClockDivisor clockDivisor{ hal::tiva::SynchronousPwm::Config::ClockDivisor::divisor2 };
             hal::tiva::SynchronousPwm::Config::Control controlConfig{ hal::tiva::SynchronousPwm::Config::Control::Mode::centerAligned, hal::tiva::SynchronousPwm::Config::Control::UpdateMode::globally, true };
-            hal::tiva::SynchronousPwm::Config::DeadTime deadTimeConfig{ 0, 0 };
+            hal::tiva::SynchronousPwm::Config::DeadTime deadTimeConfig{ hal::tiva::SynchronousPwm::CalculateDeadTimeCycles(1000ns, clockDivisor), hal::tiva::SynchronousPwm::CalculateDeadTimeCycles(1000ns, clockDivisor) };
             hal::tiva::SynchronousPwm::Config::Trigger triggerConfig{ hal::tiva::SynchronousPwm::Config::Trigger::countLoad };
-            hal::tiva::SynchronousPwm::Config pwmConfig{ false, false, controlConfig, hal::tiva::SynchronousPwm::Config::ClockDivisor::divisor1, std::make_optional(deadTimeConfig), std::make_optional(triggerConfig) };
-            hal::tiva::SynchronousPwm pwmBrushless{ Peripheral::PwmIndex, Peripheral::pwmPhases, pwmConfig };
-            infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)> phaseCurrentsReady;
+            hal::tiva::SynchronousPwm::Config pwmConfig{ false, true, controlConfig, clockDivisor, std::make_optional(deadTimeConfig), std::make_optional(triggerConfig) };
+            infra::Creator<hal::SynchronousThreeChannelsPwm, hal::tiva::SynchronousPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)> pwmBrushless{ [this](auto& object, auto deadTime, auto frequency)
+                {
+                    deadTimeConfig.fallInClockCycles = hal::tiva::SynchronousPwm::CalculateDeadTimeCycles(deadTime, clockDivisor);
+                    deadTimeConfig.riseInClockCycles = hal::tiva::SynchronousPwm::CalculateDeadTimeCycles(deadTime, clockDivisor);
+
+                    pwmConfig.deadTime = std::make_optional(deadTimeConfig);
+
+                    object.Emplace(Peripheral::PwmIndex, Peripheral::pwmPhases, pwmConfig);
+                    object->SetBaseFrequency(frequency);
+                } };
+            infra::Function<void(std::tuple<infra::MilliVolt, infra::MilliVolt, infra::MilliVolt> voltagePhases)>
+                phaseCurrentsReady;
         };
 
         struct EncoderImpl
-            : public Encoder
         {
-            Degrees Read() override;
-            void Set(Degrees value) override;
-            void SetZero() override;
-
             hal::tiva::QuadratureEncoder::Config qeiConfig;
-            hal::tiva::QuadratureEncoder encoder{ Peripheral::QeiIndex, Pins::encoderA, Pins::encoderB, Pins::encoderZ, qeiConfig };
+            infra::Creator<hal::SynchronousQuadratureEncoder, hal::tiva::QuadratureEncoder, void()> synchronousQuadratureEncoderCreator{ [this](auto& object)
+                {
+                    object.Emplace(Peripheral::QeiIndex, Pins::encoderA, Pins::encoderB, Pins::encoderZ, qeiConfig);
+                } };
         };
 
         struct Peripherals
@@ -98,7 +112,6 @@ namespace application
             Cortex cortex;
             TerminalAndTracer terminalAndTracer;
             EncoderImpl encoderImpl;
-            PidInterfaceImpl motorPid;
             MotorFieldOrientedControllerInterfaceImpl motorFieldOrientedController;
         };
 

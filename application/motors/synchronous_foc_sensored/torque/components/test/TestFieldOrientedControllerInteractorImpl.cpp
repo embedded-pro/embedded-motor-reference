@@ -1,5 +1,5 @@
 #include "application/foc/test_doubles/MotorFieldOrientedControllerMock.hpp"
-#include "application/motors/synchrounous_foc_sensored/torque/components/FieldOrientedControllerInteractorImpl.hpp"
+#include "application/motors/synchronous_foc_sensored/torque/components/FieldOrientedControllerInteractorImpl.hpp"
 #include <gmock/gmock.h>
 
 namespace

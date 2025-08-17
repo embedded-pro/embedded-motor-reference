@@ -1,9 +1,10 @@
-#include "application/motors/synchrounous_foc_sensored/torque/instantiations/Logic.hpp"
+#include "application/motors/synchronous_foc_sensored/torque/instantiations/Logic.hpp"
 
 namespace application
 {
     Logic::Logic(application::HardwareFactory& hardware)
-        : motorFocImpl{ hardware.MotorFieldOrientedController(), hardware.MotorPosition(), focImpl }
+        : hardwareAdapter{ hardware }
+        , motorFocImpl{ hardwareAdapter, hardwareAdapter, focImpl }
         , focInteractor{ motorFocImpl }
         , terminalWithStorage{ hardware.Terminal(), hardware.Tracer() }
         , terminal{ terminalWithStorage, focInteractor }

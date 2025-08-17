@@ -1,2 +1,3 @@
 add_subdirectory(dc)
-add_subdirectory(synchrounous_foc_sensored)
+add_subdirectory(synchronous_foc_sensored)
+add_subdirectory(hardware_test)
