@@ -137,7 +137,7 @@ namespace
             for (char c : mean)
                 EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ static_cast<uint8_t>(c) }), testing::_));
 
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { ',' } }), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ ',' }), testing::_));
 
             for (char c : deviationStandard)
                 EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ static_cast<uint8_t>(c) }), testing::_));
