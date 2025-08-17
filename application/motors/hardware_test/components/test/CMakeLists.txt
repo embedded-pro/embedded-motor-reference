@@ -4,12 +4,11 @@ emil_add_test(motor_reference.hardware_test.components.test)
 
 target_link_libraries(motor_reference.hardware_test.components.test PUBLIC
     gmock_main
-    motor_reference.synchronous_foc_sensored.torque.components
+    motor_reference.hardware_test.components
     hal.interfaces_test_doubles
     infra.timer_test_helper
     infra.event_test_helper
-    motor_reference.foc_mock
-    motor_reference.pid_mock
+    infra.util_test_helper
 )
 
 target_sources(motor_reference.hardware_test.components.test PRIVATE

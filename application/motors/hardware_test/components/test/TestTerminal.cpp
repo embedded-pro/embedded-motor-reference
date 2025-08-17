@@ -1,88 +1,119 @@
-#include "application/motors/synchronous_foc_sensored/torque/components/FieldOrientedControllerInteractor.hpp"
-#include "application/motors/synchronous_foc_sensored/torque/components/Terminal.hpp"
+#include "application/motors/hardware_test/components/Terminal.hpp"
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
-#include "infra/util/ByteRange.hpp"
-#include "infra/util/Function.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
-#include "services/util/Terminal.hpp"
+#include "infra/util/test_helper/ProxyCreatorMock.hpp"
+#include "services/tracer/Tracer.hpp"
 #include "gmock/gmock.h"
-#include <optional>
+#include "gtest/gtest.h"
 
 namespace
 {
-    MATCHER_P(SpeedEq, expected, "is speed equal")
-    {
-        return std::abs(arg.Value() - expected.Value()) < 1e-5f;
-    }
-
-    MATCHER_P(OptionalFloatEq, expected, "is an optional with value approximately " + ::testing::PrintToString(expected))
-    {
-        return arg.has_value() && std::abs(arg.value() - expected) < 1e-5f;
-    }
-
-    MATCHER_P2(PidParamsEq, dParams, qParams, "is FOC PID parameters equal")
-    {
-        const auto& d = arg.first;
-        const auto& q = arg.second;
-
-        return (!d.kp.has_value() && !dParams.kp.has_value() ||
-                   (d.kp.has_value() && dParams.kp.has_value() && std::abs(*d.kp - *dParams.kp) < 1e-5f)) &&
-               (!d.ki.has_value() && !dParams.ki.has_value() ||
-                   (d.ki.has_value() && dParams.ki.has_value() && std::abs(*d.ki - *dParams.ki) < 1e-5f)) &&
-               (!d.kd.has_value() && !dParams.kd.has_value() ||
-                   (d.kd.has_value() && dParams.kd.has_value() && std::abs(*d.kd - *dParams.kd) < 1e-5f)) &&
-               (!q.kp.has_value() && !qParams.kp.has_value() ||
-                   (q.kp.has_value() && qParams.kp.has_value() && std::abs(*q.kp - *qParams.kp) < 1e-5f)) &&
-               (!q.ki.has_value() && !qParams.ki.has_value() ||
-                   (q.ki.has_value() && qParams.ki.has_value() && std::abs(*q.ki - *qParams.ki) < 1e-5f)) &&
-               (!q.kd.has_value() && !qParams.kd.has_value() ||
-                   (q.kd.has_value() && qParams.kd.has_value() && std::abs(*q.kd - *qParams.kd) < 1e-5f));
-    }
-
     class StreamWriterMock
         : public infra::StreamWriter
     {
     public:
-        using StreamWriter::StreamWriter;
-
-        MOCK_METHOD2(Insert, void(infra::ConstByteRange range, infra::StreamErrorPolicy& errorPolicy));
-        MOCK_CONST_METHOD0(Available, std::size_t());
-        MOCK_CONST_METHOD0(ConstructSaveMarker, std::size_t());
-        MOCK_CONST_METHOD1(GetProcessedBytesSince, std::size_t(std::size_t marker));
-        MOCK_METHOD1(SaveState, infra::ByteRange(std::size_t marker));
-        MOCK_METHOD1(RestoreState, void(infra::ByteRange range));
-        MOCK_METHOD1(Overwrite, infra::ByteRange(std::size_t marker));
+        MOCK_METHOD(void, Insert, (infra::ConstByteRange range, infra::StreamErrorPolicy& errorPolicy), (override));
+        MOCK_METHOD(std::size_t, Available, (), (const override));
+        MOCK_METHOD(std::size_t, ConstructSaveMarker, (), (const override));
+        MOCK_METHOD(std::size_t, GetProcessedBytesSince, (std::size_t marker), (const override));
+        MOCK_METHOD(infra::ByteRange, SaveState, (std::size_t marker), (override));
+        MOCK_METHOD(void, RestoreState, (infra::ByteRange range), (override));
+        MOCK_METHOD(infra::ByteRange, Overwrite, (std::size_t marker), (override));
     };
 
-    class FocControllerMock
-        : public application::FieldOrientedControllerInteractor
+    class HardwareFactoryMock
+        : public application::HardwareFactory
     {
     public:
-        MOCK_METHOD(void, AutoTune, (const infra::Function<void()>& onDone), (override));
-        MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<PidParameters, PidParameters>&)dqPidParams), (override));
-        MOCK_METHOD(void, SetTorque, (const Torque& torque), (override));
-        MOCK_METHOD(void, Start, (), (override));
-        MOCK_METHOD(void, Stop, (), (override));
+        MOCK_METHOD(void, Run, (), (override));
+        MOCK_METHOD(services::Tracer&, Tracer, (), (override));
+        MOCK_METHOD(services::TerminalWithCommands&, Terminal, (), (override));
+        MOCK_METHOD(infra::MemoryRange<hal::GpioPin>, Leds, (), (override));
+        MOCK_METHOD(hal::PerformanceTracker&, PerformanceTimer, (), (override));
+        MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
+        MOCK_METHOD((infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)>&), SynchronousThreeChannelsPwmCreator, (), (override));
+        MOCK_METHOD((infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>&), AdcMultiChannelCreator, (), (override));
+        MOCK_METHOD((infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>&), SynchronousQuadratureEncoderCreator, (), (override));
     };
 
-    class TestBldcTerminal
-        : public ::testing::Test
+    class PwmMock
+        : public hal::SynchronousThreeChannelsPwm
+    {
+    public:
+        MOCK_METHOD(void, SetBaseFrequency, (hal::Hertz baseFrequency), (override));
+        MOCK_METHOD(void, Stop, (), (override));
+        MOCK_METHOD(void, Start, (hal::Percent dutyCycle1, hal::Percent dutyCycle2, hal::Percent dutyCycle3), (override));
+    };
+
+    class AdcMock
+        : public hal::AdcMultiChannel
+    {
+    public:
+        MOCK_METHOD(void, Measure, (const infra::Function<void(Samples)>& onDone), (override));
+    };
+
+    class EncoderMock
+        : public hal::SynchronousQuadratureEncoder
+    {
+    public:
+        MOCK_METHOD(uint32_t, Position, (), (override));
+        MOCK_METHOD(uint32_t, Resolution, (), (override));
+        MOCK_METHOD(MotionDirection, Direction, (), (override));
+        MOCK_METHOD(uint32_t, Speed, (), (override));
+    };
+
+    class TestHardwareTerminal
+        : public testing::Test
         , public infra::EventDispatcherWithWeakPtrFixture
     {
     public:
-        ::testing::StrictMock<FocControllerMock> focControllerMock;
-        ::testing::StrictMock<StreamWriterMock> streamWriterMock;
+        TestHardwareTerminal()
+        {
+            EXPECT_CALL(hardwareFactoryMock, Terminal()).WillRepeatedly(testing::ReturnRef(terminalWithCommands));
+            EXPECT_CALL(hardwareFactoryMock, Tracer()).WillRepeatedly(testing::ReturnRef(tracer));
+            EXPECT_CALL(hardwareFactoryMock, SynchronousThreeChannelsPwmCreator()).WillRepeatedly(testing::ReturnRef(pwmCreator));
+            EXPECT_CALL(hardwareFactoryMock, AdcMultiChannelCreator()).WillRepeatedly(testing::ReturnRef(adcCreator));
+            EXPECT_CALL(hardwareFactoryMock, SynchronousQuadratureEncoderCreator()).WillRepeatedly(testing::ReturnRef(encoderCreator));
+
+            EXPECT_CALL(encoderCreator, Constructed());
+            EXPECT_CALL(pwmCreator, Constructed(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 }));
+            EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::medium));
+
+            EXPECT_CALL(adcMock, Measure(testing::_)).WillRepeatedly(testing::SaveArg<0>(&onAdcMeasurementDone));
+
+            terminalInteractor.emplace(terminal, hardwareFactoryMock);
+        }
+
+        ~TestHardwareTerminal()
+        {
+            EXPECT_CALL(encoderCreator, Destructed()).Times(1);
+            EXPECT_CALL(pwmCreator, Destructed()).Times(testing::AtLeast(1));
+            EXPECT_CALL(adcCreator, Destructed()).Times(testing::AtLeast(1));
+        }
+
+        testing::StrictMock<HardwareFactoryMock> hardwareFactoryMock;
+        testing::StrictMock<StreamWriterMock> streamWriterMock;
         infra::TextOutputStream::WithErrorPolicy stream{ streamWriterMock };
         services::TracerToStream tracer{ stream };
-        ::testing::StrictMock<hal::SerialCommunicationMock> communication;
+        testing::StrictMock<hal::SerialCommunicationMock> communication;
         infra::Execute execute{ [this]()
             {
                 EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { '>', ' ' } }), testing::_));
             } };
         services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<128, 5> terminalWithCommands{ communication, tracer };
         services::TerminalWithStorage::WithMaxSize<10> terminal{ terminalWithCommands, tracer };
-        application::TerminalInteractor terminalInteractor{ terminal, focControllerMock };
+
+        testing::StrictMock<PwmMock> pwmMock;
+        testing::StrictMock<AdcMock> adcMock;
+        testing::StrictMock<EncoderMock> encoderMock;
+
+        infra::CreatorMock<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)> pwmCreator{ pwmMock };
+        infra::CreatorMock<hal::AdcMultiChannel, void(application::HardwareFactory::SampleAndHold)> adcCreator{ adcMock };
+        infra::CreatorMock<hal::SynchronousQuadratureEncoder, void()> encoderCreator{ encoderMock };
+
+        std::optional<application::TerminalInteractor> terminalInteractor;
+        infra::Function<void(hal::AdcMultiChannel::Samples)> onAdcMeasurementDone;
 
         void InvokeCommand(std::string command, const std::function<void()>& onCommandReceived)
         {
@@ -100,238 +131,178 @@ namespace
     };
 }
 
-TEST_F(TestBldcTerminal, auto_tune)
-{
-    InvokeCommand("auto_tune", [this]()
-        {
-            EXPECT_CALL(focControllerMock, AutoTune(::testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, auto_tune_alias)
-{
-    InvokeCommand("at", [this]()
-        {
-            EXPECT_CALL(focControllerMock, AutoTune(::testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, set_dq_pid)
-{
-    application::FieldOrientedControllerInteractor::PidParameters dParams{
-        std::optional<float>(1.0f),
-        std::optional<float>(0.765f),
-        std::optional<float>(-0.56f)
-    };
-    application::FieldOrientedControllerInteractor::PidParameters qParams{
-        std::optional<float>(0.5f),
-        std::optional<float>(-0.35f),
-        std::optional<float>(0.75f)
-    };
-
-    std::pair<application::FieldOrientedControllerInteractor::PidParameters,
-        application::FieldOrientedControllerInteractor::PidParameters>
-        expectedParams(dParams, qParams);
-
-    InvokeCommand("sdqpid 1.0 0.765 -0.56 0.5 -0.35 0.75", [this, &expectedParams]()
-        {
-            EXPECT_CALL(focControllerMock, SetDQPidParameters(PidParamsEq(expectedParams.first, expectedParams.second)));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, set_dq_pid_invalid_argument_count)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid number of arguments" };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, set_dq_pid_invalid_d_kp)
-{
-    InvokeCommand("set_dq_pid abc 0.765 -0.56 0.5 -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, set_dq_pid_invalid_d_ki)
-{
-    InvokeCommand("set_dq_pid 1.0 abc -0.56 0.5 -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, set_dq_pid_invalid_d_kd)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 abc 0.5 -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, set_dq_pid_invalid_q_kp)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 abc -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, set_dq_pid_invalid_q_ki)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 0.5 abc 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, set_dq_pid_invalid_q_kd)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 0.5 -0.35 abc", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, start)
-{
-    InvokeCommand("start", [this]()
-        {
-            EXPECT_CALL(focControllerMock, Start());
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, start_alias)
-{
-    InvokeCommand("sts", [this]()
-        {
-            EXPECT_CALL(focControllerMock, Start());
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestBldcTerminal, stop)
+TEST_F(TestHardwareTerminal, stop_command)
 {
     InvokeCommand("stop", [this]()
         {
-            EXPECT_CALL(focControllerMock, Stop());
+            EXPECT_CALL(pwmMock, Stop());
         });
 
     ExecuteAllActions();
 }
 
-TEST_F(TestBldcTerminal, stop_alias)
+TEST_F(TestHardwareTerminal, stop_alias)
 {
     InvokeCommand("stp", [this]()
         {
-            EXPECT_CALL(focControllerMock, Stop());
+            EXPECT_CALL(pwmMock, Stop());
         });
 
     ExecuteAllActions();
 }
 
-TEST_F(TestBldcTerminal, set_torque)
+TEST_F(TestHardwareTerminal, read_command_with_no_data)
 {
-    application::FieldOrientedControllerInteractor::Torque torque{ 2.5f };
-
-    InvokeCommand("set_torque 2.5", [this, torque]()
+    InvokeCommand("read", [this]()
         {
-            EXPECT_CALL(focControllerMock, SetTorque(testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AtLeast(2));
+
+            std::string expectedMessage = "\t\tNo ADC data available";
+            EXPECT_CALL(streamWriterMock, Insert(
+                                              infra::CheckByteRangeContents(std::vector<uint8_t>(expectedMessage.begin(), expectedMessage.end())),
+                                              testing::_))
+                .Times(1);
         });
 
     ExecuteAllActions();
 }
 
-TEST_F(TestBldcTerminal, set_torque_invalid_value)
+TEST_F(TestHardwareTerminal, read_command_with_adc_data)
 {
-    InvokeCommand("set_torque abc", [this]()
+    std::array<uint16_t, 5> sampleData = { 1000, 1500, 2000, 2500, 3000 };
+    hal::AdcMultiChannel::Samples simulatedSamples{ sampleData };
+    onAdcMeasurementDone(simulatedSamples);
+
+    InvokeCommand("read", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AtLeast(10));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, read_alias_with_no_data)
+{
+    InvokeCommand("r", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { '\r', '\n' } }), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { '\r', '\n' } }), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, read_alias_with_multiple_samples)
+{
+    std::array<uint16_t, 5> sampleData1 = { 1000, 1500, 2000, 2500, 3000 };
+    std::array<uint16_t, 5> sampleData2 = { 1100, 1600, 2100, 2600, 3100 };
+    std::array<uint16_t, 5> sampleData3 = { 900, 1400, 1900, 2400, 2900 };
+
+    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData1 });
+    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData2 });
+    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData3 });
+
+    InvokeCommand("r", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AtLeast(10));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, duty_command)
+{
+    InvokeCommand("duty 10 20 30", [this]()
+        {
+            EXPECT_CALL(pwmMock, Start(hal::Percent{ 10 }, hal::Percent{ 20 }, hal::Percent{ 30 }));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, duty_alias)
+{
+    InvokeCommand("d 15 25 35", [this]()
+        {
+            EXPECT_CALL(pwmMock, Start(hal::Percent{ 15 }, hal::Percent{ 25 }, hal::Percent{ 35 }));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, duty_invalid_argument_count)
+{
+    InvokeCommand("duty 10 20", [this]()
         {
             ::testing::InSequence _;
 
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
             std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid number of arguments" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pwm_command)
+{
+    InvokeCommand("pwm 500 10000", [this]()
+        {
+            EXPECT_CALL(pwmCreator, Destructed()).Times(1);
+            EXPECT_CALL(pwmCreator, Constructed(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 })).Times(1);
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pwm_alias)
+{
+    InvokeCommand("p 750 15000", [this]()
+        {
+            EXPECT_CALL(pwmCreator, Destructed()).Times(1);
+            EXPECT_CALL(pwmCreator, Constructed(std::chrono::nanoseconds{ 750 }, hal::Hertz{ 15000 })).Times(1);
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_command)
+{
+    InvokeCommand("adc medium", [this]()
+        {
+            EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::medium)).Times(1);
+            EXPECT_CALL(adcMock, Measure(testing::_)).Times(1);
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_alias)
+{
+    InvokeCommand("a shortest", [this]()
+        {
+            EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::shortest)).Times(1);
+            EXPECT_CALL(adcMock, Measure(testing::_)).Times(1);
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_invalid_value)
+{
+    InvokeCommand("adc invalid", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be one of: shortest, shorter, medium, longer, longest." };
 
             EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
             EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
