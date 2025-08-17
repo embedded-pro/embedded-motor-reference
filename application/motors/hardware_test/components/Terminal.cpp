@@ -75,9 +75,20 @@ namespace
         if (x <= 0.0f)
             return 0.0f;
 
-        float guess = x * 0.5f;
-        for (uint8_t i = 0; i < 3; ++i)
-            guess = (guess + x / guess) * 0.5f;
+        if (x == 1.0f)
+            return 1.0f;
+
+        union
+        {
+            float f;
+            uint32_t i;
+        } conv = { x };
+
+        conv.i = (conv.i + 0x3f800000) >> 1;
+        float guess = conv.f;
+
+        for (uint8_t i = 0; i < 6; ++i)
+            guess = 0.5f * (guess + x / guess);
 
         return guess;
     }
@@ -189,18 +200,18 @@ namespace application
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::ReadAdcWithSampleTime()
     {
-        tracer.Trace() << "\tMeasures [average,standard deviation]";
+        tracer.Trace() << "  Measures [average,standard deviation]";
 
         if (IsAdcBufferPopulated())
         {
-            tracer.Trace() << "\t\tPhase A:\t" << adcChannelSamples[0].back() << "[" << Average(adcChannelSamples[0]) << "," << StandardDeviation(adcChannelSamples[0]) << "]";
-            tracer.Trace() << "\t\tPhase B:\t" << adcChannelSamples[1].back() << "[" << Average(adcChannelSamples[1]) << "," << StandardDeviation(adcChannelSamples[1]) << "]";
-            tracer.Trace() << "\t\tPhase C:\t" << adcChannelSamples[2].back() << "[" << Average(adcChannelSamples[2]) << "," << StandardDeviation(adcChannelSamples[2]) << "]";
-            tracer.Trace() << "\t\tReference Voltage:\t" << adcChannelSamples[3].back() << "[" << Average(adcChannelSamples[3]) << "," << StandardDeviation(adcChannelSamples[3]) << "]";
-            tracer.Trace() << "\t\tTotal Current:\t" << adcChannelSamples[4].back() << "[" << Average(adcChannelSamples[4]) << "," << StandardDeviation(adcChannelSamples[4]) << "]";
+            tracer.Trace() << "    Phase A:            [" << static_cast<uint32_t>(Average(adcChannelSamples[0])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[0])) << "]";
+            tracer.Trace() << "    Phase B:            [" << static_cast<uint32_t>(Average(adcChannelSamples[1])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[1])) << "]";
+            tracer.Trace() << "    Phase C:            [" << static_cast<uint32_t>(Average(adcChannelSamples[2])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[2])) << "]";
+            tracer.Trace() << "    Reference Voltage:  [" << static_cast<uint32_t>(Average(adcChannelSamples[3])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[3])) << "]";
+            tracer.Trace() << "    Total Current:      [" << static_cast<uint32_t>(Average(adcChannelSamples[4])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[4])) << "]";
         }
         else
-            tracer.Trace() << "\t\tNo ADC data available";
+            tracer.Trace() << "    No ADC data available";
 
         return { services::TerminalWithStorage::Status::success };
     }
