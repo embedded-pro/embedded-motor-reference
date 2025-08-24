@@ -30,8 +30,8 @@ namespace application
 
         static hal::tiva::GpioPin led1{ hal::tiva::Port::N, 0 };
 
-        static hal::tiva::GpioPin uartTx{ hal::tiva::Port::A, 0 };
-        static hal::tiva::GpioPin uartRx{ hal::tiva::Port::A, 1 };
+        static hal::tiva::GpioPin uartRx{ hal::tiva::Port::A, 0 };
+        static hal::tiva::GpioPin uartTx{ hal::tiva::Port::A, 1 };
     }
 
     namespace Peripheral

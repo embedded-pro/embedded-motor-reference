@@ -45,11 +45,9 @@ namespace application
     private:
         struct Cortex
         {
-            hal::InterruptTable::WithStorage<128> interruptTable;
-            hal::tiva::Gpio gpio{ hal::tiva::pinoutTableDefault, hal::tiva::analogTableDefault };
+            infra::EventDispatcherWithWeakPtr::WithSize<50> eventDispatcher;
             hal::DataWatchPointAndTrace dataWatchPointAndTrace;
             hal::cortex::SystemTickTimerService systemTick{ std::chrono::milliseconds(1) };
-            infra::EventDispatcherWithWeakPtr::WithSize<50> eventDispatcher;
         };
 
         struct TerminalAndTracer
