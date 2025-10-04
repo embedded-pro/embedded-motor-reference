@@ -15,6 +15,7 @@
 #include "infra/event/EventDispatcherWithWeakPtr.hpp"
 #include "services/tracer/StreamWriterOnSerialCommunication.hpp"
 #include "services/tracer/TracerWithDateTime.hpp"
+#include "services/tracer/SerialCommunicationOnSeggerRtt.hpp"
 
 namespace application
 {
@@ -54,10 +55,11 @@ namespace application
         {
             hal::tiva::Uart::Config uartConfig{ true, true, hal::tiva::Uart::Baudrate::_921000_bps, hal::tiva::Uart::FlowControl::none, hal::tiva::Uart::Parity::none, hal::tiva::Uart::StopBits::one, hal::tiva::Uart::NumberOfBytes::_8_bytes, infra::none };
             hal::tiva::Uart uart{ Peripheral::UartIndex, Pins::uartTx, Pins::uartRx, uartConfig };
-            services::StreamWriterOnSerialCommunication::WithStorage<2048> streamWriterOnSerialCommunication{ uart };
+            services::SerialCommunicationOnSeggerRtt serialCommunicationOnSeggerRtt;
+            services::StreamWriterOnSerialCommunication::WithStorage<2048> streamWriterOnSerialCommunication{ serialCommunicationOnSeggerRtt };
             infra::TextOutputStream::WithErrorPolicy tracerStream{ streamWriterOnSerialCommunication };
             services::TracerWithDateTime tracer{ tracerStream };
-            services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<256, 2> terminal{ uart, tracer };
+            services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<256, 10> terminal{ serialCommunicationOnSeggerRtt, tracer };
         };
 
         struct MotorFieldOrientedControllerInterfaceImpl
