@@ -6,14 +6,22 @@
   "mounts": [
     "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
   ],
-  "runArgs": ["--add-host=host.docker.internal:host-gateway", "--privileged"],
+  "runArgs": [
+    "--add-host=host.docker.internal:host-gateway",
+    "--privileged"
+  ],
   "customizations": {
     "vscode": {
-      "extensions": ["JacquesLucke.gcov-viewer@0.5.0"],
+      "extensions": [
+        "JacquesLucke.gcov-viewer@0.5.0",
+        "matepek.vscode-catch2-test-adapter@4.12.2"
+      ],
       "settings": {
         "editor.formatOnSave": true,
         "files.insertFinalNewline": true,
-        "gcovViewer.buildDirectories": ["${workspaceFolder}/build/Coverage"],
+        "gcovViewer.buildDirectories": [
+          "${workspaceFolder}/build/Coverage"
+        ],
         "gcovViewer.highlightMissedLines": true
       }
     }

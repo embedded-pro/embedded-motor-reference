@@ -5,7 +5,7 @@ updates:
   - package-ecosystem: github-actions
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
     groups:
       patch-minor-action-updates:
         update-types:
@@ -14,4 +14,12 @@ updates:
   - package-ecosystem: docker
     directory: /
     schedule:
-      interval: monthly
+      interval: weekly
+  - package-ecosystem: docker
+    directory: /.devcontainer
+    schedule:
+      interval: weekly
+  - package-ecosystem: gitsubmodule
+    directory: /
+    schedule:
+      interval: weekly
