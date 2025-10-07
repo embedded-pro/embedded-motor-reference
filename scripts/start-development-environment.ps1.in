@@ -9,10 +9,10 @@ if (-not $JLinkPath) {
     exit 1
 }
 
-# Check if ttermpro.exe is available
-$TeraTermPath = Get-Command "ttermpro.exe" -ErrorAction SilentlyContinue
-if (-not $TeraTermPath) {
-    Write-Error "ttermpro.exe not found in PATH. Please install Tera Term and ensure it's in your PATH."
+# Check if Tera Term is installed in the expected location
+$TeraTermPath = "C:\Program Files (x86)\teraterm\ttermpro.exe"
+if (-not (Test-Path $TeraTermPath)) {
+    Write-Error "Tera Term not found at '$TeraTermPath'. Please install Tera Term."
     exit 1
 }
 
@@ -46,7 +46,7 @@ $TeraTermArgs = @(
     "/T=1"  # Telnet connection
 )
 
-Start-Process -FilePath "ttermpro.exe" -ArgumentList $TeraTermArgs
+Start-Process -FilePath $TeraTermPath -ArgumentList $TeraTermArgs
 
 Write-Host "Development environment setup complete!" -ForegroundColor Green
 Write-Host "JLink GDB Server is running on port @GDB_PORT@" -ForegroundColor Cyan
