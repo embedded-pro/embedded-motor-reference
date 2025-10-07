@@ -17,6 +17,10 @@ set(HALST_BUILD_EXAMPLES Off CACHE INTERNAL "")
 
 add_definitions(-DEMIL_ENABLE_TRACING=1)
 
+if(DEFINED MOTOR_REFERENCE_TARGET_BOARD)
+    add_definitions(-DMOTOR_REFERENCE_TARGET_BOARD="${MOTOR_REFERENCE_TARGET_BOARD}")
+endif()
+
 project(motor_reference LANGUAGES C CXX ASM VERSION 0.0.1) # x-release-please-version
 
 set(CMAKE_CXX_STANDARD 17)
