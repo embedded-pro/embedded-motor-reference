@@ -51,10 +51,3 @@ if (DEFINED TARGET_MCU)
         GDB_PORT "2334"
     )
 endif()
-
-# Copy PowerShell debug script to host computer after configuration
-add_custom_target(copy_debug_script ALL
-    COMMAND "${CMAKE_SOURCE_DIR}/copy_script_to_host.sh"
-    COMMENT "Copying PowerShell debug script to host computer"
-    VERBATIM
-)
