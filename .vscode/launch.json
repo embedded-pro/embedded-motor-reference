@@ -22,7 +22,7 @@
             ]
         },
         {
-            "name": "EK-TM4C1294XL Port 2334",
+            "name": "Embedded Debug",
             "cwd": "${workspaceFolder}",
             "executable": "${command:cmake.launchTargetPath}",
             "request": "launch",

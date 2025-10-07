@@ -42,3 +42,19 @@ add_subdirectory(application)
 
 emil_clangformat_directories(motor_reference DIRECTORIES application)
 emil_folderize_all_targets()
+
+include(scripts/development_environment.cmake)
+
+if (DEFINED TARGET_MCU)
+    generate_development_environment_script(
+        TARGET_MCU "${TARGET_MCU}"
+        GDB_PORT "2334"
+    )
+endif()
+
+# Copy PowerShell debug script to host computer after configuration
+add_custom_target(copy_debug_script ALL
+    COMMAND "${CMAKE_SOURCE_DIR}/copy_script_to_host.sh"
+    COMMENT "Copying PowerShell debug script to host computer"
+    VERBATIM
+)
