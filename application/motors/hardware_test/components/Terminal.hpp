@@ -16,6 +16,7 @@ namespace application
     private:
         using StatusWithMessage = services::TerminalWithStorage::StatusWithMessage;
 
+        void PrintHeader();
         StatusWithMessage ConfigurePwm(const infra::BoundedConstString& param);
         StatusWithMessage ConfigureAdc(const infra::BoundedConstString& param);
         StatusWithMessage Stop();

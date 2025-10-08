@@ -153,6 +153,20 @@ namespace application
         encoderCreator.Emplace();
         pwmCreator.Emplace(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 });
         StartAdc(HardwareFactory::SampleAndHold::medium);
+
+        PrintHeader();
+    }
+
+    void TerminalInteractor::PrintHeader()
+    {
+        tracer.Trace() << "================================================";
+        tracer.Trace() << "embedded-motor-reference:hardware_test";
+        tracer.Trace() << "Version: 0.0.1";
+        tracer.Trace() << "Build: " << __DATE__ << " " << __TIME__;
+        tracer.Trace() << "Compiler: " << __VERSION__;
+        tracer.Trace() << "Target: " << MOTOR_REFERENCE_TARGET_BOARD;
+        tracer.Trace() << "================================================";
+        tracer.Trace() << "Ready to accept commands. Type 'help' for available commands.";
     }
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::ConfigurePwm(const infra::BoundedConstString& param)
