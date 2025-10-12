@@ -22,7 +22,8 @@
             "inherits": "defaults",
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel",
-                "NUMERICAL_TOOLBOX_BUILD_TESTS": true
+                "MOTOR_REFERENCE_TARGET_PLATFORM": "Host",
+                "MOTOR_REFERENCE_BUILD_TESTS": true
             },
             "generator": "Ninja Multi-Config"
         },
@@ -32,7 +33,8 @@
             "inherits": "defaults",
             "cacheVariables": {
                     "CMAKE_BUILD_TYPE": "Debug",
-                    "NUMERICAL_TOOLBOX_BUILD_TESTS": true
+                    "MOTOR_REFERENCE_TARGET_PLATFORM": "Host",
+                    "MOTOR_REFERENCE_BUILD_TESTS": true
                 }
         },
         {
