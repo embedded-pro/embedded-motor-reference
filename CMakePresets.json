@@ -10,22 +10,30 @@
             "name": "defaults",
             "hidden": true,
             "binaryDir": "${sourceDir}/build/${presetName}",
-            "generator": "Ninja Multi-Config",
+            "installDir": "${sourceDir}/install",
             "cacheVariables": {
                 "CMAKE_EXPORT_COMPILE_COMMANDS": "On",
-                "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel"
+                "CMAKE_COMPILE_WARNING_AS_ERROR": "On"
             }
         },
         {
             "name": "host",
-            "displayName": "host",
-            "description": "Build required tools for host",
+            "displayName": "Configuration for Host Tooling and Tests",
             "inherits": "defaults",
             "cacheVariables": {
-                "MOTOR_REFERENCE_BUILD_TESTS": true,
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "Host"
+                "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel",
+                "NUMERICAL_TOOLBOX_BUILD_TESTS": true
             },
             "generator": "Ninja Multi-Config"
+        },
+        {
+            "name": "host-single-Debug",
+            "displayName": "Configuration for Host Tooling and Tests, Single Config Generator, Debug",
+            "inherits": "defaults",
+            "cacheVariables": {
+                    "CMAKE_BUILD_TYPE": "Debug",
+                    "NUMERICAL_TOOLBOX_BUILD_TESTS": true
+                }
         },
         {
             "name": "coverage",
@@ -138,6 +146,20 @@
             "configurePreset": "host"
         },
         {
+            "name": "host-Debug-WithPackage",
+            "configuration": "Debug",
+            "configurePreset": "host",
+            "targets": [
+                "all",
+                "package"
+            ]
+        },
+        {
+            "name": "host-single-Debug",
+            "configuration": "Debug",
+            "configurePreset": "host-single-Debug"
+        },
+        {
             "name": "coverage",
             "configuration": "Debug",
             "configurePreset": "coverage"
@@ -196,20 +218,20 @@
             }
         },
         {
-            "name": "host-Debug",
+            "name": "host",
             "configurePreset": "host",
             "configuration": "Debug",
             "inherits": "defaults"
         },
         {
-            "name": "host-RelWithDebInfo",
-            "configurePreset": "host",
-            "configuration": "RelWithDebInfo",
+            "name": "coverage",
+            "configurePreset": "coverage",
+            "configuration": "Debug",
             "inherits": "defaults"
         },
         {
-            "name": "coverage",
-            "configurePreset": "coverage",
+            "name": "host-single-Debug",
+            "configurePreset": "host-single-Debug",
             "configuration": "Debug",
             "inherits": "defaults"
         }
