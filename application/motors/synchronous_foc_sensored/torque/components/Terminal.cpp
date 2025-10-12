@@ -1,4 +1,4 @@
-#include "application/motors/synchronous_foc_sensored/torque/components/Terminal.hpp"
+#include "application/motors/sync_foc_sensored/torque/components/Terminal.hpp"
 #include "infra/stream/StringInputStream.hpp"
 #include "infra/util/Function.hpp"
 #include "infra/util/Tokenizer.hpp"

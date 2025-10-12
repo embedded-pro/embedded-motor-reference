@@ -1,5 +1,5 @@
 #include HARDWARE_FACTORY_IMPL_HEADER
-#include "application/motors/synchronous_foc_sensored/torque/instantiations/Logic.hpp"
+#include "application/motors/sync_foc_sensored/torque/instantiations/Logic.hpp"
 #include <optional>
 
 int main()

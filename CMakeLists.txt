@@ -46,7 +46,7 @@ endif()
 add_subdirectory(numerical-toolbox)
 add_subdirectory(application)
 
-emil_clangformat_directories(motor_reference DIRECTORIES application)
+emil_clangformat_directories(motor_ref DIRECTORIES application)
 emil_folderize_all_targets()
 
 include(scripts/development_environment.cmake)

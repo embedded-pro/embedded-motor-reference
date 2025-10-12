@@ -1,5 +1,5 @@
-#include "application/motors/synchronous_foc_sensored/torque/components/FieldOrientedControllerInteractor.hpp"
-#include "application/motors/synchronous_foc_sensored/torque/components/Terminal.hpp"
+#include "application/motors/sync_foc_sensored/torque/components/FieldOrientedControllerInteractor.hpp"
+#include "application/motors/sync_foc_sensored/torque/components/Terminal.hpp"
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
 #include "infra/util/ByteRange.hpp"

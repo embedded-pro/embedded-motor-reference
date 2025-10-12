@@ -1,7 +1,7 @@
 #pragma once
 
 #include "application/foc/MotorFieldOrientedController.hpp"
-#include "application/motors/synchronous_foc_sensored/torque/components/FieldOrientedControllerInteractor.hpp"
+#include "application/motors/sync_foc_sensored/torque/components/FieldOrientedControllerInteractor.hpp"
 
 namespace application
 {

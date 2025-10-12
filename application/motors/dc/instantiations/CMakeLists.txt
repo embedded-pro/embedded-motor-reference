@@ -1,18 +1,18 @@
-add_library(motor_reference.dc.instantiations ${EMIL_EXCLUDE_FROM_ALL} STATIC)
-emil_build_for(motor_reference.dc.instantiations)
+add_library(motor_ref.dc.instantiations ${EMIL_EXCLUDE_FROM_ALL} STATIC)
+emil_build_for(motor_ref.dc.instantiations)
 
-target_include_directories(motor_reference.dc.instantiations PUBLIC
+target_include_directories(motor_ref.dc.instantiations PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../../../>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-target_link_libraries(motor_reference.dc.instantiations PUBLIC
-    motor_reference.hardware
-    motor_reference.dc.components
+target_link_libraries(motor_ref.dc.instantiations PUBLIC
+    motor_ref.hardware
+    motor_ref.dc.components
     numerical.controllers
 )
 
-target_sources(motor_reference.dc.instantiations PRIVATE
+target_sources(motor_ref.dc.instantiations PRIVATE
     Logic.cpp
     Logic.hpp
 )

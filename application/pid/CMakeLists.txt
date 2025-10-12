@@ -1,17 +1,17 @@
-add_library(motor_reference.pid ${EMIL_EXCLUDE_FROM_ALL})
+add_library(motor_ref.pid ${EMIL_EXCLUDE_FROM_ALL})
 
-target_include_directories(motor_reference.pid PUBLIC
+target_include_directories(motor_ref.pid PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-target_link_libraries(motor_reference.pid PUBLIC
+target_link_libraries(motor_ref.pid PUBLIC
     infra.util
     numerical.math
     numerical.controllers
 )
 
-target_sources(motor_reference.pid PRIVATE
+target_sources(motor_ref.pid PRIVATE
     PidImpl.cpp
     PidImpl.hpp
     PidInterface.hpp
