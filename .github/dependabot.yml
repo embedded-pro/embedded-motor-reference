@@ -12,13 +12,9 @@ updates:
           - patch
           - minor
   - package-ecosystem: docker
-    directory: /
-    schedule:
-      interval: weekly
-  - package-ecosystem: docker
     directory: /.devcontainer
     schedule:
-      interval: weekly
+      interval: daily
   - package-ecosystem: gitsubmodule
     directory: /
     schedule:
