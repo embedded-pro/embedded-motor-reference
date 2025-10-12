@@ -109,8 +109,8 @@ TEST_F(TestMotorFieldOrientedController, phase_currents_with_modified_pid_values
     float qSetpoint = 0.75f;
     foc->SetPoint({ dSetpoint, qSetpoint });
 
-    std::tuple<application::MilliVolt, application::MilliVolt, application::MilliVolt> voltagePhases{ 150, 250, 350 };
-    std::tuple<hal::Percent, hal::Percent, hal::Percent> pwmOutput{ 0.4, 0.6, 0.8 };
+    std::tuple<application::MilliVolt, application::MilliVolt, application::MilliVolt> voltagePhases{ application::MilliVolt{ 150 }, application::MilliVolt{ 250 }, application::MilliVolt{ 350 } };
+    std::tuple<hal::Percent, hal::Percent, hal::Percent> pwmOutput{ hal::Percent{ 40 }, hal::Percent{ 60 }, hal::Percent{ 80 } };
 
     EXPECT_CALL(encoderMock, Read())
         .WillOnce(::testing::Return(application::Degrees{ 0.0f }));
