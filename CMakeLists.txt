@@ -25,7 +25,7 @@ endif()
 
 project(motor_reference LANGUAGES C CXX ASM VERSION 0.0.1) # x-release-please-version
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 set_directory_properties(PROPERTY USE_FOLDERS ON)
@@ -46,7 +46,7 @@ endif()
 add_subdirectory(numerical-toolbox)
 add_subdirectory(application)
 
-emil_clangformat_directories(motor_reference DIRECTORIES application)
+emil_clangformat_directories(motor_ref DIRECTORIES application)
 emil_folderize_all_targets()
 
 include(scripts/development_environment.cmake)
@@ -57,3 +57,18 @@ if (DEFINED TARGET_MCU)
         GDB_PORT "2334"
     )
 endif()
+
+set(CPACK_GENERATOR "ZIP;TGZ")
+set(CPACK_SOURCE_IGNORE_FILES ".vs/;.git/;build/")
+set(CPACK_PACKAGE_NAME "${PROJECT_NAME}")
+set(CPACK_PACKAGE_VERSION "${PROJECT_VERSION}")
+set(CPACK_PACKAGE_DESCRIPTION "${PROJECT_DESCRIPTION}")
+set(CPACK_DEBIAN_PACKAGE_NAME "${CPACK_PACKAGE_NAME}")
+set(CPACK_RPM_PACKAGE_NAME "${CPACK_PACKAGE_NAME}")
+set(CPACK_PACKAGE_HOMEPAGE_URL "${PROJECT_HOMEPAGE_URL}")
+set(CPACK_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR}")
+set(CPACK_DEBIAN_PACKAGE_MAINTAINER "${CPACK_PACKAGE_VENDOR}")
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/LICENSE")
+set(CPACK_RESOURCE_FILE_README "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+
+include(CPack)

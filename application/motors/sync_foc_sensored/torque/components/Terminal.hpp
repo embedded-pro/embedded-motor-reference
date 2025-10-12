@@ -1,6 +1,6 @@
 #pragma once
 
-#include "application/motors/synchronous_foc_sensored/torque/components/FieldOrientedControllerInteractor.hpp"
+#include "application/motors/sync_foc_sensored/torque/components/FieldOrientedControllerInteractor.hpp"
 #include "services/tracer/Tracer.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 

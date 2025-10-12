@@ -107,6 +107,10 @@ namespace application
         onDone(Samples());
     }
 
+    void HardwareFactoryImpl::AdcMultiChannelStub::Stop()
+    {
+    }
+
     void HardwareFactoryImpl::SynchronousThreeChannelsPwmStub::SetBaseFrequency(hal::Hertz baseFrequency)
     {
     }

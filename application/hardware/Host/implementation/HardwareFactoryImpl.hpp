@@ -40,6 +40,7 @@ namespace application
         public:
             // Implementation of hal::AdcMultiChannel
             void Measure(const infra::Function<void(Samples)>& onDone) override;
+            void Stop() override;
         };
 
         class SynchronousThreeChannelsPwmStub

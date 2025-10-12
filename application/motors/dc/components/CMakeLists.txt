@@ -1,19 +1,19 @@
-add_library(motor_reference.dc.components ${EMIL_EXCLUDE_FROM_ALL})
+add_library(motor_ref.dc.components ${EMIL_EXCLUDE_FROM_ALL})
 
-target_include_directories(motor_reference.dc.components PUBLIC
+target_include_directories(motor_ref.dc.components PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../../../>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-target_link_libraries(motor_reference.dc.components PUBLIC
+target_link_libraries(motor_ref.dc.components PUBLIC
     infra.util
-    motor_reference.pid
-    motor_reference.hardware
+    motor_ref.pid
+    motor_ref.hardware
     services.util
     services.tracer
 )
 
-target_sources(motor_reference.dc.components PRIVATE
+target_sources(motor_ref.dc.components PRIVATE
     MotorPidController.hpp
     MotorPidControllerImpl.cpp
     MotorPidControllerImpl.hpp

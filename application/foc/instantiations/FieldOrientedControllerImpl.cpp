@@ -15,6 +15,6 @@ namespace application
         auto voltageAlphaBeta = park.Inverse(twoPhaseVoltage, angle);
         auto output = spaceVectorModulator.Generate(voltageAlphaBeta);
 
-        return std::tuple<hal::Percent, hal::Percent, hal::Percent>{ output.a, output.b, output.c };
+        return std::tuple<hal::Percent, hal::Percent, hal::Percent>{ hal::Percent(static_cast<uint8_t>(output.a)), hal::Percent(static_cast<uint8_t>(output.b)), hal::Percent(static_cast<uint8_t>(output.c)) };
     }
 }

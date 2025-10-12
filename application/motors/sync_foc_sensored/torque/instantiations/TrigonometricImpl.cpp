@@ -1,4 +1,4 @@
-#include "application/motors/synchronous_foc_sensored/torque/instantiations/TrigonometricImpl.hpp"
+#include "application/motors/sync_foc_sensored/torque/instantiations/TrigonometricImpl.hpp"
 
 namespace application
 {

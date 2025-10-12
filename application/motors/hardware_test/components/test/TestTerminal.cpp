@@ -51,6 +51,7 @@ namespace
     {
     public:
         MOCK_METHOD(void, Measure, (const infra::Function<void(Samples)>& onDone), (override));
+        MOCK_METHOD(void, Stop, (), (override));
     };
 
     class EncoderMock
