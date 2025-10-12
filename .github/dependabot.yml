@@ -1,6 +1,13 @@
 ---
 version: 2
 
+registries:
+  github-private:
+    type: git
+    url: https://github.com
+    username: x-access-token
+    password: ${{ secrets.PRIVATE_REPO_TOKEN }}
+
 updates:
   - package-ecosystem: github-actions
     directory: /
@@ -12,10 +19,12 @@ updates:
           - patch
           - minor
   - package-ecosystem: docker
-    directory: /.devcontainer
+    directory: .devcontainer
     schedule:
       interval: daily
   - package-ecosystem: gitsubmodule
     directory: /
     schedule:
       interval: weekly
+    registries:
+      - github-private
