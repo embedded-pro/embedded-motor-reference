@@ -57,7 +57,8 @@
             "cacheVariables": {
                 "EMIL_GENERATE_PACKAGE_CONFIG": false,
                 "EMIL_INCLUDE_SEGGER_RTT": "On"
-            }
+            },
+            "generator": "Ninja Multi-Config"
         },
         {
             "name": "tiva",
