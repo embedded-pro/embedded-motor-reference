@@ -23,7 +23,7 @@ else()
     add_definitions(-DMOTOR_REFERENCE_TARGET_BOARD="host")
 endif()
 
-project(motor_reference LANGUAGES C CXX ASM VERSION 0.0.1) # x-release-please-version
+project(motor_reference LANGUAGES C CXX ASM VERSION 1.0.0) # x-release-please-version
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
