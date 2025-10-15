@@ -13,9 +13,9 @@
 #include "hal/ti/hal_tiva/tiva/Uart.hpp"
 #include "hal_tiva/tiva/Gpio.hpp"
 #include "infra/event/EventDispatcherWithWeakPtr.hpp"
+#include "services/tracer/SerialCommunicationOnSeggerRtt.hpp"
 #include "services/tracer/StreamWriterOnSerialCommunication.hpp"
 #include "services/tracer/TracerWithDateTime.hpp"
-#include "services/tracer/SerialCommunicationOnSeggerRtt.hpp"
 
 namespace application
 {
@@ -77,8 +77,8 @@ namespace application
 
                     object.Emplace(Peripheral::AdcIndex, Peripheral::AdcSequencerIndex, currentPhaseAnalogPins, adcConfig);
                 } };
-            hal::tiva::SynchronousPwm::Config::ClockDivisor clockDivisor{ hal::tiva::SynchronousPwm::Config::ClockDivisor::divisor2 };
-            hal::tiva::SynchronousPwm::Config::Control controlConfig{ hal::tiva::SynchronousPwm::Config::Control::Mode::centerAligned, hal::tiva::SynchronousPwm::Config::Control::UpdateMode::globally, true };
+            hal::tiva::SynchronousPwm::Config::ClockDivisor clockDivisor{ hal::tiva::SynchronousPwm::Config::ClockDivisor::divisor8 };
+            hal::tiva::SynchronousPwm::Config::Control controlConfig{ hal::tiva::SynchronousPwm::Config::Control::Mode::centerAligned, hal::tiva::SynchronousPwm::Config::Control::UpdateMode::globally, false };
             hal::tiva::SynchronousPwm::Config::DeadTime deadTimeConfig{ hal::tiva::SynchronousPwm::CalculateDeadTimeCycles(1000ns, clockDivisor), hal::tiva::SynchronousPwm::CalculateDeadTimeCycles(1000ns, clockDivisor) };
             hal::tiva::SynchronousPwm::Config::Trigger triggerConfig{ hal::tiva::SynchronousPwm::Config::Trigger::countLoad };
             hal::tiva::SynchronousPwm::Config pwmConfig{ false, true, controlConfig, clockDivisor, std::make_optional(deadTimeConfig), std::make_optional(triggerConfig) };
@@ -107,7 +107,7 @@ namespace application
 
         struct Peripherals
         {
-            Peripherals(){};
+            Peripherals() {};
 
             Cortex cortex;
             TerminalAndTracer terminalAndTracer;
