@@ -19,6 +19,7 @@ namespace application
         void PrintHeader();
         StatusWithMessage ConfigurePwm(const infra::BoundedConstString& param);
         StatusWithMessage ConfigureAdc(const infra::BoundedConstString& param);
+        StatusWithMessage SimulateFoc(const infra::BoundedConstString& param);
         StatusWithMessage Stop();
         StatusWithMessage ReadAdcWithSampleTime();
         StatusWithMessage SetPwmDuty(const infra::BoundedConstString& param);
@@ -40,5 +41,6 @@ namespace application
         infra::DelayedProxyCreator<hal::AdcMultiChannel, void(HardwareFactory::SampleAndHold)> adcCreator;
         infra::DelayedProxyCreator<hal::SynchronousQuadratureEncoder, void()> encoderCreator;
         infra::BoundedVector<AdcChannelSamples>::WithMaxSize<numberOfChannels> adcChannelSamples;
+        hal::PerformanceTracker& performanceTimer;
     };
 }

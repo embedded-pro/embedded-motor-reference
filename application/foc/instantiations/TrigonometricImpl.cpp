@@ -1,24 +1,25 @@
-#include "application/motors/sync_foc_sensored/torque/instantiations/TrigonometricImpl.hpp"
+#include "application/foc/instantiations/TrigonometricImpl.hpp"
+#include <cmath>
 
 namespace application
 {
     float TrigonometricFunctions::Cosine(const float& angle) const
     {
-        return 0.0f;
+        return std::cos(angle);
     }
 
     float TrigonometricFunctions::Sine(const float& angle) const
     {
-        return 0.0f;
+        return std::sin(angle);
     }
 
     float TrigonometricFunctions::Arctangent(const float& value) const
     {
-        return 0.0f;
+        return std::atan(value);
     }
 
     float TrigonometricFunctions::Phase(const float& real, const float& imag) const
     {
-        return 0.0f;
+        return std::atan2(imag, real);
     }
 }

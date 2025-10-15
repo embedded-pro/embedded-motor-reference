@@ -1,4 +1,6 @@
 #include "application/motors/hardware_test/components/Terminal.hpp"
+#include "application/foc/instantiations/FieldOrientedControllerImpl.hpp"
+#include "application/foc/instantiations/TrigonometricImpl.hpp"
 #include "infra/stream/StringInputStream.hpp"
 #include "infra/util/BoundedString.hpp"
 #include "infra/util/ReallyAssert.hpp"
@@ -116,6 +118,7 @@ namespace application
         , pwmCreator{ hardware.SynchronousThreeChannelsPwmCreator() }
         , adcCreator{ hardware.AdcMultiChannelCreator() }
         , encoderCreator{ hardware.SynchronousQuadratureEncoderCreator() }
+        , performanceTimer{ hardware.PerformanceTimer() }
     {
         for (std::size_t i = 0; i < numberOfChannels; ++i)
             adcChannelSamples.emplace_back();
@@ -148,6 +151,12 @@ namespace application
             [this](const infra::BoundedConstString& param)
             {
                 this->terminal.ProcessResult(ConfigureAdc(param));
+            } });
+
+        terminal.AddCommand({ { "foc", "f", "Simulate foc [angle ia ib ic]. Ex: foc param" },
+            [this](const infra::BoundedConstString& param)
+            {
+                this->terminal.ProcessResult(SimulateFoc(param));
             } });
 
         encoderCreator.Emplace();
@@ -212,7 +221,42 @@ namespace application
         return { services::TerminalWithStorage::Status::success };
     }
 
-    TerminalInteractor::StatusWithMessage TerminalInteractor::Stop()
+    TerminalInteractor::StatusWithMessage TerminalInteractor::SimulateFoc(const infra::BoundedConstString& param)
+    {
+        TrigonometricFunctions trigFunctions;
+        FieldOrientedControllerImpl foc{ trigFunctions };
+        auto dPidTunnings = controllers::Pid<float>::Tunnings{ 0.1f, 0.01f, 0.0f };
+        auto qPidTunnings = controllers::Pid<float>::Tunnings{ 0.1f, 0.01f, 0.0f };
+        controllers::Pid<float> dPid{ dPidTunnings, controllers::Pid<float>::Limits{ -1000.0f, 1000.0f } };
+        controllers::Pid<float> qPid{ qPidTunnings, controllers::Pid<float>::Limits{ -1000.0f, 1000.0f } };
+        auto degrees = Degrees{ 0.0f };
+        auto inputVoltages = std::make_tuple(MilliVolt{ 0.0f }, MilliVolt{ 0.0f }, MilliVolt{ 0.0f });
+
+        performanceTimer.Start();
+        auto result = foc.Calculate(dPid, qPid, inputVoltages, degrees);
+        auto duration = performanceTimer.ElapsedCycles();
+
+        tracer.Trace() << "  FOC Simulation Results:";
+        tracer.Trace() << "    Inputs:";
+        tracer.Trace() << "      Angle:            " << degrees.Value() << " degrees";
+        tracer.Trace() << "      Phase A Voltage:  " << std::get<0>(inputVoltages).Value() << " mV";
+        tracer.Trace() << "      Phase B Voltage:  " << std::get<1>(inputVoltages).Value() << " mV";
+        tracer.Trace() << "      Phase C Voltage:  " << std::get<2>(inputVoltages).Value() << " mV";
+        tracer.Trace() << "    PID Tunings:";
+        tracer.Trace() << "      D-axis PID:       [P=" << dPidTunnings.kp << ", I=" << dPidTunnings.ki << ", D=" << dPidTunnings.kd << "]";
+        tracer.Trace() << "      Q-axis PID:       [P=" << qPidTunnings.kp << ", I=" << qPidTunnings.ki << ", D=" << qPidTunnings.kd << "]";
+        tracer.Trace() << "    PWM Outputs:";
+        tracer.Trace() << "      Phase A PWM:      " << std::get<0>(result).Value() << " %";
+        tracer.Trace() << "      Phase B PWM:      " << std::get<1>(result).Value() << " %";
+        tracer.Trace() << "      Phase C PWM:      " << std::get<2>(result).Value() << " %";
+        tracer.Trace() << "    Performance:";
+        tracer.Trace() << "      Execution time:   " << duration << " cycles";
+
+        return { services::TerminalWithStorage::Status::success };
+    }
+
+    TerminalInteractor::StatusWithMessage
+    TerminalInteractor::Stop()
     {
         pwmCreator->Stop();
         return { services::TerminalWithStorage::Status::success };
