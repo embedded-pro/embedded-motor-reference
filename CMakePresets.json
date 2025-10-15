@@ -32,10 +32,10 @@
             "displayName": "Configuration for Host Tooling and Tests, Single Config Generator, Debug",
             "inherits": "defaults",
             "cacheVariables": {
-                    "CMAKE_BUILD_TYPE": "Debug",
-                    "MOTOR_REFERENCE_TARGET_PLATFORM": "Host",
-                    "MOTOR_REFERENCE_BUILD_TESTS": true
-                }
+                "CMAKE_BUILD_TYPE": "Debug",
+                "MOTOR_REFERENCE_TARGET_PLATFORM": "Host",
+                "MOTOR_REFERENCE_BUILD_TESTS": true
+            }
         },
         {
             "name": "coverage",
@@ -56,7 +56,8 @@
             },
             "cacheVariables": {
                 "EMIL_GENERATE_PACKAGE_CONFIG": false,
-                "EMIL_INCLUDE_SEGGER_RTT": "On"
+                "EMIL_INCLUDE_SEGGER_RTT": "On",
+                "EMIL_SEGGER_RTT_BUFFER_SIZE_UP": "2048"
             },
             "generator": "Ninja Multi-Config"
         },
