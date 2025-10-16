@@ -221,42 +221,106 @@ namespace application
         return { services::TerminalWithStorage::Status::success };
     }
 
+    TerminalInteractor::StatusWithMessage TerminalInteractor::ConfigurePid(const infra::BoundedConstString& param)
+    {
+        infra::Tokenizer tokenizer(param, ' ');
+
+        dPid = std::nullopt;
+        qPid = std::nullopt;
+
+        if (tokenizer.Size() != 6)
+            return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
+
+        auto dKp = ParseInput<float>(tokenizer.Token(0), -1.0f, 1.0f);
+        if (!dKp)
+            return { services::TerminalWithStorage::Status::error, "invalid value for D-axis Kp. It should be a float between -1 and 1." };
+
+        auto dKi = ParseInput<float>(tokenizer.Token(1), -1.0f, 1.0f);
+        if (!dKi)
+            return { services::TerminalWithStorage::Status::error, "invalid value for D-axis Ki. It should be a float between -1 and 1." };
+
+        auto dKd = ParseInput<float>(tokenizer.Token(2), -1.0f, 1.0f);
+        if (!dKd)
+            return { services::TerminalWithStorage::Status::error, "invalid value for D-axis Kd. It should be a float between -1 and 1." };
+
+        auto qKp = ParseInput<float>(tokenizer.Token(3), -1.0f, 1.0f);
+        if (!qKp)
+            return { services::TerminalWithStorage::Status::error, "invalid value for Q-axis Kp. It should be a float between -1 and 1." };
+
+        auto qKi = ParseInput<float>(tokenizer.Token(4), -1.0f, 1.0f);
+        if (!qKi)
+            return { services::TerminalWithStorage::Status::error, "invalid value for Q-axis Ki. It should be a float between -1 and 1." };
+
+        auto qKd = ParseInput<float>(tokenizer.Token(5), -1.0f, 1.0f);
+        if (!qKd)
+            return { services::TerminalWithStorage::Status::error, "invalid value for Q-axis Kd. It should be a float between -1 and 1." };
+
+        dPidTunnings = controllers::Pid<float>::Tunnings{ *dKp, *dKi, *dKd };
+        qPidTunnings = controllers::Pid<float>::Tunnings{ *qKp, *qKi, *qKd };
+        dPid.emplace(dPidTunnings, controllers::Pid<float>::Limits{ -1.0f, 1.0f });
+        qPid.emplace(qPidTunnings, controllers::Pid<float>::Limits{ -1.0f, 1.0f });
+
+        return { services::TerminalWithStorage::Status::success };
+    }
+
     TerminalInteractor::StatusWithMessage TerminalInteractor::SimulateFoc(const infra::BoundedConstString& param)
+    {
+        infra::Tokenizer tokenizer(param, ' ');
+
+        if (tokenizer.Size() != 4)
+            return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
+
+        auto angle = ParseInput<float>(tokenizer.Token(0), 0.0f, 360.0f);
+        if (!angle)
+            return { services::TerminalWithStorage::Status::error, "invalid value for angle. It should be a float between 0 and 360." };
+
+        auto voltageA = ParseInput<float>(tokenizer.Token(1), -1000.0f, 1000.0f);
+        if (!voltageA)
+            return { services::TerminalWithStorage::Status::error, "invalid value for phase A voltage. It should be a float between -1000 and 1000." };
+
+        auto voltageB = ParseInput<float>(tokenizer.Token(2), -1000.0f, 1000.0f);
+        if (!voltageB)
+            return { services::TerminalWithStorage::Status::error, "invalid value for phase B voltage. It should be a float between -1000 and 1000." };
+
+        auto voltageC = ParseInput<float>(tokenizer.Token(3), -1000.0f, 1000.0f);
+        if (!voltageC)
+            return { services::TerminalWithStorage::Status::error, "invalid value for phase C voltage. It should be a float between -1000 and 1000." };
+
+        if (!dPid || !qPid)
+            return { services::TerminalWithStorage::Status::error, "PID controllers not configured. Please configure them using the 'pid' command." };
+
+        RunFocSimulation(std::make_tuple(MilliVolt{ *voltageA }, MilliVolt{ *voltageB }, MilliVolt{ *voltageC }, Degrees{ *angle }));
+
+        return { services::TerminalWithStorage::Status::success };
+    }
+
+    void TerminalInteractor::RunFocSimulation(std::tuple<MilliVolt, MilliVolt, MilliVolt, Degrees> input)
     {
         TrigonometricFunctions trigFunctions;
         FieldOrientedControllerImpl foc{ trigFunctions };
-        auto dPidTunnings = controllers::Pid<float>::Tunnings{ 0.1f, 0.01f, 0.0f };
-        auto qPidTunnings = controllers::Pid<float>::Tunnings{ 0.1f, 0.01f, 0.0f };
-        controllers::Pid<float> dPid{ dPidTunnings, controllers::Pid<float>::Limits{ -1000.0f, 1000.0f } };
-        controllers::Pid<float> qPid{ qPidTunnings, controllers::Pid<float>::Limits{ -1000.0f, 1000.0f } };
-        auto degrees = Degrees{ 0.0f };
-        auto inputVoltages = std::make_tuple(MilliVolt{ 0.0f }, MilliVolt{ 0.0f }, MilliVolt{ 0.0f });
 
         performanceTimer.Start();
-        auto result = foc.Calculate(dPid, qPid, inputVoltages, degrees);
+        auto result = foc.Calculate(*dPid, *qPid, std::make_tuple(std::get<0>(input), std::get<1>(input), std::get<2>(input)), std::get<3>(input));
         auto duration = performanceTimer.ElapsedCycles();
 
         tracer.Trace() << "  FOC Simulation Results:";
         tracer.Trace() << "    Inputs:";
-        tracer.Trace() << "      Angle:            " << degrees.Value() << " degrees";
-        tracer.Trace() << "      Phase A Voltage:  " << std::get<0>(inputVoltages).Value() << " mV";
-        tracer.Trace() << "      Phase B Voltage:  " << std::get<1>(inputVoltages).Value() << " mV";
-        tracer.Trace() << "      Phase C Voltage:  " << std::get<2>(inputVoltages).Value() << " mV";
+        tracer.Trace() << "      Angle:            " << std::get<3>(input).Value() << " degrees";
+        tracer.Trace() << "      Phase A Voltage:  " << std::get<0>(input).Value() << " mV";
+        tracer.Trace() << "      Phase B Voltage:  " << std::get<1>(input).Value() << " mV";
+        tracer.Trace() << "      Phase C Voltage:  " << std::get<2>(input).Value() << " mV";
         tracer.Trace() << "    PID Tunings:";
-        tracer.Trace() << "      D-axis PID:       [P=" << dPidTunnings.kp << ", I=" << dPidTunnings.ki << ", D=" << dPidTunnings.kd << "]";
-        tracer.Trace() << "      Q-axis PID:       [P=" << qPidTunnings.kp << ", I=" << qPidTunnings.ki << ", D=" << qPidTunnings.kd << "]";
+        tracer.Trace() << "      D-axis PID:       [P: " << dPidTunnings.kp << ", I: " << dPidTunnings.ki << ", D: " << dPidTunnings.kd << "]";
+        tracer.Trace() << "      Q-axis PID:       [P: " << qPidTunnings.kp << ", I: " << qPidTunnings.ki << ", D: " << qPidTunnings.kd << "]";
         tracer.Trace() << "    PWM Outputs:";
         tracer.Trace() << "      Phase A PWM:      " << std::get<0>(result).Value() << " %";
         tracer.Trace() << "      Phase B PWM:      " << std::get<1>(result).Value() << " %";
         tracer.Trace() << "      Phase C PWM:      " << std::get<2>(result).Value() << " %";
         tracer.Trace() << "    Performance:";
         tracer.Trace() << "      Execution time:   " << duration << " cycles";
-
-        return { services::TerminalWithStorage::Status::success };
     }
 
-    TerminalInteractor::StatusWithMessage
-    TerminalInteractor::Stop()
+    TerminalInteractor::StatusWithMessage TerminalInteractor::Stop()
     {
         pwmCreator->Stop();
         return { services::TerminalWithStorage::Status::success };
