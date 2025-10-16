@@ -10,7 +10,7 @@ namespace application
     {
     }
 
-    void HardwareAdapter::PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone)
+    void HardwareAdapter::PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere> currentPhases)>& onDone)
     {
         synchronousThreeChannelsPwmCreator->SetBaseFrequency(baseFrequency);
     }

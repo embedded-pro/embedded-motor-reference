@@ -1,6 +1,7 @@
 #include "application/motors/hardware_test/components/Terminal.hpp"
 #include "application/foc/instantiations/FieldOrientedControllerImpl.hpp"
 #include "application/foc/instantiations/TrigonometricImpl.hpp"
+#include "foc/MotorFieldOrientedControllerInterface.hpp"
 #include "infra/stream/StringInputStream.hpp"
 #include "infra/util/BoundedString.hpp"
 #include "infra/util/ReallyAssert.hpp"
@@ -274,27 +275,27 @@ namespace application
         if (!angle)
             return { services::TerminalWithStorage::Status::error, "invalid value for angle. It should be a float between 0 and 360." };
 
-        auto voltageA = ParseInput<float>(tokenizer.Token(1), -1000.0f, 1000.0f);
-        if (!voltageA)
-            return { services::TerminalWithStorage::Status::error, "invalid value for phase A voltage. It should be a float between -1000 and 1000." };
+        auto currentA = ParseInput<float>(tokenizer.Token(1), -1000.0f, 1000.0f);
+        if (!currentA)
+            return { services::TerminalWithStorage::Status::error, "invalid value for phase A current. It should be a float between -1000 and 1000." };
 
-        auto voltageB = ParseInput<float>(tokenizer.Token(2), -1000.0f, 1000.0f);
-        if (!voltageB)
-            return { services::TerminalWithStorage::Status::error, "invalid value for phase B voltage. It should be a float between -1000 and 1000." };
+        auto currentB = ParseInput<float>(tokenizer.Token(2), -1000.0f, 1000.0f);
+        if (!currentB)
+            return { services::TerminalWithStorage::Status::error, "invalid value for phase B current. It should be a float between -1000 and 1000." };
 
-        auto voltageC = ParseInput<float>(tokenizer.Token(3), -1000.0f, 1000.0f);
-        if (!voltageC)
-            return { services::TerminalWithStorage::Status::error, "invalid value for phase C voltage. It should be a float between -1000 and 1000." };
+        auto currentC = ParseInput<float>(tokenizer.Token(3), -1000.0f, 1000.0f);
+        if (!currentC)
+            return { services::TerminalWithStorage::Status::error, "invalid value for phase C current. It should be a float between -1000 and 1000." };
 
         if (!dPid || !qPid)
             return { services::TerminalWithStorage::Status::error, "PID controllers not configured. Please configure them using the 'pid' command." };
 
-        RunFocSimulation(std::make_tuple(MilliVolt{ *voltageA }, MilliVolt{ *voltageB }, MilliVolt{ *voltageC }, Degrees{ *angle }));
+        RunFocSimulation(std::make_tuple(MilliAmpere{ *currentA }, MilliAmpere{ *currentB }, MilliAmpere{ *currentC }, Degrees{ *angle }));
 
         return { services::TerminalWithStorage::Status::success };
     }
 
-    void TerminalInteractor::RunFocSimulation(std::tuple<MilliVolt, MilliVolt, MilliVolt, Degrees> input)
+    void TerminalInteractor::RunFocSimulation(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere, Degrees> input)
     {
         TrigonometricFunctions trigFunctions;
         FieldOrientedControllerImpl foc{ trigFunctions };
@@ -306,9 +307,9 @@ namespace application
         tracer.Trace() << "  FOC Simulation Results:";
         tracer.Trace() << "    Inputs:";
         tracer.Trace() << "      Angle:            " << std::get<3>(input).Value() << " degrees";
-        tracer.Trace() << "      Phase A Voltage:  " << std::get<0>(input).Value() << " mV";
-        tracer.Trace() << "      Phase B Voltage:  " << std::get<1>(input).Value() << " mV";
-        tracer.Trace() << "      Phase C Voltage:  " << std::get<2>(input).Value() << " mV";
+        tracer.Trace() << "      Phase A Current:  " << std::get<0>(input).Value() << " mA";
+        tracer.Trace() << "      Phase B Current:  " << std::get<1>(input).Value() << " mA";
+        tracer.Trace() << "      Phase C Current:  " << std::get<2>(input).Value() << " mA";
         tracer.Trace() << "    PID Tunings:";
         tracer.Trace() << "      D-axis PID:       [P: " << dPidTunnings.kp << ", I: " << dPidTunnings.ki << ", D: " << dPidTunnings.kd << "]";
         tracer.Trace() << "      Q-axis PID:       [P: " << qPidTunnings.kp << ", I: " << qPidTunnings.ki << ", D: " << qPidTunnings.kd << "]";

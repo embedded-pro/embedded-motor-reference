@@ -23,7 +23,7 @@ namespace application
         StatusWithMessage ConfigureAdc(const infra::BoundedConstString& param);
         StatusWithMessage SimulateFoc(const infra::BoundedConstString& param);
         StatusWithMessage ConfigurePid(const infra::BoundedConstString& param);
-        void RunFocSimulation(std::tuple<MilliVolt, MilliVolt, MilliVolt, Degrees> input);
+        void RunFocSimulation(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere, Degrees> input);
         StatusWithMessage Stop();
         StatusWithMessage ReadAdcWithSampleTime();
         StatusWithMessage SetPwmDuty(const infra::BoundedConstString& param);

@@ -13,9 +13,9 @@
 #include "hal/ti/hal_tiva/tiva/Uart.hpp"
 #include "hal_tiva/tiva/Gpio.hpp"
 #include "infra/event/EventDispatcherWithWeakPtr.hpp"
+#include "services/tracer/SerialCommunicationOnSeggerRtt.hpp"
 #include "services/tracer/StreamWriterOnSerialCommunication.hpp"
 #include "services/tracer/TracerWithDateTime.hpp"
-#include "services/tracer/SerialCommunicationOnSeggerRtt.hpp"
 
 namespace application
 {
@@ -92,7 +92,7 @@ namespace application
                     object.Emplace(Peripheral::PwmIndex, Peripheral::pwmPhases, pwmConfig);
                     object->SetBaseFrequency(frequency);
                 } };
-            infra::Function<void(std::tuple<infra::MilliVolt, infra::MilliVolt, infra::MilliVolt> voltagePhases)>
+            infra::Function<void(std::tuple<infra::MilliAmpere, infra::MilliAmpere, infra::MilliAmpere> voltagePhases)>
                 phaseCurrentsReady;
         };
 
