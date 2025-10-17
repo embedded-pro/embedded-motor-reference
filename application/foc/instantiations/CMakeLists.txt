@@ -12,4 +12,6 @@ target_link_libraries(motor_ref.foc.instantiations PUBLIC
 target_sources(motor_ref.foc.instantiations PRIVATE
     FieldOrientedControllerImpl.cpp
     FieldOrientedControllerImpl.hpp
+    TrigonometricImpl.cpp
+    TrigonometricImpl.hpp
 )

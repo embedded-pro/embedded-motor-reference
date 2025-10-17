@@ -12,6 +12,7 @@ target_link_libraries(motor_ref.hardware_test.components PUBLIC
     motor_ref.foc
     services.util
     services.tracer
+    motor_ref.foc.instantiations
 )
 
 target_sources(motor_ref.hardware_test.components PRIVATE

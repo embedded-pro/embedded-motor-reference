@@ -12,7 +12,7 @@ namespace application
         using Degrees = Angle::Scale<infra::StaticRational<360, 0>>;
     }
 
-    using MilliVolt = infra::Quantity<infra::MilliVolt, float>;
+    using MilliAmpere = infra::Quantity<infra::MilliAmpere, float>;
     using Degrees = infra::Quantity<unit::Degrees, float>;
     using HallState = uint8_t;
 
@@ -39,7 +39,7 @@ namespace application
     class MotorFieldOrientedControllerInterface
     {
     public:
-        virtual void PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone) = 0;
+        virtual void PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere> currentPhases)>& onDone) = 0;
         virtual void ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases) = 0;
         virtual void Start() = 0;
         virtual void Stop() = 0;

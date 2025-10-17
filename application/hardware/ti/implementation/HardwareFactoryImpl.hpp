@@ -92,7 +92,7 @@ namespace application
                     object.Emplace(Peripheral::PwmIndex, Peripheral::pwmPhases, pwmConfig);
                     object->SetBaseFrequency(frequency);
                 } };
-            infra::Function<void(std::tuple<infra::MilliVolt, infra::MilliVolt, infra::MilliVolt> voltagePhases)>
+            infra::Function<void(std::tuple<infra::MilliAmpere, infra::MilliAmpere, infra::MilliAmpere> voltagePhases)>
                 phaseCurrentsReady;
         };
 

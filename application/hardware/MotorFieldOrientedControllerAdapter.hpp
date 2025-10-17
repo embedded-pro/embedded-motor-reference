@@ -13,7 +13,7 @@ namespace application
         explicit HardwareAdapter(application::HardwareFactory& hardware);
 
         // Implementation of MotorFieldOrientedControllerInterface
-        void PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone) override;
+        void PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere> currentPhases)>& onDone) override;
         void ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases) override;
         void Start() override;
         void Stop() override;

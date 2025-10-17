@@ -1,4 +1,5 @@
 #include "application/foc/MotorFieldOrientedController.hpp"
+#include "application/foc/MotorFieldOrientedControllerInterface.hpp"
 
 namespace application
 {
@@ -7,10 +8,10 @@ namespace application
         , position{ position }
         , foc{ foc }
     {
-        interface.PhaseCurrentsReady(hal::Hertz{ 10000 }, [this](std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)
+        interface.PhaseCurrentsReady(hal::Hertz{ 10000 }, [this](std::tuple<MilliAmpere, MilliAmpere, MilliAmpere> currentPhases)
             {
                 auto positionValue = this->position.Read();
-                this->interface.ThreePhasePwmOutput(this->foc.Calculate(dPid, qPid, voltagePhases, positionValue));
+                this->interface.ThreePhasePwmOutput(this->foc.Calculate(dPid, qPid, currentPhases, positionValue));
             });
     }
 

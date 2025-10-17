@@ -65,7 +65,7 @@ TEST_F(TestMotorFieldOrientedController, set_point_updates_pid_controllers)
 
 TEST_F(TestMotorFieldOrientedController, phase_currents_callback_triggers_foc_calculation_and_output)
 {
-    std::tuple<application::MilliVolt, application::MilliVolt, application::MilliVolt> voltagePhases{ application::MilliVolt{ 100 }, application::MilliVolt{ 200 }, application::MilliVolt{ 300 } };
+    std::tuple<application::MilliAmpere, application::MilliAmpere, application::MilliAmpere> voltagePhases{ application::MilliAmpere{ 100 }, application::MilliAmpere{ 200 }, application::MilliAmpere{ 300 } };
     std::tuple<hal::Percent, hal::Percent, hal::Percent> pwmOutput{ hal::Percent{ 25 }, hal::Percent{ 50 }, hal::Percent{ 75 } };
 
     EXPECT_CALL(encoderMock, Read())
@@ -87,7 +87,7 @@ TEST_F(TestMotorFieldOrientedController, disabled_pid_controllers_are_reenabled_
     foc->Enable();
     EXPECT_TRUE(foc->IsRunning());
 
-    std::tuple<application::MilliVolt, application::MilliVolt, application::MilliVolt> voltagePhases{ application::MilliVolt{ 100 }, application::MilliVolt{ 200 }, application::MilliVolt{ 300 } };
+    std::tuple<application::MilliAmpere, application::MilliAmpere, application::MilliAmpere> voltagePhases{ application::MilliAmpere{ 100 }, application::MilliAmpere{ 200 }, application::MilliAmpere{ 300 } };
     std::tuple<hal::Percent, hal::Percent, hal::Percent> pwmOutput{ hal::Percent{ 30 }, hal::Percent{ 60 }, hal::Percent{ 90 } };
 
     EXPECT_CALL(encoderMock, Read())
@@ -109,7 +109,7 @@ TEST_F(TestMotorFieldOrientedController, phase_currents_with_modified_pid_values
     float qSetpoint = 0.75f;
     foc->SetPoint({ dSetpoint, qSetpoint });
 
-    std::tuple<application::MilliVolt, application::MilliVolt, application::MilliVolt> voltagePhases{ application::MilliVolt{ 150 }, application::MilliVolt{ 250 }, application::MilliVolt{ 350 } };
+    std::tuple<application::MilliAmpere, application::MilliAmpere, application::MilliAmpere> voltagePhases{ application::MilliAmpere{ 150 }, application::MilliAmpere{ 250 }, application::MilliAmpere{ 350 } };
     std::tuple<hal::Percent, hal::Percent, hal::Percent> pwmOutput{ hal::Percent{ 40 }, hal::Percent{ 60 }, hal::Percent{ 80 } };
 
     EXPECT_CALL(encoderMock, Read())

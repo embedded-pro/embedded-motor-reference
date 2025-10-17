@@ -1,8 +1,10 @@
 #pragma once
 
 #include "application/hardware/HardwareFactory.hpp"
+#include "foc/MotorFieldOrientedControllerInterface.hpp"
 #include "hal/interfaces/AdcMultiChannel.hpp"
 #include "infra/util/BoundedDeque.hpp"
+#include "numerical-toolbox/numerical/controllers/Pid.hpp"
 #include "services/tracer/Tracer.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 
@@ -19,6 +21,9 @@ namespace application
         void PrintHeader();
         StatusWithMessage ConfigurePwm(const infra::BoundedConstString& param);
         StatusWithMessage ConfigureAdc(const infra::BoundedConstString& param);
+        StatusWithMessage SimulateFoc(const infra::BoundedConstString& param);
+        StatusWithMessage ConfigurePid(const infra::BoundedConstString& param);
+        void RunFocSimulation(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere, Degrees> input);
         StatusWithMessage Stop();
         StatusWithMessage ReadAdcWithSampleTime();
         StatusWithMessage SetPwmDuty(const infra::BoundedConstString& param);
@@ -40,5 +45,10 @@ namespace application
         infra::DelayedProxyCreator<hal::AdcMultiChannel, void(HardwareFactory::SampleAndHold)> adcCreator;
         infra::DelayedProxyCreator<hal::SynchronousQuadratureEncoder, void()> encoderCreator;
         infra::BoundedVector<AdcChannelSamples>::WithMaxSize<numberOfChannels> adcChannelSamples;
+        hal::PerformanceTracker& performanceTimer;
+        controllers::Pid<float>::Tunnings dPidTunnings;
+        controllers::Pid<float>::Tunnings qPidTunnings;
+        std::optional<controllers::Pid<float>> dPid;
+        std::optional<controllers::Pid<float>> qPid;
     };
 }
