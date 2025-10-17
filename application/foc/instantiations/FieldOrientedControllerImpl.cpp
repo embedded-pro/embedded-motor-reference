@@ -1,5 +1,6 @@
 #include "application/foc/instantiations/FieldOrientedControllerImpl.hpp"
 #include "application/foc/MotorFieldOrientedControllerInterface.hpp"
+#include "numerical/math/CompilerOptimizations.hpp"
 
 namespace application
 {
@@ -7,6 +8,7 @@ namespace application
         : park{ trigFunctions }
     {}
 
+    OPTIMIZE_FOR_SPEED
     std::tuple<hal::Percent, hal::Percent, hal::Percent> FieldOrientedControllerImpl::Calculate(controllers::Pid<float>& dPid, controllers::Pid<float>& qPid, const std::tuple<MilliAmpere, MilliAmpere, MilliAmpere>& currentPhases, Degrees& position)
     {
         auto threePhaseCurrent = controllers::ThreePhase<float>{ std::get<0>(currentPhases).Value(), std::get<1>(currentPhases).Value(), std::get<2>(currentPhases).Value() };
