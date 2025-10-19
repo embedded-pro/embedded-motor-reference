@@ -2,7 +2,7 @@
 
 #include "numerical/math/TrigonometricFunctions.hpp"
 
-namespace application
+namespace foc
 {
     class TrigonometricFunctions
         : public math::TrigonometricFunctions<float>

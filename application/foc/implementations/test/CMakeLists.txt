@@ -12,5 +12,5 @@ target_link_libraries(motor_ref.foc_test PUBLIC
 )
 
 target_sources(motor_ref.foc_test PRIVATE
-    TestMotorFieldOrientedController.cpp
+    TestTorqueController.cpp
 )

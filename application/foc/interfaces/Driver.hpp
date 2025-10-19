@@ -4,16 +4,18 @@
 #include "infra/util/Function.hpp"
 #include "infra/util/Unit.hpp"
 
-namespace application
+namespace foc
 {
     namespace unit
     {
         using Angle = infra::BaseUnit<10>;
-        using Degrees = Angle::Scale<infra::StaticRational<360, 0>>;
+        using Radians = Angle::Scale<infra::StaticRational<10, 0>>;
     }
 
-    using MilliAmpere = infra::Quantity<infra::MilliAmpere, float>;
-    using Degrees = infra::Quantity<unit::Degrees, float>;
+    using Ampere = infra::Quantity<infra::Ampere, float>;
+    using Volts = infra::Quantity<infra::Volt, float>;
+    using Radians = infra::Quantity<unit::Radians, float>;
+    using RadiansPerSecond = infra::Quantity<unit::Radians::Div<infra::Second>, float>;
     using HallState = uint8_t;
 
     enum class Direction : uint8_t
@@ -25,8 +27,8 @@ namespace application
     class Encoder
     {
     public:
-        virtual Degrees Read() = 0;
-        virtual void Set(Degrees value) = 0;
+        virtual Radians Read() = 0;
+        virtual void Set(Radians value) = 0;
         virtual void SetZero() = 0;
     };
 
@@ -36,10 +38,10 @@ namespace application
         virtual std::pair<HallState, Direction> Read() const = 0;
     };
 
-    class MotorFieldOrientedControllerInterface
+    class MotorDriver
     {
     public:
-        virtual void PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere> currentPhases)>& onDone) = 0;
+        virtual void PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<Ampere, Ampere, Ampere> currentPhases)>& onDone) = 0;
         virtual void ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases) = 0;
         virtual void Start() = 0;
         virtual void Stop() = 0;

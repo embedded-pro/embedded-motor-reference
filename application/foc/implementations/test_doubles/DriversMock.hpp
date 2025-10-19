@@ -1,16 +1,16 @@
 #pragma once
 
-#include "application/foc/MotorFieldOrientedControllerInterface.hpp"
+#include "application/foc/interfaces/Driver.hpp"
 #include <gmock/gmock.h>
 
-namespace application
+namespace foc
 {
     class EncoderMock
         : public Encoder
     {
     public:
-        MOCK_METHOD(Degrees, Read, (), (override));
-        MOCK_METHOD(void, Set, (Degrees value), (override));
+        MOCK_METHOD(Radians, Read, (), (override));
+        MOCK_METHOD(void, Set, (Radians value), (override));
         MOCK_METHOD(void, SetZero, (), (override));
     };
 
@@ -22,26 +22,26 @@ namespace application
     };
 
     class FieldOrientedControllerInterfaceMock
-        : public MotorFieldOrientedControllerInterface
+        : public MotorDriver
     {
     public:
-        MOCK_METHOD(void, PhaseCurrentsReady, (hal::Hertz baseFrequency, const infra::Function<void(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere> voltagePhases)>& onDone), (override));
+        MOCK_METHOD(void, PhaseCurrentsReady, (hal::Hertz baseFrequency, const infra::Function<void(std::tuple<Ampere, Ampere, Ampere> voltagePhases)>& onDone), (override));
         MOCK_METHOD(void, ThreePhasePwmOutput, ((const std::tuple<hal::Percent, hal::Percent, hal::Percent>&)), (override));
         MOCK_METHOD(void, Start, (), (override));
         MOCK_METHOD(void, Stop, (), (override));
 
-        void StorePhaseCurrentsCallback(const infra::Function<void(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere> voltagePhases)>& onDone)
+        void StorePhaseCurrentsCallback(const infra::Function<void(std::tuple<Ampere, Ampere, Ampere> voltagePhases)>& onDone)
         {
             phaseCurrentsCallback = onDone;
         }
 
-        void TriggerPhaseCurrentsCallback(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere> voltagePhases)
+        void TriggerPhaseCurrentsCallback(std::tuple<Ampere, Ampere, Ampere> voltagePhases)
         {
             if (phaseCurrentsCallback)
                 phaseCurrentsCallback(voltagePhases);
         }
 
     private:
-        infra::Function<void(std::tuple<MilliAmpere, MilliAmpere, MilliAmpere> voltagePhases)> phaseCurrentsCallback;
+        infra::Function<void(std::tuple<Ampere, Ampere, Ampere> voltagePhases)> phaseCurrentsCallback;
     };
 }

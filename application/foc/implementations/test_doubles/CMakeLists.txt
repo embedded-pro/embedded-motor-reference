@@ -9,7 +9,7 @@ target_link_libraries(motor_ref.foc_mock INTERFACE
 )
 
 target_sources(motor_ref.foc_mock PRIVATE
-    FieldOrientedControllerInterfaceMock.hpp
+    DriversMock.hpp
     FieldOrientedControllerMock.hpp
     MotorFieldOrientedControllerMock.hpp
 )

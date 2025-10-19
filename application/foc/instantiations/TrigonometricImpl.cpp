@@ -2,7 +2,7 @@
 #include "numerical/math/CompilerOptimizations.hpp"
 #include <cmath>
 
-namespace application
+namespace foc
 {
     namespace
     {
@@ -107,11 +107,13 @@ namespace application
         return Sine(angle + PI_OVER_2);
     }
 
+    OPTIMIZE_FOR_SPEED
     float TrigonometricFunctions::Arctangent(const float& value) const
     {
         return std::atan(value);
     }
 
+    OPTIMIZE_FOR_SPEED
     float TrigonometricFunctions::Phase(const float& real, const float& imag) const
     {
         return std::atan2(imag, real);
