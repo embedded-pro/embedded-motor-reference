@@ -6,7 +6,7 @@
 
 namespace
 {
-    MATCHER_P3(TunningsEq, kp, ki, kd, "")
+    MATCHER_P3(TuningsEq, kp, ki, kd, "")
     {
         return std::abs(arg.kp - kp) < 1e-6f &&
                std::abs(arg.ki - ki) < 1e-6f &&
@@ -41,10 +41,10 @@ TEST_F(TestPid, test_set_point_does_not_interact_with_interface)
     pid->SetPoint(newSetPoint);
 }
 
-TEST_F(TestPid, test_set_tunnings_does_not_interact_with_interface)
+TEST_F(TestPid, test_set_tunings_does_not_interact_with_interface)
 {
-    application::Pid::Tunnings newTunnings{ 0.5f, 0.3f, 0.1f };
-    pid->SetTunnings(newTunnings);
+    application::Pid::Tunings newTunings{ 0.5f, 0.3f, 0.1f };
+    pid->SetTunings(newTunings);
 }
 
 TEST_F(TestPid, test_enable_starts_interface)

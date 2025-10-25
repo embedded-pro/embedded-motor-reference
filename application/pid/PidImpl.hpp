@@ -11,7 +11,7 @@ namespace application
     public:
         explicit PidImpl(PidInterface& interface);
 
-        void SetTunnings(Tunnings tunnings) override;
+        void SetTunings(Tunings tunings) override;
         void SetPoint(float setPoint) override;
         void Enable() override;
         void Disable() override;
@@ -19,6 +19,6 @@ namespace application
     private:
         PidInterface& interface;
         infra::Duration sampleTime;
-        controllers::Pid<float> pid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f }, true };
+        controllers::Pid<float> pid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } };
     };
 }

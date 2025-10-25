@@ -18,9 +18,9 @@ namespace application
     class Pid
     {
     public:
-        using Tunnings = controllers::Pid<float>::Tunnings;
+        using Tunings = controllers::Pid<float>::Tunings;
 
-        virtual void SetTunnings(Tunnings tunnings) = 0;
+        virtual void SetTunings(Tunings tunings) = 0;
         virtual void SetPoint(float setPoint) = 0;
         virtual void Enable() = 0;
         virtual void Disable() = 0;

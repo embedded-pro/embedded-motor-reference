@@ -16,20 +16,19 @@ namespace application
         pid.SetPoint(setPoint);
     }
 
-    void PidImpl::SetTunnings(Pid::Tunnings tunnings)
+    void PidImpl::SetTunings(Pid::Tunings tunings)
     {
-        pid.SetTunnings(tunnings);
+        pid.SetTunings(tunings);
     }
 
     void PidImpl::Enable()
     {
-        pid.Enable();
+        pid.Reset();
         interface.Start(sampleTime);
     }
 
     void PidImpl::Disable()
     {
         interface.Stop();
-        pid.Disable();
     }
 }
