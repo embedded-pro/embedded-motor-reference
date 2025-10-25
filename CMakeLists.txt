@@ -15,6 +15,10 @@ endif()
 set(HALST_INCLUDE_DEFAULT_LINKER_SCRIPTS Off CACHE INTERNAL "")
 set(HALST_BUILD_EXAMPLES Off CACHE INTERNAL "")
 
+if(DEFINED EMIL_SEGGER_RTT_BUFFER_SIZE_UP)
+    set(SEGGER_RTT_BUFFER_SIZE_UP ${EMIL_SEGGER_RTT_BUFFER_SIZE_UP} CACHE INTERNAL "")
+endif()
+
 add_definitions(-DEMIL_ENABLE_TRACING=1)
 
 if(DEFINED MOTOR_REFERENCE_TARGET_BOARD)
@@ -45,6 +49,10 @@ endif()
 
 add_subdirectory(numerical-toolbox)
 add_subdirectory(application)
+
+if (MOTOR_REFERENCE_BUILD_SIMULATOR)
+    add_subdirectory(simulator)
+endif()
 
 emil_clangformat_directories(motor_ref DIRECTORIES application)
 emil_folderize_all_targets()

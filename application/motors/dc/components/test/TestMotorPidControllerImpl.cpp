@@ -31,7 +31,7 @@ TEST_F(TestMotorControllerImpl, set_pid_parameters)
     float ki = 0.2f;
     float kd = 0.3f;
 
-    EXPECT_CALL(pidMock, SetTunnings(application::TunningsEq(application::Pid::Tunnings{ kp, ki, kd })));
+    EXPECT_CALL(pidMock, SetTunings(application::TuningsEq(application::Pid::Tunings{ kp, ki, kd })));
     controller.SetPidParameters(std::make_optional(kp), std::make_optional(ki), std::make_optional(kd));
 }
 
@@ -41,7 +41,7 @@ TEST_F(TestMotorControllerImpl, set_pid_parameters_with_null)
     float ki = 0.0f;
     float kd = 0.0f;
 
-    EXPECT_CALL(pidMock, SetTunnings(application::TunningsEq(application::Pid::Tunnings{ kp, ki, kd })));
+    EXPECT_CALL(pidMock, SetTunings(application::TuningsEq(application::Pid::Tunings{ kp, ki, kd })));
     controller.SetPidParameters(std::nullopt, std::nullopt, std::nullopt);
 }
 

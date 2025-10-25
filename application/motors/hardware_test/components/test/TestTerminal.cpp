@@ -1,4 +1,5 @@
 #include "application/motors/hardware_test/components/Terminal.hpp"
+#include "foc/interfaces/Driver.hpp"
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
@@ -32,6 +33,7 @@ namespace
         MOCK_METHOD(infra::MemoryRange<hal::GpioPin>, Leds, (), (override));
         MOCK_METHOD(hal::PerformanceTracker&, PerformanceTimer, (), (override));
         MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
+        MOCK_METHOD(foc::Volts, PowerSupplyVoltage, (), (override));
         MOCK_METHOD((infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)>&), SynchronousThreeChannelsPwmCreator, (), (override));
         MOCK_METHOD((infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>&), AdcMultiChannelCreator, (), (override));
         MOCK_METHOD((infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>&), SynchronousQuadratureEncoderCreator, (), (override));
@@ -85,6 +87,7 @@ namespace
             EXPECT_CALL(hardwareFactoryMock, AdcMultiChannelCreator()).WillRepeatedly(testing::ReturnRef(adcCreator));
             EXPECT_CALL(hardwareFactoryMock, SynchronousQuadratureEncoderCreator()).WillRepeatedly(testing::ReturnRef(encoderCreator));
             EXPECT_CALL(hardwareFactoryMock, PerformanceTimer()).WillRepeatedly(testing::ReturnRef(performanceTrackerMock));
+            EXPECT_CALL(hardwareFactoryMock, PowerSupplyVoltage()).WillRepeatedly(testing::Return(foc::Volts{ 24.0f }));
 
             EXPECT_CALL(encoderCreator, Constructed());
             EXPECT_CALL(pwmCreator, Constructed(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 }));

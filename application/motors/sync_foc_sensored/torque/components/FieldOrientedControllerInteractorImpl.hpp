@@ -1,6 +1,6 @@
 #pragma once
 
-#include "application/foc/MotorFieldOrientedController.hpp"
+#include "application/foc/interfaces/Controller.hpp"
 #include "application/motors/sync_foc_sensored/torque/components/FieldOrientedControllerInteractor.hpp"
 
 namespace application
@@ -9,7 +9,7 @@ namespace application
         : public FieldOrientedControllerInteractor
     {
     public:
-        explicit FieldOrientedControllerInteractorImpl(MotorFieldOrientedController& motorFoc);
+        explicit FieldOrientedControllerInteractorImpl(foc::Volts vdc, foc::TorqueController& focTorqueController);
 
         // Implementation of MotorController
         void AutoTune(const infra::Function<void()>& onDone) override;
@@ -19,8 +19,9 @@ namespace application
         void Stop() override;
 
     private:
-        MotorFieldOrientedController& motorFoc;
-        MotorFieldOrientedController::IdAndIqPoint focSetPoint;
-        MotorFieldOrientedController::IdAndIqTunnings idAndIqTunnings{ { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f } };
+        foc::Volts vdc;
+        foc::TorqueController& focTorqueController;
+        foc::IdAndIqPoint focSetPoint;
+        foc::IdAndIqTunings IdAndIqTunings;
     };
 }

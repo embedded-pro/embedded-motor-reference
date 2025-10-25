@@ -9,7 +9,6 @@ target_link_libraries(motor_ref.hardware_test.components PUBLIC
     infra.util
     motor_ref.pid
     motor_ref.hardware
-    motor_ref.foc
     services.util
     services.tracer
     motor_ref.foc.instantiations

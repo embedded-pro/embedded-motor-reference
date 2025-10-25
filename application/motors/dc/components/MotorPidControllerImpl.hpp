@@ -19,7 +19,7 @@ namespace application
         void Stop() override;
 
     private:
-        Pid::Tunnings tunnings{ 0.0f, 0.0f, 0.0f };
+        Pid::Tunings tunings{ 0.0f, 0.0f, 0.0f };
         Pid& pid;
     };
 }

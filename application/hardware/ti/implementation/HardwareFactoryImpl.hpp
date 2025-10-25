@@ -35,6 +35,7 @@ namespace application
         infra::MemoryRange<hal::GpioPin> Leds() override;
         hal::PerformanceTracker& PerformanceTimer() override;
         hal::Hertz BaseFrequency() const override;
+        foc::Volts PowerSupplyVoltage() override;
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
         infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
         infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;
@@ -92,7 +93,7 @@ namespace application
                     object.Emplace(Peripheral::PwmIndex, Peripheral::pwmPhases, pwmConfig);
                     object->SetBaseFrequency(frequency);
                 } };
-            infra::Function<void(std::tuple<infra::MilliAmpere, infra::MilliAmpere, infra::MilliAmpere> voltagePhases)>
+            infra::Function<void(std::tuple<infra::Ampere, infra::Ampere, infra::Ampere> voltagePhases)>
                 phaseCurrentsReady;
         };
 
@@ -107,7 +108,7 @@ namespace application
 
         struct Peripherals
         {
-            Peripherals(){};
+            Peripherals() {};
 
             Cortex cortex;
             TerminalAndTracer terminalAndTracer;
