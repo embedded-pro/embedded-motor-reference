@@ -6,6 +6,18 @@
 
 namespace
 {
+    using namespace testing;
+
+    MATCHER_P(IdAndIqTuningsEq, expected, "")
+    {
+        return std::abs(arg.first.kp - expected.first.kp) < 1e-6f &&
+               std::abs(arg.first.ki - expected.first.ki) < 1e-6f &&
+               std::abs(arg.first.kd - expected.first.kd) < 1e-6f &&
+               std::abs(arg.second.kp - expected.second.kp) < 1e-6f &&
+               std::abs(arg.second.ki - expected.second.ki) < 1e-6f &&
+               std::abs(arg.second.kd - expected.second.kd) < 1e-6f;
+    }
+
     class TestTorqueController
         : public ::testing::Test
     {
@@ -30,7 +42,8 @@ namespace
 
 TEST_F(TestTorqueController, enable_starts_interface_and_enables_pid_controllers)
 {
-    EXPECT_CALL(interfaceMock, Start()).Times(1);
+    EXPECT_CALL(focMock, Reset());
+    EXPECT_CALL(interfaceMock, Start());
     foc->Enable();
 
     EXPECT_TRUE(foc->IsRunning());
@@ -38,10 +51,11 @@ TEST_F(TestTorqueController, enable_starts_interface_and_enables_pid_controllers
 
 TEST_F(TestTorqueController, disable_stops_interface_and_disables_pid_controllers)
 {
-    EXPECT_CALL(interfaceMock, Start()).Times(1);
+    EXPECT_CALL(focMock, Reset());
+    EXPECT_CALL(interfaceMock, Start());
     foc->Enable();
 
-    EXPECT_CALL(interfaceMock, Stop()).Times(1);
+    EXPECT_CALL(interfaceMock, Stop());
     foc->Disable();
 
     EXPECT_FALSE(foc->IsRunning());
@@ -53,6 +67,7 @@ TEST_F(TestTorqueController, set_tunings_updates_pid_controllers)
     controllers::Pid<float>::Tunings dTunings{ 1.0f, 0.5f, 0.1f };
     controllers::Pid<float>::Tunings qTunings{ 2.0f, 1.0f, 0.2f };
 
+    EXPECT_CALL(focMock, SetTunings(::testing::Eq(Vdc), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
     foc->SetTunings(Vdc, { dTunings, qTunings });
 }
 
@@ -61,6 +76,7 @@ TEST_F(TestTorqueController, set_point_updates_pid_controllers)
     foc::Ampere dSetpoint{ 0.5f };
     foc::Ampere qSetpoint{ 0.75f };
 
+    EXPECT_CALL(focMock, SetPoint(::testing::Pair(dSetpoint, qSetpoint)));
     foc->SetPoint({ dSetpoint, qSetpoint });
 }
 
@@ -80,11 +96,12 @@ TEST_F(TestTorqueController, phase_currents_callback_triggers_foc_calculation_an
 
 TEST_F(TestTorqueController, disabled_pid_controllers_are_reenabled_after_enable)
 {
-    EXPECT_CALL(interfaceMock, Stop()).Times(1);
+    EXPECT_CALL(interfaceMock, Stop());
     foc->Disable();
     EXPECT_FALSE(foc->IsRunning());
 
-    EXPECT_CALL(interfaceMock, Start()).Times(1);
+    EXPECT_CALL(focMock, Reset());
+    EXPECT_CALL(interfaceMock, Start());
     foc->Enable();
     EXPECT_TRUE(foc->IsRunning());
 
@@ -105,10 +122,12 @@ TEST_F(TestTorqueController, phase_currents_with_modified_pid_values)
     foc::Volts Vdc{ 1.0f };
     controllers::Pid<float>::Tunings dTunings{ 1.0f, 0.5f, 0.1f };
     controllers::Pid<float>::Tunings qTunings{ 2.0f, 1.0f, 0.2f };
+    EXPECT_CALL(focMock, SetTunings(::testing::Eq(Vdc), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
     foc->SetTunings(Vdc, { dTunings, qTunings });
 
     foc::Ampere dSetpoint{ 0.5f };
     foc::Ampere qSetpoint{ 0.75f };
+    EXPECT_CALL(focMock, SetPoint(::testing::Pair(dSetpoint, qSetpoint)));
     foc->SetPoint({ dSetpoint, qSetpoint });
 
     foc::PhaseCurrents currentPhases{ foc::Ampere{ 150 }, foc::Ampere{ 250 }, foc::Ampere{ 350 } };

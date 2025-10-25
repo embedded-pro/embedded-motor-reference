@@ -7,7 +7,7 @@
 namespace foc
 {
     class SpeedControllerImpl
-        : public FocMotorSpeedController
+        : public SpeedController
         , private ControllerBaseImpl
     {
     public:

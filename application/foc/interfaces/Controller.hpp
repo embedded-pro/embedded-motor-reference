@@ -20,7 +20,7 @@ namespace foc
         virtual void SetPoint(const IdAndIqPoint& point) = 0;
     };
 
-    class FocMotorSpeedController
+    class SpeedController
         : public ControllerBase
     {
     public:
