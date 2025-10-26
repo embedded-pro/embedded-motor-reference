@@ -12,8 +12,7 @@ target_link_libraries(motor_ref.hardware PUBLIC
     hal.synchronous_interfaces
     infra.util
     infra.event
-    motor_ref.foc
-    motor_ref.pid
+    motor_ref.foc.interfaces
 )
 
 target_sources(motor_ref.hardware PRIVATE

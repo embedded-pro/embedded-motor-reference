@@ -116,6 +116,8 @@ namespace application
         , pwmCreator{ hardware.SynchronousThreeChannelsPwmCreator() }
         , adcCreator{ hardware.AdcMultiChannelCreator() }
         , encoderCreator{ hardware.SynchronousQuadratureEncoderCreator() }
+        , performanceTimer{ hardware.PerformanceTimer() }
+        , Vdc{ hardware.PowerSupplyVoltage() }
     {
         for (std::size_t i = 0; i < numberOfChannels; ++i)
             adcChannelSamples.emplace_back();
@@ -150,11 +152,25 @@ namespace application
                 this->terminal.ProcessResult(ConfigureAdc(param));
             } });
 
+        terminal.AddCommand({ { "pid", "c", "Configure pid [d_kp d_ki d_kd q_kp q_ki q_kd]. Ex: pid 1 0 0 1 0 0" },
+            [this](const infra::BoundedConstString& param)
+            {
+                this->terminal.ProcessResult(ConfigurePid(param));
+            } });
+
+        terminal.AddCommand({ { "foc", "f", "Simulate foc [angle ia ib ic]. Ex: foc param" },
+            [this](const infra::BoundedConstString& param)
+            {
+                this->terminal.ProcessResult(SimulateFoc(param));
+            } });
+
         encoderCreator.Emplace();
         pwmCreator.Emplace(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 });
         StartAdc(HardwareFactory::SampleAndHold::medium);
 
         PrintHeader();
+
+        ConfigurePid("");
     }
 
     void TerminalInteractor::PrintHeader()
@@ -183,11 +199,11 @@ namespace application
             return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
 
         auto deadTime = ParseInput<uint32_t>(tokenizer.Token(0), 500.0f, 2000.0f);
-        if (!deadTime)
+        if (!deadTime.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float between 500 and 2000." };
 
         auto frequency = ParseInput<uint32_t>(tokenizer.Token(1), 10000.0f, 20000.0f);
-        if (!frequency)
+        if (!frequency.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float between 10000 and 20000." };
 
         pwmCreator.Destroy();
@@ -210,6 +226,96 @@ namespace application
         StartAdc(ToSampleAndHold(*sampleAndHold));
 
         return { services::TerminalWithStorage::Status::success };
+    }
+
+    TerminalInteractor::StatusWithMessage TerminalInteractor::ConfigurePid(const infra::BoundedConstString& param)
+    {
+        infra::Tokenizer tokenizer(param, ' ');
+
+        if (tokenizer.Size() != 6)
+            return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
+
+        auto dKp = ParseInput<float>(tokenizer.Token(0), -1.0f, 1.0f);
+        if (!dKp.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value for D-axis Kp. It should be a float between -1 and 1." };
+
+        auto dKi = ParseInput<float>(tokenizer.Token(1), -1.0f, 1.0f);
+        if (!dKi.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value for D-axis Ki. It should be a float between -1 and 1." };
+
+        auto dKd = ParseInput<float>(tokenizer.Token(2), -1.0f, 1.0f);
+        if (!dKd.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value for D-axis Kd. It should be a float between -1 and 1." };
+
+        auto qKp = ParseInput<float>(tokenizer.Token(3), -1.0f, 1.0f);
+        if (!qKp.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value for Q-axis Kp. It should be a float between -1 and 1." };
+
+        auto qKi = ParseInput<float>(tokenizer.Token(4), -1.0f, 1.0f);
+        if (!qKi.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value for Q-axis Ki. It should be a float between -1 and 1." };
+
+        auto qKd = ParseInput<float>(tokenizer.Token(5), -1.0f, 1.0f);
+        if (!qKd.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value for Q-axis Kd. It should be a float between -1 and 1." };
+
+        dPidTunings = controllers::PidTunings<float>{ *dKp, *dKi, *dKd };
+        qPidTunings = controllers::PidTunings<float>{ *qKp, *qKi, *qKd };
+
+        // foc.SetTunings(Vdc, dPidTunings, qPidTunings);
+
+        return { services::TerminalWithStorage::Status::success };
+    }
+
+    TerminalInteractor::StatusWithMessage TerminalInteractor::SimulateFoc(const infra::BoundedConstString& param)
+    {
+        infra::Tokenizer tokenizer(param, ' ');
+
+        if (tokenizer.Size() != 4)
+            return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
+
+        auto angle = ParseInput<float>(tokenizer.Token(0), 0.0f, 360.0f);
+        if (!angle)
+            return { services::TerminalWithStorage::Status::error, "invalid value for angle. It should be a float between 0 and 360." };
+
+        auto currentA = ParseInput<float>(tokenizer.Token(1), -1000.0f, 1000.0f);
+        if (!currentA)
+            return { services::TerminalWithStorage::Status::error, "invalid value for phase A current. It should be a float between -1000 and 1000." };
+
+        auto currentB = ParseInput<float>(tokenizer.Token(2), -1000.0f, 1000.0f);
+        if (!currentB)
+            return { services::TerminalWithStorage::Status::error, "invalid value for phase B current. It should be a float between -1000 and 1000." };
+
+        auto currentC = ParseInput<float>(tokenizer.Token(3), -1000.0f, 1000.0f);
+        if (!currentC)
+            return { services::TerminalWithStorage::Status::error, "invalid value for phase C current. It should be a float between -1000 and 1000." };
+
+        // RunFocSimulation(std::make_tuple(Ampere{ *currentA }, Ampere{ *currentB }, Ampere{ *currentC }, Radians{ *angle }));
+
+        return { services::TerminalWithStorage::Status::success };
+    }
+
+    void TerminalInteractor::RunFocSimulation(std::tuple<foc::Ampere, foc::Ampere, foc::Ampere, foc::Radians> input)
+    {
+        performanceTimer.Start();
+        auto result = foc.Calculate(std::make_tuple(std::get<0>(input), std::get<1>(input), std::get<2>(input)), std::get<3>(input));
+        auto duration = performanceTimer.ElapsedCycles();
+
+        tracer.Trace() << "  FOC Simulation Results:";
+        tracer.Trace() << "    Inputs:";
+        tracer.Trace() << "      Angle:            " << std::get<3>(input).Value() << " degrees";
+        tracer.Trace() << "      Phase A Current:  " << std::get<0>(input).Value() << " mA";
+        tracer.Trace() << "      Phase B Current:  " << std::get<1>(input).Value() << " mA";
+        tracer.Trace() << "      Phase C Current:  " << std::get<2>(input).Value() << " mA";
+        tracer.Trace() << "    PID Tunings:";
+        tracer.Trace() << "      D-axis PID:       [P: " << dPidTunings.kp << ", I: " << dPidTunings.ki << ", D: " << dPidTunings.kd << "]";
+        tracer.Trace() << "      Q-axis PID:       [P: " << qPidTunings.kp << ", I: " << qPidTunings.ki << ", D: " << qPidTunings.kd << "]";
+        tracer.Trace() << "    PWM Outputs:";
+        tracer.Trace() << "      Phase A PWM:      " << std::get<0>(result).Value() << " %";
+        tracer.Trace() << "      Phase B PWM:      " << std::get<1>(result).Value() << " %";
+        tracer.Trace() << "      Phase C PWM:      " << std::get<2>(result).Value() << " %";
+        tracer.Trace() << "    Performance:";
+        tracer.Trace() << "      Execution time:   " << duration << " cycles";
     }
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::Stop()
@@ -244,15 +350,15 @@ namespace application
             return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
 
         auto dutyA = ParseInput<uint8_t>(tokenizer.Token(0), 1, 99);
-        if (!dutyA)
+        if (!dutyA.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value for phase A. It should be a float between 1 and 99." };
 
         auto dutyB = ParseInput<uint8_t>(tokenizer.Token(1), 1, 99);
-        if (!dutyB)
+        if (!dutyB.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value for phase B. It should be a float between 1 and 99." };
 
         auto dutyC = ParseInput<uint8_t>(tokenizer.Token(2), 1, 99);
-        if (!dutyC)
+        if (!dutyC.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value for phase C. It should be a float between 1 and 99." };
 
         pwmCreator->Start(hal::Percent{ *dutyA }, hal::Percent{ *dutyB }, hal::Percent{ *dutyC });
@@ -278,7 +384,7 @@ namespace application
             });
     }
 
-    bool TerminalInteractor::IsAdcBufferPopulated()
+    bool TerminalInteractor::IsAdcBufferPopulated() const
     {
         for (const auto& channelSamples : adcChannelSamples)
             if (channelSamples.empty())

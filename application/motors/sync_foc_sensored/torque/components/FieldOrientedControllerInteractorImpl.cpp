@@ -2,8 +2,9 @@
 
 namespace application
 {
-    FieldOrientedControllerInteractorImpl::FieldOrientedControllerInteractorImpl(MotorFieldOrientedController& motorFoc)
-        : motorFoc{ motorFoc }
+    FieldOrientedControllerInteractorImpl::FieldOrientedControllerInteractorImpl(foc::Volts vdc, foc::TorqueController& focTorqueController)
+        : vdc{ vdc }
+        , focTorqueController{ focTorqueController }
     {}
 
     void FieldOrientedControllerInteractorImpl::AutoTune(const infra::Function<void()>& onDone)
@@ -13,41 +14,41 @@ namespace application
     void FieldOrientedControllerInteractorImpl::SetDQPidParameters(const std::pair<PidParameters, PidParameters>& pidDAndQParameters)
     {
         if (pidDAndQParameters.first.kp)
-            idAndIqTunnings.first.kp = *pidDAndQParameters.first.kp;
+            IdAndIqTunings.first.kp = *pidDAndQParameters.first.kp;
 
         if (pidDAndQParameters.first.ki)
-            idAndIqTunnings.first.ki = *pidDAndQParameters.first.ki;
+            IdAndIqTunings.first.ki = *pidDAndQParameters.first.ki;
 
         if (pidDAndQParameters.first.kd)
-            idAndIqTunnings.first.kd = *pidDAndQParameters.first.kd;
+            IdAndIqTunings.first.kd = *pidDAndQParameters.first.kd;
 
         if (pidDAndQParameters.second.kp)
-            idAndIqTunnings.second.kp = *pidDAndQParameters.second.kp;
+            IdAndIqTunings.second.kp = *pidDAndQParameters.second.kp;
 
         if (pidDAndQParameters.second.ki)
-            idAndIqTunnings.second.ki = *pidDAndQParameters.second.ki;
+            IdAndIqTunings.second.ki = *pidDAndQParameters.second.ki;
 
         if (pidDAndQParameters.second.kd)
-            idAndIqTunnings.second.kd = *pidDAndQParameters.second.kd;
+            IdAndIqTunings.second.kd = *pidDAndQParameters.second.kd;
 
-        motorFoc.SetTunnings(idAndIqTunnings);
+        focTorqueController.SetTunings(vdc, IdAndIqTunings);
     }
 
     void FieldOrientedControllerInteractorImpl::SetTorque(const Torque& speed)
     {
-        focSetPoint.first = speed.Value();
-        focSetPoint.second = 0.0;
+        focSetPoint.first = foc::Ampere{ speed.Value() };
+        focSetPoint.second = foc::Ampere{ 0.0f };
 
-        motorFoc.SetPoint(focSetPoint);
+        focTorqueController.SetPoint(focSetPoint);
     }
 
     void FieldOrientedControllerInteractorImpl::Start()
     {
-        motorFoc.Enable();
+        focTorqueController.Enable();
     }
 
     void FieldOrientedControllerInteractorImpl::Stop()
     {
-        motorFoc.Disable();
+        focTorqueController.Disable();
     }
 }

@@ -50,6 +50,10 @@ endif()
 add_subdirectory(numerical-toolbox)
 add_subdirectory(application)
 
+if (MOTOR_REFERENCE_BUILD_SIMULATOR)
+    add_subdirectory(simulator)
+endif()
+
 emil_clangformat_directories(motor_ref DIRECTORIES application)
 emil_folderize_all_targets()
 

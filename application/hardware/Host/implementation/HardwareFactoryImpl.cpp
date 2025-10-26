@@ -36,6 +36,11 @@ namespace application
         return hal::Hertz(0);
     }
 
+    foc::Volts HardwareFactoryImpl::PowerSupplyVoltage()
+    {
+        return foc::Volts(48.0f);
+    }
+
     void HardwareFactoryImpl::Start()
     {
     }

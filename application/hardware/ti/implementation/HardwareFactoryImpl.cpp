@@ -43,6 +43,11 @@ namespace application
         return hal::Hertz(SystemCoreClock);
     }
 
+    foc::Volts HardwareFactoryImpl::PowerSupplyVoltage()
+    {
+        return foc::Volts(24.0f);
+    }
+
     void HardwareFactoryImpl::Start()
     {
         return peripherals->cortex.dataWatchPointAndTrace.Start();

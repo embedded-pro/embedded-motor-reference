@@ -23,7 +23,9 @@
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel",
                 "MOTOR_REFERENCE_TARGET_PLATFORM": "Host",
-                "MOTOR_REFERENCE_BUILD_TESTS": true
+                "MOTOR_REFERENCE_BUILD_TESTS": true,
+                "MOTOR_REFERENCE_BUILD_SIMULATOR": true,
+                "NUMERICAL_TOOLBOX_ENABLE_OPTIMIZATIONS": false
             },
             "generator": "Ninja Multi-Config"
         },

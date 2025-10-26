@@ -2,23 +2,28 @@
 
 namespace application
 {
-    HardwareAdapter::HardwareAdapter(application::HardwareFactory& hardware)
+    PidDriverImpl::PidDriverImpl(application::HardwareFactory& hardware)
     {
     }
 
-    void HardwareAdapter::Read(const infra::Function<void(float)>& onDone)
+    void PidDriverImpl::Read(const infra::Function<void(float)>& onDone)
     {
     }
 
-    void HardwareAdapter::ControlAction(float)
+    void PidDriverImpl::ControlAction(float)
     {
     }
 
-    void HardwareAdapter::Start(infra::Duration sampleTime)
+    void PidDriverImpl::Start(std::chrono::system_clock::duration sampleTime)
     {
     }
 
-    void HardwareAdapter::Stop()
+    void PidDriverImpl::Stop()
     {
+    }
+
+    std::chrono::system_clock::duration PidDriverImpl::SampleTime() const
+    {
+        return std::chrono::milliseconds(100);
     }
 }

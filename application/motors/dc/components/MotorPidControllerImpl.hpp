@@ -1,7 +1,7 @@
 #pragma once
 
 #include "application/motors/dc/components/MotorPidController.hpp"
-#include "application/pid/PidImpl.hpp"
+#include "numerical/controllers/interfaces/PidController.hpp"
 
 namespace application
 {
@@ -9,6 +9,8 @@ namespace application
         : public MotorPidController
     {
     public:
+        using Pid = controllers::AsynchronousPidController<float>;
+
         explicit MotorPidControllerImpl(Pid& pid);
 
         // Implementation of MotorController
@@ -19,7 +21,7 @@ namespace application
         void Stop() override;
 
     private:
-        Pid::Tunnings tunnings{ 0.0f, 0.0f, 0.0f };
+        controllers::PidTunings<float> tunings{ 0.0f, 0.0f, 0.0f };
         Pid& pid;
     };
 }

@@ -8,7 +8,7 @@ target_include_directories(motor_ref.dc.main PUBLIC
 target_link_libraries(motor_ref.dc.main PUBLIC
     motor_ref.hardware_impl
     motor_ref.dc.instantiations
-    numerical.controllers
+    numerical.controllers.implementations
 )
 
 target_sources(motor_ref.dc.main PRIVATE

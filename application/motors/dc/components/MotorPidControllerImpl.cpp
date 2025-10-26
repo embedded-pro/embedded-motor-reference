@@ -13,15 +13,15 @@ namespace application
     void MotorPidControllerImpl::SetPidParameters(std::optional<float> kp, std::optional<float> ki, std::optional<float> kd)
     {
         if (kp)
-            tunnings.kp = *kp;
+            tunings.kp = *kp;
 
         if (ki)
-            tunnings.ki = *ki;
+            tunings.ki = *ki;
 
         if (kd)
-            tunnings.kd = *kd;
+            tunings.kd = *kd;
 
-        pid.SetTunnings(tunnings);
+        pid.SetTunings(tunings);
     }
 
     void MotorPidControllerImpl::SetSpeed(const RevPerMinute& speed)

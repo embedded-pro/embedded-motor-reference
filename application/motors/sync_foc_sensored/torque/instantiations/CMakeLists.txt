@@ -10,12 +10,10 @@ target_link_libraries(motor_ref.sync_foc_sensored.torque.inst PUBLIC
     motor_ref.hardware
     motor_ref.sync_foc_sensored.torque.components
     motor_ref.foc.instantiations
-    numerical.controllers
+    numerical.controllers.implementations
 )
 
 target_sources(motor_ref.sync_foc_sensored.torque.inst PRIVATE
     Logic.cpp
     Logic.hpp
-    TrigonometricImpl.cpp
-    TrigonometricImpl.hpp
 )

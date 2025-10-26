@@ -7,11 +7,10 @@ target_include_directories(motor_ref.hardware_test.components PUBLIC
 
 target_link_libraries(motor_ref.hardware_test.components PUBLIC
     infra.util
-    motor_ref.pid
     motor_ref.hardware
-    motor_ref.foc
     services.util
     services.tracer
+    motor_ref.foc.instantiations
 )
 
 target_sources(motor_ref.hardware_test.components PRIVATE

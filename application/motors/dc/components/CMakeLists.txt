@@ -7,7 +7,7 @@ target_include_directories(motor_ref.dc.components PUBLIC
 
 target_link_libraries(motor_ref.dc.components PUBLIC
     infra.util
-    motor_ref.pid
+    numerical.controllers.interfaces
     motor_ref.hardware
     services.util
     services.tracer

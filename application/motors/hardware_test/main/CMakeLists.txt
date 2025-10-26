@@ -8,7 +8,7 @@ target_include_directories(motor_ref.hardware_test.main PUBLIC
 target_link_libraries(motor_ref.hardware_test.main PUBLIC
     motor_ref.hardware_impl
     motor_ref.hardware_test.instantiations
-    numerical.controllers
+    numerical.controllers.implementations
 )
 
 target_sources(motor_ref.hardware_test.main PRIVATE
