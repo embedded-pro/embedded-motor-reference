@@ -23,11 +23,11 @@ jobs:
       pull-requests: write
       security-events: write
     steps:
-      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           fetch-depth: 0
           persist-credentials: false
-      - uses: oxsecurity/megalinter/flavors/c_cpp@1fc052d03c7a43c78fe0fee19c9d648b749e0c01 # v8.3.0
+      - uses: oxsecurity/megalinter/flavors/c_cpp@62c799d895af9bcbca5eacfebca29d527f125a57 # v9.1.0
         env:
           APPLY_FIXES: all
           VALIDATE_ALL_CODEBASE: true
@@ -37,12 +37,12 @@ jobs:
       #   if: ${{ success() || failure() }}
       #   with:
       #     sarif_file: megalinter-reports/megalinter-report.sarif
-      - uses: actions/upload-artifact@b4b15b8c7c6ac21ea08fcf65892d2ee8f75cf882 # v4.4.3
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: success() || failure()
         with:
           name: linter
           path: |
             megalinter-reports
-      - uses: reviewdog/action-suggester@db4abb16fbaabe386831e5addb7be1485d0d63d3 # v1.18.0
+      - uses: reviewdog/action-suggester@aa38384ceb608d00f84b4690cacc83a5aba307ff # v1.24.0
         with:
           tool_name: MegaLinter
