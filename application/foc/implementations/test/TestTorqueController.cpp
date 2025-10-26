@@ -64,8 +64,8 @@ TEST_F(TestTorqueController, disable_stops_interface_and_disables_pid_controller
 TEST_F(TestTorqueController, set_tunings_updates_pid_controllers)
 {
     foc::Volts Vdc{ 1.0f };
-    controllers::Pid<float>::Tunings dTunings{ 1.0f, 0.5f, 0.1f };
-    controllers::Pid<float>::Tunings qTunings{ 2.0f, 1.0f, 0.2f };
+    controllers::PidTunings<float> dTunings{ 1.0f, 0.5f, 0.1f };
+    controllers::PidTunings<float> qTunings{ 2.0f, 1.0f, 0.2f };
 
     EXPECT_CALL(focMock, SetTunings(::testing::Eq(Vdc), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
     foc->SetTunings(Vdc, { dTunings, qTunings });
@@ -120,8 +120,8 @@ TEST_F(TestTorqueController, disabled_pid_controllers_are_reenabled_after_enable
 TEST_F(TestTorqueController, phase_currents_with_modified_pid_values)
 {
     foc::Volts Vdc{ 1.0f };
-    controllers::Pid<float>::Tunings dTunings{ 1.0f, 0.5f, 0.1f };
-    controllers::Pid<float>::Tunings qTunings{ 2.0f, 1.0f, 0.2f };
+    controllers::PidTunings<float> dTunings{ 1.0f, 0.5f, 0.1f };
+    controllers::PidTunings<float> qTunings{ 2.0f, 1.0f, 0.2f };
     EXPECT_CALL(focMock, SetTunings(::testing::Eq(Vdc), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
     foc->SetTunings(Vdc, { dTunings, qTunings });
 

@@ -8,9 +8,10 @@ target_link_libraries(motor_ref.foc_test PUBLIC
     numerical.math_test_helper
     infra.timer_test_helper
     motor_ref.foc_mock
-    motor_ref.pid_mock
 )
 
 target_sources(motor_ref.foc_test PRIVATE
+    TestSpaceVectorModulation.cpp
     TestTorqueController.cpp
+    TestTransformsClarkePark.cpp
 )

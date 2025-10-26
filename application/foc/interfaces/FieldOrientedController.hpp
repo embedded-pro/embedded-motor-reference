@@ -1,13 +1,13 @@
 #pragma once
 
 #include "application/foc/interfaces/Driver.hpp"
-#include "numerical/controllers/Pid.hpp"
+#include "numerical/controllers/interfaces/PidController.hpp"
 
 namespace foc
 {
     using IdAndIqPoint = std::pair<Ampere, Ampere>;
-    using IdAndIqTunings = std::pair<controllers::Pid<float>::Tunings, controllers::Pid<float>::Tunings>;
-    using SpeedTunings = controllers::Pid<float>::Tunings;
+    using IdAndIqTunings = std::pair<controllers::PidTunings<float>, controllers::PidTunings<float>>;
+    using SpeedTunings = controllers::PidTunings<float>;
     using PhasePwmDutyCycles = std::tuple<hal::Percent, hal::Percent, hal::Percent>;
     using PhaseCurrents = std::tuple<Ampere, Ampere, Ampere>;
 

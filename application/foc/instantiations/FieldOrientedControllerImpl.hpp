@@ -1,9 +1,10 @@
 #pragma once
 
+#include "application/foc/implementations/SpaceVectorModulation.hpp"
+#include "application/foc/implementations/TransformsClarkePark.hpp"
 #include "application/foc/interfaces/Driver.hpp"
 #include "application/foc/interfaces/FieldOrientedController.hpp"
-#include "numerical/controllers/SpaceVectorModulation.hpp"
-#include "numerical/controllers/TransformsClarkePark.hpp"
+#include "numerical/controllers/implementations/PidIncremental.hpp"
 #include "numerical/math/TrigonometricFunctions.hpp"
 
 namespace foc
@@ -20,12 +21,11 @@ namespace foc
         PhasePwmDutyCycles Calculate(const PhaseCurrents& currentPhases, Radians& position) override;
 
     private:
-        static constexpr float invSqrt3 = 0.577350269189626f;
-        controllers::Park<float> park;
-        controllers::Clarke<float> clarke;
-        controllers::Pid<float> dPid{ { 0.0f, 0.0f, 0.0f }, { -invSqrt3, invSqrt3 } };
-        controllers::Pid<float> qPid{ { 0.0f, 0.0f, 0.0f }, { -invSqrt3, invSqrt3 } };
-        controllers::SpaceVectorModulation<float> spaceVectorModulator;
+        Park park;
+        Clarke clarke;
+        controllers::PidIncrementalSynchronous<float> dPid;
+        controllers::PidIncrementalSynchronous<float> qPid;
+        SpaceVectorModulation spaceVectorModulator;
     };
 
     class FieldOrientedControllerSpeedImpl
@@ -40,12 +40,11 @@ namespace foc
         PhasePwmDutyCycles Calculate(const PhaseCurrents& currentPhases, Radians& position) override;
 
     private:
-        static constexpr float invSqrt3 = 0.577350269189626f;
-        controllers::Park<float> park;
-        controllers::Clarke<float> clarke;
-        controllers::Pid<float> speedPid{ { 0.0f, 0.0f, 0.0f }, { -invSqrt3, invSqrt3 } };
-        controllers::Pid<float> dPid{ { 0.0f, 0.0f, 0.0f }, { -invSqrt3, invSqrt3 } };
-        controllers::Pid<float> qPid{ { 0.0f, 0.0f, 0.0f }, { -invSqrt3, invSqrt3 } };
-        controllers::SpaceVectorModulation<float> spaceVectorModulator;
+        Park park;
+        Clarke clarke;
+        controllers::PidIncrementalSynchronous<float> speedPid;
+        controllers::PidIncrementalSynchronous<float> dPid;
+        controllers::PidIncrementalSynchronous<float> qPid;
+        SpaceVectorModulation spaceVectorModulator;
     };
 }

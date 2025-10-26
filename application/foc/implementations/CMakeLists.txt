@@ -12,10 +12,13 @@ target_link_libraries(motor_ref.foc.implementations PUBLIC
 target_sources(motor_ref.foc.implementations PRIVATE
     ControllerBaseImpl.cpp
     ControllerBaseImpl.hpp
+    NormalizedAngles.hpp
+    SpaceVectorModulation.hpp
     SpeedControllerImpl.cpp
     SpeedControllerImpl.hpp
     TorqueControllerImpl.cpp
     TorqueControllerImpl.hpp
+    TransformsClarkePark.hpp
 )
 
 add_subdirectory(test)

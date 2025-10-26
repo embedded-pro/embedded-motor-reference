@@ -8,8 +8,7 @@ target_include_directories(motor_ref.foc.interfaces INTERFACE
 target_link_libraries(motor_ref.foc.interfaces INTERFACE
     infra.util
     numerical.math
-    numerical.controllers
-    motor_ref.pid
+    numerical.controllers.interfaces
 )
 
 target_sources(motor_ref.foc.interfaces PRIVATE
