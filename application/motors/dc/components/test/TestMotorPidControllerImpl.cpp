@@ -1,8 +1,5 @@
 #include "application/motors/dc/components/MotorPidControllerImpl.hpp"
-#include "application/pid/test_doubles/PidMock.hpp"
-#include "infra/util/Function.hpp"
 #include "gmock/gmock.h"
-#include <optional>
 
 namespace
 {
@@ -11,11 +8,30 @@ namespace
         return std::abs(arg.Value() - expected.Value()) < 1e-5f;
     }
 
+    MATCHER_P(TuningsEq, expected, "")
+    {
+        return arg.kp == expected.kp &&
+               arg.ki == expected.ki &&
+               arg.kd == expected.kd;
+    }
+
+    template<typename T>
+    class MockAsynchronousPidController
+        : public controllers::AsynchronousPidController<T>
+    {
+    public:
+        MOCK_METHOD(void, SetTunings, (controllers::PidTunings<T>), (override));
+        MOCK_METHOD(void, SetLimits, (controllers::PidLimits<T>), (override));
+        MOCK_METHOD(void, SetPoint, (T), (override));
+        MOCK_METHOD(void, Enable, (), (override));
+        MOCK_METHOD(void, Disable, (), (override));
+    };
+
     class TestMotorControllerImpl
         : public ::testing::Test
     {
     public:
-        ::testing::StrictMock<application::PidMock> pidMock;
+        ::testing::StrictMock<MockAsynchronousPidController<float>> pidMock;
         application::MotorPidControllerImpl controller{ pidMock };
     };
 }
@@ -31,7 +47,7 @@ TEST_F(TestMotorControllerImpl, set_pid_parameters)
     float ki = 0.2f;
     float kd = 0.3f;
 
-    EXPECT_CALL(pidMock, SetTunings(application::TuningsEq(application::Pid::Tunings{ kp, ki, kd })));
+    EXPECT_CALL(pidMock, SetTunings(TuningsEq(controllers::PidTunings<float>{ kp, ki, kd })));
     controller.SetPidParameters(std::make_optional(kp), std::make_optional(ki), std::make_optional(kd));
 }
 
@@ -41,7 +57,7 @@ TEST_F(TestMotorControllerImpl, set_pid_parameters_with_null)
     float ki = 0.0f;
     float kd = 0.0f;
 
-    EXPECT_CALL(pidMock, SetTunings(application::TuningsEq(application::Pid::Tunings{ kp, ki, kd })));
+    EXPECT_CALL(pidMock, SetTunings(TuningsEq(controllers::PidTunings<float>{ kp, ki, kd })));
     controller.SetPidParameters(std::nullopt, std::nullopt, std::nullopt);
 }
 

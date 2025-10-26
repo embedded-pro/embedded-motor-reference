@@ -6,7 +6,6 @@
 #include "application/hardware/HardwareFactory.hpp"
 #include "hal/interfaces/AdcMultiChannel.hpp"
 #include "infra/util/BoundedDeque.hpp"
-#include "numerical-toolbox/numerical/controllers/Pid.hpp"
 #include "services/tracer/Tracer.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 
@@ -49,8 +48,8 @@ namespace application
         infra::BoundedVector<AdcChannelSamples>::WithMaxSize<numberOfChannels> adcChannelSamples;
         hal::PerformanceTracker& performanceTimer;
         foc::Volts Vdc;
-        controllers::Pid<float>::Tunings dPidTunings;
-        controllers::Pid<float>::Tunings qPidTunings;
+        controllers::PidTunings<float> dPidTunings;
+        controllers::PidTunings<float> qPidTunings;
         foc::TrigonometricFunctions trigFunctions;
         foc::FieldOrientedControllerSpeedImpl foc{ trigFunctions };
     };

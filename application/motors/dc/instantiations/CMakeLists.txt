@@ -9,7 +9,7 @@ target_include_directories(motor_ref.dc.instantiations PUBLIC
 target_link_libraries(motor_ref.dc.instantiations PUBLIC
     motor_ref.hardware
     motor_ref.dc.components
-    numerical.controllers
+    numerical.controllers.implementations
 )
 
 target_sources(motor_ref.dc.instantiations PRIVATE

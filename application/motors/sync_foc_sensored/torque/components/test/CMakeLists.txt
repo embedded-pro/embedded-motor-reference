@@ -9,7 +9,6 @@ target_link_libraries(motor_ref.motor.bldc.logic_test PUBLIC
     infra.timer_test_helper
     infra.event_test_helper
     motor_ref.foc_mock
-    motor_ref.pid_mock
 )
 
 target_sources(motor_ref.motor.bldc.logic_test PRIVATE

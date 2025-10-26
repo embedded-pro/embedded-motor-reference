@@ -259,8 +259,8 @@ namespace application
         if (!qKd.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value for Q-axis Kd. It should be a float between -1 and 1." };
 
-        dPidTunings = controllers::Pid<float>::Tunings{ *dKp, *dKi, *dKd };
-        qPidTunings = controllers::Pid<float>::Tunings{ *qKp, *qKi, *qKd };
+        dPidTunings = controllers::PidTunings<float>{ *dKp, *dKi, *dKd };
+        qPidTunings = controllers::PidTunings<float>{ *qKp, *qKi, *qKd };
 
         // foc.SetTunings(Vdc, dPidTunings, qPidTunings);
 

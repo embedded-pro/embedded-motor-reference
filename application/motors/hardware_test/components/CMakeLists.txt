@@ -7,7 +7,6 @@ target_include_directories(motor_ref.hardware_test.components PUBLIC
 
 target_link_libraries(motor_ref.hardware_test.components PUBLIC
     infra.util
-    motor_ref.pid
     motor_ref.hardware
     services.util
     services.tracer

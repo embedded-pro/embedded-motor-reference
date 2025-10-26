@@ -13,7 +13,6 @@ target_link_libraries(motor_ref.hardware PUBLIC
     infra.util
     infra.event
     motor_ref.foc.interfaces
-    motor_ref.pid
 )
 
 target_sources(motor_ref.hardware PRIVATE

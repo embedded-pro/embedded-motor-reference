@@ -8,8 +8,7 @@ target_include_directories(motor_ref.simulator.pmsm PUBLIC
 target_link_libraries(motor_ref.simulator.pmsm PUBLIC
     infra.util
     numerical.math
-    numerical.controllers
-    motor_ref.pid
+    numerical.controllers.implementations
     motor_ref.foc.instantiations
 )
 
