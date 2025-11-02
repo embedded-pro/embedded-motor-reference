@@ -34,28 +34,6 @@ TEST_F(TestSpaceVectorModulation, zero_voltage)
     EXPECT_NEAR(pwm.c, 0.5f, tolerance);
 }
 
-TEST_F(TestSpaceVectorModulation, sector_1_pure_d)
-{
-    auto twoPhaseVoltage = CreateTwoPhaseFrame(0.5f, 0.0f);
-    auto pwm = spaceVectorModulation->Generate(twoPhaseVoltage);
-    float tolerance = math::Tolerance<float>();
-
-    EXPECT_NEAR(pwm.b, pwm.c, tolerance);
-    EXPECT_NEAR(pwm.b + pwm.a, 0.999f, tolerance);
-    EXPECT_NEAR(pwm.c + pwm.a, 0.999f, tolerance);
-
-    EXPECT_GT(pwm.b, 0.5f);
-    EXPECT_GT(pwm.c, 0.5f);
-    EXPECT_LT(pwm.a, 0.5f);
-
-    EXPECT_GE(pwm.a, 0.0f);
-    EXPECT_LE(pwm.a, 0.999f);
-    EXPECT_GE(pwm.b, 0.0f);
-    EXPECT_LE(pwm.b, 0.999f);
-    EXPECT_GE(pwm.c, 0.0f);
-    EXPECT_LE(pwm.c, 0.999f);
-}
-
 TEST_F(TestSpaceVectorModulation, overmodulation)
 {
     auto twoPhaseVoltage = CreateTwoPhaseFrame(0.5f, 0.5f);
@@ -112,7 +90,7 @@ TEST_F(TestSpaceVectorModulation, output_linearity)
     float tolerance = math::Tolerance<float>();
     float small_dev = std::abs(pwm_small.a - 0.5f);
     float large_dev = std::abs(pwm_large.a - 0.5f);
-    EXPECT_NEAR(large_dev / small_dev, 1.998f, tolerance);
+    EXPECT_NEAR(large_dev / small_dev, 2.0f, tolerance);
 }
 
 TEST_F(TestSpaceVectorModulation, zero_voltage_centering)

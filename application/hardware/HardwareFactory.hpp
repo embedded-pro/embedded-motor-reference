@@ -42,6 +42,7 @@ namespace application
         virtual hal::PerformanceTracker& PerformanceTimer() = 0;
         virtual hal::Hertz BaseFrequency() const = 0;
         virtual foc::Volts PowerSupplyVoltage() = 0;
+        virtual foc::Ampere MaxCurrentSupported() = 0;
         virtual infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() = 0;
         virtual infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() = 0;
         virtual infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() = 0;

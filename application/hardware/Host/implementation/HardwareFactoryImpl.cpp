@@ -41,6 +41,11 @@ namespace application
         return foc::Volts(48.0f);
     }
 
+    foc::Ampere HardwareFactoryImpl::MaxCurrentSupported()
+    {
+        return foc::Ampere(5.0f);
+    }
+
     void HardwareFactoryImpl::Start()
     {
     }

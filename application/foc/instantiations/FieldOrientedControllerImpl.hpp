@@ -32,12 +32,16 @@ namespace foc
         : public FieldOrientedControllerSpeedControl
     {
     public:
-        explicit FieldOrientedControllerSpeedImpl(math::TrigonometricFunctions<float>& trigFunctions);
+        explicit FieldOrientedControllerSpeedImpl(math::TrigonometricFunctions<float>& trigFunctions, foc::Ampere maxCurrent, std::chrono::system_clock::duration timeStep);
 
+        void SetPolePairs(std::size_t polePairs) override;
         void SetPoint(RadiansPerSecond point) override;
         void SetTunings(Volts Vdc, const SpeedTunings& speedTuning, const IdAndIqTunings& torqueTunings) override;
         void Reset() override;
         PhasePwmDutyCycles Calculate(const PhaseCurrents& currentPhases, Radians& position) override;
+
+    private:
+        float CalculateFilteredSpeed(float currentPosition);
 
     private:
         Park park;
@@ -46,5 +50,8 @@ namespace foc
         controllers::PidIncrementalSynchronous<float> dPid;
         controllers::PidIncrementalSynchronous<float> qPid;
         SpaceVectorModulation spaceVectorModulator;
+        float previousPosition = 0.0f;
+        float dt;
+        float polePairs;
     };
 }

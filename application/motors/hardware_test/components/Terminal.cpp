@@ -5,6 +5,7 @@
 #include "infra/util/Tokenizer.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 #include <algorithm>
+#include <chrono>
 #include <optional>
 
 namespace
@@ -118,6 +119,7 @@ namespace application
         , encoderCreator{ hardware.SynchronousQuadratureEncoderCreator() }
         , performanceTimer{ hardware.PerformanceTimer() }
         , Vdc{ hardware.PowerSupplyVoltage() }
+        , foc{ trigFunctions, hardware.MaxCurrentSupported(), std::chrono::microseconds(static_cast<std::size_t>(1e6f / static_cast<float>(hardware.BaseFrequency().Value()))) }
     {
         for (std::size_t i = 0; i < numberOfChannels; ++i)
             adcChannelSamples.emplace_back();

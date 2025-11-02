@@ -30,6 +30,7 @@ namespace foc
         : public FieldOrientedControllerBase
     {
     public:
+        virtual void SetPolePairs(std::size_t polePairs) = 0;
         virtual void SetPoint(RadiansPerSecond setPoint) = 0;
         virtual void SetTunings(Volts Vdc, const SpeedTunings& speedTuning, const IdAndIqTunings& torqueTunings) = 0;
     };

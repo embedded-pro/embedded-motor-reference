@@ -51,6 +51,6 @@ namespace application
         controllers::PidTunings<float> dPidTunings;
         controllers::PidTunings<float> qPidTunings;
         foc::TrigonometricFunctions trigFunctions;
-        foc::FieldOrientedControllerSpeedImpl foc{ trigFunctions };
+        foc::FieldOrientedControllerSpeedImpl foc;
     };
 }
