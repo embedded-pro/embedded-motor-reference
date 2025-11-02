@@ -10,6 +10,8 @@
 
 namespace
 {
+    constexpr float pi_div_180 = 3.14159265359f / 180.0f;
+
     application::HardwareFactory::SampleAndHold ToSampleAndHold(const infra::BoundedConstString& value)
     {
         if (value == "shortest")
@@ -154,7 +156,7 @@ namespace application
                 this->terminal.ProcessResult(ConfigureAdc(param));
             } });
 
-        terminal.AddCommand({ { "pid", "c", "Configure pid [d_kp d_ki d_kd q_kp q_ki q_kd]. Ex: pid 1 0 0 1 0 0" },
+        terminal.AddCommand({ { "pid", "c", "Configure speed and DQ PIDs [spd_kp spd_ki spd_kd dq_kp dq_ki dq_kd]. Ex: pid 1 0 0 1 0 0" },
             [this](const infra::BoundedConstString& param)
             {
                 this->terminal.ProcessResult(ConfigurePid(param));
@@ -237,34 +239,34 @@ namespace application
         if (tokenizer.Size() != 6)
             return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
 
-        auto dKp = ParseInput<float>(tokenizer.Token(0), -1.0f, 1.0f);
+        auto dKp = ParseInput<float>(tokenizer.Token(0), std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
         if (!dKp.has_value())
-            return { services::TerminalWithStorage::Status::error, "invalid value for D-axis Kp. It should be a float between -1 and 1." };
+            return { services::TerminalWithStorage::Status::error, "invalid value for Speed Kp" };
 
-        auto dKi = ParseInput<float>(tokenizer.Token(1), -1.0f, 1.0f);
+        auto dKi = ParseInput<float>(tokenizer.Token(1), std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
         if (!dKi.has_value())
-            return { services::TerminalWithStorage::Status::error, "invalid value for D-axis Ki. It should be a float between -1 and 1." };
+            return { services::TerminalWithStorage::Status::error, "invalid value for Speed Ki" };
 
-        auto dKd = ParseInput<float>(tokenizer.Token(2), -1.0f, 1.0f);
+        auto dKd = ParseInput<float>(tokenizer.Token(2), std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
         if (!dKd.has_value())
-            return { services::TerminalWithStorage::Status::error, "invalid value for D-axis Kd. It should be a float between -1 and 1." };
+            return { services::TerminalWithStorage::Status::error, "invalid value for Speed Kd" };
 
-        auto qKp = ParseInput<float>(tokenizer.Token(3), -1.0f, 1.0f);
+        auto qKp = ParseInput<float>(tokenizer.Token(3), std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
         if (!qKp.has_value())
-            return { services::TerminalWithStorage::Status::error, "invalid value for Q-axis Kp. It should be a float between -1 and 1." };
+            return { services::TerminalWithStorage::Status::error, "invalid value for DQ-axis Kp" };
 
-        auto qKi = ParseInput<float>(tokenizer.Token(4), -1.0f, 1.0f);
+        auto qKi = ParseInput<float>(tokenizer.Token(4), std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
         if (!qKi.has_value())
-            return { services::TerminalWithStorage::Status::error, "invalid value for Q-axis Ki. It should be a float between -1 and 1." };
+            return { services::TerminalWithStorage::Status::error, "invalid value for DQ-axis Ki" };
 
-        auto qKd = ParseInput<float>(tokenizer.Token(5), -1.0f, 1.0f);
+        auto qKd = ParseInput<float>(tokenizer.Token(5), std::numeric_limits<float>::min(), std::numeric_limits<float>::max());
         if (!qKd.has_value())
-            return { services::TerminalWithStorage::Status::error, "invalid value for Q-axis Kd. It should be a float between -1 and 1." };
+            return { services::TerminalWithStorage::Status::error, "invalid value for DQ-axis Kd" };
 
-        dPidTunings = controllers::PidTunings<float>{ *dKp, *dKi, *dKd };
-        qPidTunings = controllers::PidTunings<float>{ *qKp, *qKi, *qKd };
+        speedPidTunings = controllers::PidTunings<float>{ *dKp, *dKi, *dKd };
+        dqPidTunings = controllers::PidTunings<float>{ *qKp, *qKi, *qKd };
 
-        // foc.SetTunings(Vdc, dPidTunings, qPidTunings);
+        foc.SetTunings(Vdc, speedPidTunings, { dqPidTunings, dqPidTunings });
 
         return { services::TerminalWithStorage::Status::success };
     }
@@ -276,9 +278,9 @@ namespace application
         if (tokenizer.Size() != 4)
             return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
 
-        auto angle = ParseInput<float>(tokenizer.Token(0), 0.0f, 360.0f);
+        auto angle = ParseInput<float>(tokenizer.Token(0), -360.0f, 360.0f);
         if (!angle)
-            return { services::TerminalWithStorage::Status::error, "invalid value for angle. It should be a float between 0 and 360." };
+            return { services::TerminalWithStorage::Status::error, "invalid value for angle. It should be a float between -360 and 360." };
 
         auto currentA = ParseInput<float>(tokenizer.Token(1), -1000.0f, 1000.0f);
         if (!currentA)
@@ -292,7 +294,7 @@ namespace application
         if (!currentC)
             return { services::TerminalWithStorage::Status::error, "invalid value for phase C current. It should be a float between -1000 and 1000." };
 
-        // RunFocSimulation(std::make_tuple(Ampere{ *currentA }, Ampere{ *currentB }, Ampere{ *currentC }, Radians{ *angle }));
+        RunFocSimulation(std::make_tuple(foc::Ampere{ *currentA }, foc::Ampere{ *currentB }, foc::Ampere{ *currentC }, foc::Radians{ *angle * pi_div_180 }));
 
         return { services::TerminalWithStorage::Status::success };
     }
@@ -304,14 +306,16 @@ namespace application
         auto duration = performanceTimer.ElapsedCycles();
 
         tracer.Trace() << "  FOC Simulation Results:";
+        tracer.Trace() << "    Vdc:              " << Vdc.Value() << " V";
+        tracer.Trace() << "    Pole Pairs:       " << polePairs.value_or(0);
         tracer.Trace() << "    Inputs:";
         tracer.Trace() << "      Angle:            " << std::get<3>(input).Value() << " degrees";
         tracer.Trace() << "      Phase A Current:  " << std::get<0>(input).Value() << " mA";
         tracer.Trace() << "      Phase B Current:  " << std::get<1>(input).Value() << " mA";
         tracer.Trace() << "      Phase C Current:  " << std::get<2>(input).Value() << " mA";
         tracer.Trace() << "    PID Tunings:";
-        tracer.Trace() << "      D-axis PID:       [P: " << dPidTunings.kp << ", I: " << dPidTunings.ki << ", D: " << dPidTunings.kd << "]";
-        tracer.Trace() << "      Q-axis PID:       [P: " << qPidTunings.kp << ", I: " << qPidTunings.ki << ", D: " << qPidTunings.kd << "]";
+        tracer.Trace() << "      Speed PID:         [P: " << speedPidTunings.kp << ", I: " << speedPidTunings.ki << ", D: " << speedPidTunings.kd << "]";
+        tracer.Trace() << "      DQ-axis PID:       [P: " << dqPidTunings.kp << ", I: " << dqPidTunings.ki << ", D: " << dqPidTunings.kd << "]";
         tracer.Trace() << "    PWM Outputs:";
         tracer.Trace() << "      Phase A PWM:      " << std::get<0>(result).Value() << " %";
         tracer.Trace() << "      Phase B PWM:      " << std::get<1>(result).Value() << " %";
@@ -364,6 +368,22 @@ namespace application
             return { services::TerminalWithStorage::Status::error, "invalid value for phase C. It should be a float between 1 and 99." };
 
         pwmCreator->Start(hal::Percent{ *dutyA }, hal::Percent{ *dutyB }, hal::Percent{ *dutyC });
+
+        return { services::TerminalWithStorage::Status::success };
+    }
+
+    TerminalInteractor::StatusWithMessage TerminalInteractor::SetMotorParameters(const infra::BoundedConstString& param)
+    {
+        infra::Tokenizer tokenizer(param, ' ');
+
+        if (tokenizer.Size() != 1)
+            return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
+
+        auto poles = ParseInput<uint8_t>(tokenizer.Token(0), 2, 16);
+        if (!poles.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value for poles. It should be a float between 2 and 16." };
+
+        polePairs = static_cast<std::size_t>(*poles / 2);
 
         return { services::TerminalWithStorage::Status::success };
     }

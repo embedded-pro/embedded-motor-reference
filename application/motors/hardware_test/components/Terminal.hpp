@@ -24,10 +24,10 @@ namespace application
         StatusWithMessage ConfigureAdc(const infra::BoundedConstString& param);
         StatusWithMessage SimulateFoc(const infra::BoundedConstString& param);
         StatusWithMessage ConfigurePid(const infra::BoundedConstString& param);
-        void RunFocSimulation(std::tuple<foc::Ampere, foc::Ampere, foc::Ampere, foc::Radians> input);
         StatusWithMessage Stop();
         StatusWithMessage ReadAdcWithSampleTime();
         StatusWithMessage SetPwmDuty(const infra::BoundedConstString& param);
+        StatusWithMessage SetMotorParameters(const infra::BoundedConstString& param);
 
     private:
         static constexpr std::size_t averageSampleSize = 10;
@@ -36,6 +36,7 @@ namespace application
 
         void StartAdc(HardwareFactory::SampleAndHold sampleAndHold);
         bool IsAdcBufferPopulated() const;
+        void RunFocSimulation(std::tuple<foc::Ampere, foc::Ampere, foc::Ampere, foc::Radians> input);
 
     private:
         const infra::BoundedVector<infra::BoundedConstString>::WithMaxSize<5> acceptedAdcValues{ { "shortest", "shorter", "medium", "longer", "longest" } };
@@ -48,8 +49,9 @@ namespace application
         infra::BoundedVector<AdcChannelSamples>::WithMaxSize<numberOfChannels> adcChannelSamples;
         hal::PerformanceTracker& performanceTimer;
         foc::Volts Vdc;
-        controllers::PidTunings<float> dPidTunings;
-        controllers::PidTunings<float> qPidTunings;
+        controllers::PidTunings<float> speedPidTunings;
+        controllers::PidTunings<float> dqPidTunings;
+        std::optional<std::size_t> polePairs = 0;
         foc::TrigonometricFunctions trigFunctions;
         foc::FieldOrientedControllerSpeedImpl foc;
     };

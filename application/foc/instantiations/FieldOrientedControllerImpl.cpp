@@ -7,6 +7,16 @@ namespace
     static constexpr float invSqrt3 = 0.577350269189625f;
     static constexpr float pi = 3.14159265359f;
     static constexpr float two_pi = 6.28318530718f;
+
+    float PositionWithWrapAround(float position)
+    {
+        if (position > pi)
+            position -= two_pi;
+        else if (position < -pi)
+            position += two_pi;
+
+        return position;
+    }
 }
 
 namespace foc
@@ -119,14 +129,7 @@ namespace foc
     OPTIMIZE_FOR_SPEED
     float FieldOrientedControllerSpeedImpl::CalculateFilteredSpeed(float mechanicalPosition)
     {
-        float positionDelta = mechanicalPosition - previousPosition;
-
-        if (positionDelta > pi)
-            positionDelta -= two_pi;
-        else if (positionDelta < -pi)
-            positionDelta += two_pi;
-
-        auto mechanicalSpeed = positionDelta / dt;
+        auto mechanicalSpeed = PositionWithWrapAround(mechanicalPosition - previousPosition) / dt;
 
         previousPosition = mechanicalPosition;
 
@@ -137,18 +140,14 @@ namespace foc
     PhasePwmDutyCycles FieldOrientedControllerSpeedImpl::Calculate(const PhaseCurrents& currentPhases, Radians& position)
     {
         auto threePhaseCurrent = ThreePhase{ std::get<0>(currentPhases).Value(), std::get<1>(currentPhases).Value(), std::get<2>(currentPhases).Value() };
-        auto mechanicalAngle = position.Value();
 
-        auto filteredSpeed = CalculateFilteredSpeed(mechanicalAngle);
-        auto speedSetPoint = speedPid.Process(filteredSpeed);
-        qPid.SetPoint(speedSetPoint);
+        auto mechanicalAngle = position.Value();
         auto electricalAngle = mechanicalAngle * polePairs;
+
+        qPid.SetPoint(speedPid.Process(CalculateFilteredSpeed(mechanicalAngle)));
+
         auto idAndIq = park.Forward(clarke.Forward(threePhaseCurrent), electricalAngle);
-        auto dPid_ = dPid.Process(idAndIq.d);
-        auto qPid_ = qPid.Process(idAndIq.q);
-        auto twoPhaseVoltage = RotatingFrame{ dPid_, qPid_ };
-        auto voltageAlphaBeta = park.Inverse(twoPhaseVoltage, electricalAngle);
-        auto output = spaceVectorModulator.Generate(voltageAlphaBeta);
+        auto output = spaceVectorModulator.Generate(park.Inverse(RotatingFrame{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) }, electricalAngle));
 
         return PhasePwmDutyCycles{ hal::Percent(static_cast<uint8_t>(output.a * 100.0f + 0.5f)),
             hal::Percent(static_cast<uint8_t>(output.b * 100.0f + 0.5f)),

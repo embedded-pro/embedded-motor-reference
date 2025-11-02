@@ -2,6 +2,7 @@
 
 #include "application/foc/implementations/TransformsClarkePark.hpp"
 #include "numerical/math/CompilerOptimizations.hpp"
+#include <algorithm>
 
 namespace foc
 {
