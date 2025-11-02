@@ -1,4 +1,5 @@
 #include "application/hardware/ti/implementation/HardwareFactoryImpl.hpp"
+#include "application/hardware/HardwareFactory.hpp"
 #include "infra/util/MemoryRange.hpp"
 
 namespace application
@@ -46,6 +47,11 @@ namespace application
     foc::Volts HardwareFactoryImpl::PowerSupplyVoltage()
     {
         return foc::Volts(24.0f);
+    }
+
+    foc::Ampere HardwareFactoryImpl::MaxCurrentSupported()
+    {
+        return foc::Ampere(15.0f);
     }
 
     void HardwareFactoryImpl::Start()

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "application/foc/interfaces/Driver.hpp"
 #include "hal/interfaces/AdcMultiChannel.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include HARDWARE_PINS_AND_PERIPHERALS_HEADER
@@ -36,6 +37,7 @@ namespace application
         hal::PerformanceTracker& PerformanceTimer() override;
         hal::Hertz BaseFrequency() const override;
         foc::Volts PowerSupplyVoltage() override;
+        foc::Ampere MaxCurrentSupported() override;
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
         infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
         infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;

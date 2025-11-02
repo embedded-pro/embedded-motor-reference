@@ -24,6 +24,7 @@ namespace application
         hal::PerformanceTracker& PerformanceTimer() override;
         hal::Hertz BaseFrequency() const override;
         foc::Volts PowerSupplyVoltage() override;
+        foc::Ampere MaxCurrentSupported() override;
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
         infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
         infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;
