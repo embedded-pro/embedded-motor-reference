@@ -28,4 +28,4 @@ target_include_directories(sciplot INTERFACE
 )
 
 add_subdirectory(pmsm)
-add_subdirectory(torque_control)
+add_subdirectory(speed_control)
