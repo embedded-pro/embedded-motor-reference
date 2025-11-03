@@ -10,12 +10,12 @@ namespace application
     {
     }
 
-    void HardwareAdapter::PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<foc::Ampere, foc::Ampere, foc::Ampere> currentPhases)>& onDone)
+    void HardwareAdapter::PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(foc::PhaseCurrents currentPhases)>& onDone)
     {
         synchronousThreeChannelsPwmCreator->SetBaseFrequency(baseFrequency);
     }
 
-    void HardwareAdapter::ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases)
+    void HardwareAdapter::ThreePhasePwmOutput(const foc::PhasePwmDutyCycles& dutyPhases)
     {
         // Implementation for handling three-phase PWM output
     }

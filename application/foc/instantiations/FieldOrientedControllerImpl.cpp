@@ -8,6 +8,7 @@ namespace
     static constexpr float pi = 3.14159265359f;
     static constexpr float two_pi = 6.28318530718f;
 
+    OPTIMIZE_FOR_SPEED
     float PositionWithWrapAround(float position)
     {
         if (position > pi)
@@ -22,7 +23,7 @@ namespace
 namespace foc
 {
     FieldOrientedControllerTorqueImpl::FieldOrientedControllerTorqueImpl(math::TrigonometricFunctions<float>& trigFunctions)
-        : park{ trigFunctions }
+        : trigFunctions{ trigFunctions }
         , dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } }
         , qPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } }
     {}
@@ -35,6 +36,11 @@ namespace foc
 
         dPid.Enable();
         qPid.Enable();
+    }
+
+    void FieldOrientedControllerTorqueImpl::SetPolePairs(std::size_t polePairs)
+    {
+        this->polePairs = static_cast<float>(polePairs);
     }
 
     OPTIMIZE_FOR_SPEED
@@ -56,19 +62,14 @@ namespace foc
     OPTIMIZE_FOR_SPEED
     PhasePwmDutyCycles FieldOrientedControllerTorqueImpl::Calculate(const PhaseCurrents& currentPhases, Radians& position)
     {
-        auto threePhaseCurrent = ThreePhase{ std::get<0>(currentPhases).Value(), std::get<1>(currentPhases).Value(), std::get<2>(currentPhases).Value() };
+        auto mechanicalAngle = position.Value();
+        auto electricalAngle = mechanicalAngle * polePairs;
 
-        // position is mechanical angle from encoder
-        // Park transform needs electrical angle
-        // For torque control, we need to know pole pairs - but it's not set!
-        // Assuming we need to add SetPolePairs method or pass electrical angle
-        // For now, assuming position is already electrical (needs clarification)
-        auto angle = position.Value();
+        auto cosTheta = trigFunctions.Cosine(electricalAngle);
+        auto sinTheta = trigFunctions.Sine(electricalAngle);
 
-        auto idAndIq = park.Forward(clarke.Forward(threePhaseCurrent), angle);
-        auto twoPhaseVoltage = RotatingFrame{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) };
-        auto voltageAlphaBeta = park.Inverse(twoPhaseVoltage, angle);
-        auto output = spaceVectorModulator.Generate(voltageAlphaBeta);
+        auto idAndIq = park.Forward(clarke.Forward(ThreePhase{ currentPhases.a.Value(), currentPhases.b.Value(), currentPhases.c.Value() }), cosTheta, sinTheta);
+        auto output = spaceVectorModulator.Generate(park.Inverse(RotatingFrame{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) }, cosTheta, sinTheta));
 
         return PhasePwmDutyCycles{ hal::Percent(static_cast<uint8_t>(output.a * 100.0f + 0.5f)),
             hal::Percent(static_cast<uint8_t>(output.b * 100.0f + 0.5f)),
@@ -77,7 +78,7 @@ namespace foc
 
     OPTIMIZE_FOR_SPEED
     FieldOrientedControllerSpeedImpl::FieldOrientedControllerSpeedImpl(math::TrigonometricFunctions<float>& trigFunctions, foc::Ampere maxCurrent, std::chrono::system_clock::duration timeStep)
-        : park{ trigFunctions }
+        : trigFunctions{ trigFunctions }
         , speedPid{ { 0.0f, 0.0f, 0.0f }, { -maxCurrent.Value(), maxCurrent.Value() } }
         , dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } }
         , qPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } }
@@ -139,15 +140,16 @@ namespace foc
     OPTIMIZE_FOR_SPEED
     PhasePwmDutyCycles FieldOrientedControllerSpeedImpl::Calculate(const PhaseCurrents& currentPhases, Radians& position)
     {
-        auto threePhaseCurrent = ThreePhase{ std::get<0>(currentPhases).Value(), std::get<1>(currentPhases).Value(), std::get<2>(currentPhases).Value() };
-
         auto mechanicalAngle = position.Value();
         auto electricalAngle = mechanicalAngle * polePairs;
 
+        auto cosTheta = trigFunctions.Cosine(electricalAngle);
+        auto sinTheta = trigFunctions.Sine(electricalAngle);
+
         qPid.SetPoint(speedPid.Process(CalculateFilteredSpeed(mechanicalAngle)));
 
-        auto idAndIq = park.Forward(clarke.Forward(threePhaseCurrent), electricalAngle);
-        auto output = spaceVectorModulator.Generate(park.Inverse(RotatingFrame{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) }, electricalAngle));
+        auto idAndIq = park.Forward(clarke.Forward(ThreePhase{ currentPhases.a.Value(), currentPhases.b.Value(), currentPhases.c.Value() }), cosTheta, sinTheta);
+        auto output = spaceVectorModulator.Generate(park.Inverse(RotatingFrame{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) }, cosTheta, sinTheta));
 
         return PhasePwmDutyCycles{ hal::Percent(static_cast<uint8_t>(output.a * 100.0f + 0.5f)),
             hal::Percent(static_cast<uint8_t>(output.b * 100.0f + 0.5f)),

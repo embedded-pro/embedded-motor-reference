@@ -1,8 +1,10 @@
 #include "application/motors/hardware_test/components/Terminal.hpp"
+#include "foc/interfaces/Driver.hpp"
 #include "infra/stream/StringInputStream.hpp"
 #include "infra/util/BoundedString.hpp"
 #include "infra/util/ReallyAssert.hpp"
 #include "infra/util/Tokenizer.hpp"
+#include "numerical/math/CompilerOptimizations.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 #include <algorithm>
 #include <chrono>
@@ -174,7 +176,14 @@ namespace application
 
         PrintHeader();
 
-        ConfigurePid("");
+        /// vvvv Remove me after tests! vvvv
+        SetMotorParameters("4.0");
+        ConfigurePid(" 1.0 2.2 3.3 4.4 5.5 6.6");
+        SimulateFoc("45.0 1.0 2.0 3.0");
+        SimulateFoc("45.0 1.0 2.0 3.0");
+        SimulateFoc("45.0 1.0 2.0 3.0");
+        SimulateFoc("45.0 1.0 2.0 3.0");
+        /// ^^^^ Remove me after tests! ^^^^
     }
 
     void TerminalInteractor::PrintHeader()
@@ -294,32 +303,32 @@ namespace application
         if (!currentC)
             return { services::TerminalWithStorage::Status::error, "invalid value for phase C current. It should be a float between -1000 and 1000." };
 
-        RunFocSimulation(std::make_tuple(foc::Ampere{ *currentA }, foc::Ampere{ *currentB }, foc::Ampere{ *currentC }, foc::Radians{ *angle * pi_div_180 }));
+        RunFocSimulation(foc::PhaseCurrents{ foc::Ampere{ *currentA }, foc::Ampere{ *currentB }, foc::Ampere{ *currentC } }, foc::Radians{ *angle * pi_div_180 });
 
         return { services::TerminalWithStorage::Status::success };
     }
 
-    void TerminalInteractor::RunFocSimulation(std::tuple<foc::Ampere, foc::Ampere, foc::Ampere, foc::Radians> input)
+    void TerminalInteractor::RunFocSimulation(foc::PhaseCurrents input, foc::Radians angle)
     {
         performanceTimer.Start();
-        auto result = foc.Calculate(std::make_tuple(std::get<0>(input), std::get<1>(input), std::get<2>(input)), std::get<3>(input));
+        auto result = foc.Calculate(input, angle);
         auto duration = performanceTimer.ElapsedCycles();
 
         tracer.Trace() << "  FOC Simulation Results:";
         tracer.Trace() << "    Vdc:              " << Vdc.Value() << " V";
         tracer.Trace() << "    Pole Pairs:       " << polePairs.value_or(0);
         tracer.Trace() << "    Inputs:";
-        tracer.Trace() << "      Angle:            " << std::get<3>(input).Value() << " degrees";
-        tracer.Trace() << "      Phase A Current:  " << std::get<0>(input).Value() << " mA";
-        tracer.Trace() << "      Phase B Current:  " << std::get<1>(input).Value() << " mA";
-        tracer.Trace() << "      Phase C Current:  " << std::get<2>(input).Value() << " mA";
+        tracer.Trace() << "      Angle:            " << angle.Value() << " degrees";
+        tracer.Trace() << "      Phase A Current:  " << input.a.Value() << " mA";
+        tracer.Trace() << "      Phase B Current:  " << input.b.Value() << " mA";
+        tracer.Trace() << "      Phase C Current:  " << input.c.Value() << " mA";
         tracer.Trace() << "    PID Tunings:";
         tracer.Trace() << "      Speed PID:         [P: " << speedPidTunings.kp << ", I: " << speedPidTunings.ki << ", D: " << speedPidTunings.kd << "]";
         tracer.Trace() << "      DQ-axis PID:       [P: " << dqPidTunings.kp << ", I: " << dqPidTunings.ki << ", D: " << dqPidTunings.kd << "]";
         tracer.Trace() << "    PWM Outputs:";
-        tracer.Trace() << "      Phase A PWM:      " << std::get<0>(result).Value() << " %";
-        tracer.Trace() << "      Phase B PWM:      " << std::get<1>(result).Value() << " %";
-        tracer.Trace() << "      Phase C PWM:      " << std::get<2>(result).Value() << " %";
+        tracer.Trace() << "      Phase A PWM:      " << result.a.Value() << " %";
+        tracer.Trace() << "      Phase B PWM:      " << result.b.Value() << " %";
+        tracer.Trace() << "      Phase C PWM:      " << result.c.Value() << " %";
         tracer.Trace() << "    Performance:";
         tracer.Trace() << "      Execution time:   " << duration << " cycles";
     }

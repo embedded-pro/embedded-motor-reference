@@ -1,5 +1,6 @@
 #include "application/hardware/ti/implementation/HardwareFactoryImpl.hpp"
 #include "application/hardware/HardwareFactory.hpp"
+#include "application/hardware/ti/EK-TM4C1294XL/PinsAndPeripherals.hpp"
 #include "infra/util/MemoryRange.hpp"
 
 namespace application
@@ -56,11 +57,13 @@ namespace application
 
     void HardwareFactoryImpl::Start()
     {
-        return peripherals->cortex.dataWatchPointAndTrace.Start();
+        peripherals->cortex.dataWatchPointAndTrace.Start();
+        peripherals->performance.Set(true);
     }
 
     uint32_t HardwareFactoryImpl::ElapsedCycles()
     {
+        peripherals->performance.Set(false);
         return peripherals->cortex.dataWatchPointAndTrace.Stop();
     }
 

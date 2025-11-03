@@ -64,9 +64,6 @@ namespace
             theta_data.reserve(steps);
             speed_data.reserve(steps);
 
-            auto& currentPlot = figure.CreatePlot(currentPlotConfig);
-            auto& anglePlot = figure.CreatePlot(anglePlotConfig);
-
             foc.SetPolePairs(static_cast<std::size_t>(params.p));
             foc.SetTunings(
                 foc::Volts{ motorParameters.Vdc },
@@ -124,12 +121,6 @@ namespace
 
             std::cout << "\nSimulation completed!\n";
 
-            // currentPlot.Draw(time, i_a_data, "i_a", 2, "blue");
-            // currentPlot.Draw(time, i_b_data, "i_b", 2, "orange");
-            // currentPlot.Draw(time, i_c_data, "i_c", 2, "green");
-            // anglePlot.Draw(time, theta_data, "theta", 2, "blue");
-            // figure.Save("foc_simulation_results.png");
-
             graphics::PlotResults(time, i_a_data, i_b_data, i_c_data, theta_data);
 
             std::cout << "Plots saved to foc_simulation_results.png and foc_simulation_results.pdf\n";
@@ -150,10 +141,7 @@ namespace
 
         foc::TrigonometricFunctions trigFunctions;
         foc::FieldOrientedControllerSpeedImpl foc{ trigFunctions, foc::Ampere{ 15.0f }, timeStep };
-        std::tuple<hal::Percent, hal::Percent, hal::Percent> dutyCycles{ hal::Percent(0), hal::Percent(0), hal::Percent(0) };
-        graphics::Figure::PlotConfig currentPlotConfig{ { "Time [s]", { 0.0f, 0.2f } }, { "Phase Currents [A]", { -30.0f, 30.0f } } };
-        graphics::Figure::PlotConfig anglePlotConfig{ { "Time [s]", { 0.0f, 0.2f } }, { "Mechanical Angle [rad]", { 0.0f, 7.0f } } };
-        graphics::Figure figure{ "FOC Simulation Results", { 950, 800 } };
+        foc::PhasePwmDutyCycles dutyCycles{ hal::Percent(0), hal::Percent(0), hal::Percent(0) };
     };
 }
 

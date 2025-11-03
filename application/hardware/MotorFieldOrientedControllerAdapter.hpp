@@ -13,8 +13,8 @@ namespace application
         explicit HardwareAdapter(HardwareFactory& hardware);
 
         // Implementation of MotorDriver
-        void PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<foc::Ampere, foc::Ampere, foc::Ampere> currentPhases)>& onDone) override;
-        void ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases) override;
+        void PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(foc::PhaseCurrents currentPhases)>& onDone) override;
+        void ThreePhasePwmOutput(const foc::PhasePwmDutyCycles& dutyPhases) override;
         void Start() override;
         void Stop() override;
 

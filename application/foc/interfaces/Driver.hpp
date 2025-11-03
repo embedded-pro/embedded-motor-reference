@@ -18,6 +18,20 @@ namespace foc
     using RadiansPerSecond = infra::Quantity<unit::Radians::Div<infra::Second>, float>;
     using HallState = uint8_t;
 
+    struct PhaseCurrents
+    {
+        Ampere a;
+        Ampere b;
+        Ampere c;
+    };
+
+    struct PhasePwmDutyCycles
+    {
+        hal::Percent a;
+        hal::Percent b;
+        hal::Percent c;
+    };
+
     enum class Direction : uint8_t
     {
         forward,
@@ -41,8 +55,8 @@ namespace foc
     class MotorDriver
     {
     public:
-        virtual void PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<Ampere, Ampere, Ampere> currentPhases)>& onDone) = 0;
-        virtual void ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases) = 0;
+        virtual void PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(PhaseCurrents currentPhases)>& onDone) = 0;
+        virtual void ThreePhasePwmOutput(const PhasePwmDutyCycles& dutyPhases) = 0;
         virtual void Start() = 0;
         virtual void Stop() = 0;
     };

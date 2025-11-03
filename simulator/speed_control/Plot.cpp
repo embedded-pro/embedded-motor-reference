@@ -2,48 +2,6 @@
 
 namespace graphics
 {
-    Figure::Figure(const std::string& title, Size size)
-        : title{ title }
-        , size{ size }
-    {
-    }
-
-    Figure::Plot& Figure::CreatePlot(PlotConfig config)
-    {
-        plots.emplace_back();
-        auto& plot = plots.back().plot;
-
-        plot.xlabel(config.XAxis.Label);
-        plot.ylabel(config.YAxis.Label);
-        plot.xrange(config.XAxis.Range.Min, config.XAxis.Range.Max);
-        plot.yrange(config.YAxis.Range.Min, config.YAxis.Range.Max);
-        plot.legend()
-            .atOutsideRight()
-            .displayHorizontal()
-            .displayExpandWidthBy(2);
-
-        return plots.back();
-    }
-
-    void Figure::Plot::Draw(const std::vector<float>& x, const std::vector<float>& y, const std::string& label, std::size_t lineWidth, const std::string& colour)
-    {
-        plot.drawCurve(x, y).label(label).lineWidth(lineWidth).lineColor(colour);
-    }
-
-    void Figure::Save(const std::string& filename)
-    {
-        std::vector<sciplot::Plot> sciplotPlots;
-        sciplotPlots.reserve(plots.size());
-        for (const auto& p : plots)
-            sciplotPlots.push_back(p.plot);
-
-        sciplot::Figure figure{ { sciplotPlots } };
-        figure.title(title);
-        figure.size(size.Width, size.Height);
-
-        figure.save(filename);
-    }
-
     void PlotResults(const std::vector<float>& time,
         const std::vector<float>& i_a,
         const std::vector<float>& i_b,

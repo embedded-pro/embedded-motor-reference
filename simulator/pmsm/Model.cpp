@@ -20,11 +20,11 @@ namespace simulator
     {
     }
 
-    std::pair<std::tuple<foc::Ampere, foc::Ampere, foc::Ampere>, foc::Radians> PmsmModel::Run(std::tuple<hal::Percent, hal::Percent, hal::Percent> dutyCycles)
+    std::pair<foc::PhaseCurrents, foc::Radians> PmsmModel::Run(foc::PhasePwmDutyCycles dutyCycles)
     {
-        auto duty_a = std::get<0>(dutyCycles).Value() / 100.0f;
-        auto duty_b = std::get<1>(dutyCycles).Value() / 100.0f;
-        auto duty_c = std::get<2>(dutyCycles).Value() / 100.0f;
+        auto duty_a = dutyCycles.a.Value() / 100.0f;
+        auto duty_b = dutyCycles.b.Value() / 100.0f;
+        auto duty_c = dutyCycles.c.Value() / 100.0f;
 
         auto va = (duty_a - half) * parameters.Vdc;
         auto vb = (duty_b - half) * parameters.Vdc;
@@ -70,10 +70,6 @@ namespace simulator
         theta_mech = std::fmod(theta_mech, two_pi);
         theta = std::fmod(theta, two_pi);
 
-        return { std::make_tuple(
-                     foc::Ampere{ ia },
-                     foc::Ampere{ ib },
-                     foc::Ampere{ ic }),
-            foc::Radians{ theta_mech } };
+        return { { foc::Ampere{ ia }, foc::Ampere{ ib }, foc::Ampere{ ic } }, foc::Radians{ theta_mech } };
     }
 }

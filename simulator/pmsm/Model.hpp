@@ -31,7 +31,7 @@ namespace simulator
 
         PmsmModel(const Parameters& params, float timeStep);
 
-        std::pair<std::tuple<foc::Ampere, foc::Ampere, foc::Ampere>, foc::Radians> Run(std::tuple<hal::Percent, hal::Percent, hal::Percent> dutyCycles);
+        std::pair<foc::PhaseCurrents, foc::Radians> Run(foc::PhasePwmDutyCycles dutyCycles);
 
     private:
         Parameters parameters;

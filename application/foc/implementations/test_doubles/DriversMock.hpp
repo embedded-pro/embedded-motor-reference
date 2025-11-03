@@ -1,6 +1,7 @@
 #pragma once
 
 #include "application/foc/interfaces/Driver.hpp"
+#include "foc/implementations/TransformsClarkePark.hpp"
 #include <gmock/gmock.h>
 
 namespace foc
@@ -25,23 +26,23 @@ namespace foc
         : public MotorDriver
     {
     public:
-        MOCK_METHOD(void, PhaseCurrentsReady, (hal::Hertz baseFrequency, const infra::Function<void(std::tuple<Ampere, Ampere, Ampere> voltagePhases)>& onDone), (override));
-        MOCK_METHOD(void, ThreePhasePwmOutput, ((const std::tuple<hal::Percent, hal::Percent, hal::Percent>&)), (override));
+        MOCK_METHOD(void, PhaseCurrentsReady, (hal::Hertz baseFrequency, const infra::Function<void(foc::PhaseCurrents phaseCurrents)>& onDone), (override));
+        MOCK_METHOD(void, ThreePhasePwmOutput, ((const foc::PhasePwmDutyCycles&)), (override));
         MOCK_METHOD(void, Start, (), (override));
         MOCK_METHOD(void, Stop, (), (override));
 
-        void StorePhaseCurrentsCallback(const infra::Function<void(std::tuple<Ampere, Ampere, Ampere> voltagePhases)>& onDone)
+        void StorePhaseCurrentsCallback(const infra::Function<void(foc::PhaseCurrents phaseCurrents)>& onDone)
         {
             phaseCurrentsCallback = onDone;
         }
 
-        void TriggerPhaseCurrentsCallback(std::tuple<Ampere, Ampere, Ampere> voltagePhases)
+        void TriggerPhaseCurrentsCallback(foc::PhaseCurrents phaseCurrents)
         {
             if (phaseCurrentsCallback)
-                phaseCurrentsCallback(voltagePhases);
+                phaseCurrentsCallback(phaseCurrents);
         }
 
     private:
-        infra::Function<void(std::tuple<Ampere, Ampere, Ampere> voltagePhases)> phaseCurrentsCallback;
+        infra::Function<void(foc::PhaseCurrents phaseCurrents)> phaseCurrentsCallback;
     };
 }

@@ -18,6 +18,20 @@ namespace
                std::abs(arg.second.kd - expected.second.kd) < 1e-6f;
     }
 
+    MATCHER_P(PhaseCurrentsEq, expected, "")
+    {
+        return std::abs(arg.a.Value() - expected.a.Value()) < 1e-6f &&
+               std::abs(arg.b.Value() - expected.b.Value()) < 1e-6f &&
+               std::abs(arg.c.Value() - expected.c.Value()) < 1e-6f;
+    }
+
+    MATCHER_P(PhasePwmDutyCyclesEq, expected, "")
+    {
+        return std::abs(arg.a.Value() - expected.a.Value()) < 1e-6f &&
+               std::abs(arg.b.Value() - expected.b.Value()) < 1e-6f &&
+               std::abs(arg.c.Value() - expected.c.Value()) < 1e-6f;
+    }
+
     class TestTorqueController
         : public ::testing::Test
     {
@@ -87,9 +101,9 @@ TEST_F(TestTorqueController, phase_currents_callback_triggers_foc_calculation_an
 
     EXPECT_CALL(encoderMock, Read())
         .WillOnce(::testing::Return(foc::Radians{ 0.0f }));
-    EXPECT_CALL(focMock, Calculate(currentPhases, ::testing::_))
+    EXPECT_CALL(focMock, Calculate(PhaseCurrentsEq(currentPhases), ::testing::_))
         .WillOnce(::testing::Return(pwmOutput));
-    EXPECT_CALL(interfaceMock, ThreePhasePwmOutput(pwmOutput)).Times(1);
+    EXPECT_CALL(interfaceMock, ThreePhasePwmOutput(PhasePwmDutyCyclesEq(pwmOutput))).Times(1);
 
     interfaceMock.TriggerPhaseCurrentsCallback(currentPhases);
 }
@@ -110,9 +124,9 @@ TEST_F(TestTorqueController, disabled_pid_controllers_are_reenabled_after_enable
 
     EXPECT_CALL(encoderMock, Read())
         .WillOnce(::testing::Return(foc::Radians{ 0.0f }));
-    EXPECT_CALL(focMock, Calculate(currentPhases, ::testing::_))
+    EXPECT_CALL(focMock, Calculate(PhaseCurrentsEq(currentPhases), ::testing::_))
         .WillOnce(::testing::Return(pwmOutput));
-    EXPECT_CALL(interfaceMock, ThreePhasePwmOutput(pwmOutput)).Times(1);
+    EXPECT_CALL(interfaceMock, ThreePhasePwmOutput(PhasePwmDutyCyclesEq(pwmOutput))).Times(1);
 
     interfaceMock.TriggerPhaseCurrentsCallback(currentPhases);
 }
@@ -135,9 +149,9 @@ TEST_F(TestTorqueController, phase_currents_with_modified_pid_values)
 
     EXPECT_CALL(encoderMock, Read())
         .WillOnce(::testing::Return(foc::Radians{ 0.0f }));
-    EXPECT_CALL(focMock, Calculate(currentPhases, ::testing::_))
+    EXPECT_CALL(focMock, Calculate(PhaseCurrentsEq(currentPhases), ::testing::_))
         .WillOnce(::testing::Return(pwmOutput));
-    EXPECT_CALL(interfaceMock, ThreePhasePwmOutput(pwmOutput)).Times(1);
+    EXPECT_CALL(interfaceMock, ThreePhasePwmOutput(PhasePwmDutyCyclesEq(pwmOutput))).Times(1);
 
     interfaceMock.TriggerPhaseCurrentsCallback(currentPhases);
 }

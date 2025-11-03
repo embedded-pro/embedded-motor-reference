@@ -36,7 +36,7 @@ namespace application
 
         void StartAdc(HardwareFactory::SampleAndHold sampleAndHold);
         bool IsAdcBufferPopulated() const;
-        void RunFocSimulation(std::tuple<foc::Ampere, foc::Ampere, foc::Ampere, foc::Radians> input);
+        void RunFocSimulation(foc::PhaseCurrents input, foc::Radians angle);
 
     private:
         const infra::BoundedVector<infra::BoundedConstString>::WithMaxSize<5> acceptedAdcValues{ { "shortest", "shorter", "medium", "longer", "longest" } };

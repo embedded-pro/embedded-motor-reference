@@ -112,6 +112,7 @@ namespace application
         {
             Peripherals() {};
 
+            hal::OutputPin performance{ Pins::performance };
             Cortex cortex;
             TerminalAndTracer terminalAndTracer;
             EncoderImpl encoderImpl;

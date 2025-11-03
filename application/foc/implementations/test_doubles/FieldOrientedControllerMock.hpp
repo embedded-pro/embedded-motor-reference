@@ -1,6 +1,7 @@
 #pragma once
 
 #include "application/foc/interfaces/FieldOrientedController.hpp"
+#include "gmock/gmock.h"
 #include <gmock/gmock.h>
 
 namespace foc
@@ -9,6 +10,7 @@ namespace foc
         : public FieldOrientedControllerTorqueControl
     {
     public:
+        MOCK_METHOD(void, SetPolePairs, (std::size_t polePairs), (override));
         MOCK_METHOD(void, Reset, (), (override));
         MOCK_METHOD(void, SetPoint, (IdAndIqPoint), (override));
         MOCK_METHOD(void, SetTunings, (Volts Vdc, const IdAndIqTunings& tunings), (override));

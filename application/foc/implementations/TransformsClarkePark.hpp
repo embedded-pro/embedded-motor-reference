@@ -1,7 +1,6 @@
 #pragma once
 
 #include "numerical/math/CompilerOptimizations.hpp"
-#include "numerical/math/TrigonometricFunctions.hpp"
 
 namespace foc
 {
@@ -53,16 +52,9 @@ namespace foc
     class Park
     {
     public:
-        explicit Park(const math::TrigonometricFunctions<float>& trigFunctions)
-            : trigFunctions(trigFunctions)
-        {}
-
         OPTIMIZE_FOR_SPEED
-        RotatingFrame Forward(const TwoPhase& input, float scaledTheta)
+        RotatingFrame Forward(const TwoPhase& input, const float& cosTheta, const float& sinTheta)
         {
-            const float cosTheta = trigFunctions.Cosine(scaledTheta);
-            const float sinTheta = trigFunctions.Sine(scaledTheta);
-
             const float alpha_cos = input.alpha * cosTheta;
             const float beta_sin = input.beta * sinTheta;
             const float alpha_sin = input.alpha * sinTheta;
@@ -72,11 +64,8 @@ namespace foc
         }
 
         OPTIMIZE_FOR_SPEED
-        TwoPhase Inverse(const RotatingFrame& input, float scaledTheta)
+        TwoPhase Inverse(const RotatingFrame& input, const float& cosTheta, const float& sinTheta)
         {
-            const float cosTheta = trigFunctions.Cosine(scaledTheta);
-            const float sinTheta = trigFunctions.Sine(scaledTheta);
-
             const float d_cos = input.d * cosTheta;
             const float q_sin = input.q * sinTheta;
             const float d_sin = input.d * sinTheta;
@@ -84,28 +73,21 @@ namespace foc
 
             return TwoPhase{ d_cos - q_sin, d_sin + q_cos };
         }
-
-    private:
-        const math::TrigonometricFunctions<float>& trigFunctions;
     };
 
     class ClarkePark
     {
     public:
-        explicit ClarkePark(const math::TrigonometricFunctions<float>& trigFunctions)
-            : park(trigFunctions)
-        {}
-
         OPTIMIZE_FOR_SPEED
-        RotatingFrame Forward(const ThreePhase& input, float theta)
+        RotatingFrame Forward(const ThreePhase& input, const float& cosTheta, const float& sinTheta)
         {
-            return park.Forward(clarke.Forward(input), theta);
+            return park.Forward(clarke.Forward(input), cosTheta, sinTheta);
         }
 
         OPTIMIZE_FOR_SPEED
-        ThreePhase Inverse(const RotatingFrame& input, float theta)
+        ThreePhase Inverse(const RotatingFrame& input, const float& cosTheta, const float& sinTheta)
         {
-            return clarke.Inverse(park.Inverse(input, theta));
+            return clarke.Inverse(park.Inverse(input, cosTheta, sinTheta));
         }
 
     private:
