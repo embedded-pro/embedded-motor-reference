@@ -175,15 +175,6 @@ namespace application
         StartAdc(HardwareFactory::SampleAndHold::medium);
 
         PrintHeader();
-
-        /// vvvv Remove me after tests! vvvv
-        SetMotorParameters("4.0");
-        ConfigurePid(" 1.0 2.2 3.3 4.4 5.5 6.6");
-        SimulateFoc("45.0 1.0 2.0 3.0");
-        SimulateFoc("45.0 1.0 2.0 3.0");
-        SimulateFoc("45.0 1.0 2.0 3.0");
-        SimulateFoc("45.0 1.0 2.0 3.0");
-        /// ^^^^ Remove me after tests! ^^^^
     }
 
     void TerminalInteractor::PrintHeader()
