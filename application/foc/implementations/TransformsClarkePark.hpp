@@ -27,7 +27,7 @@ namespace foc
     {
     public:
         OPTIMIZE_FOR_SPEED
-        TwoPhase Forward(const ThreePhase& input)
+        TwoPhase Forward(const ThreePhase& input) const
         {
             const float bc_sum = input.b + input.c;
 
@@ -35,7 +35,7 @@ namespace foc
         }
 
         OPTIMIZE_FOR_SPEED
-        ThreePhase Inverse(const TwoPhase& input)
+        ThreePhase Inverse(const TwoPhase& input) const
         {
             const float alpha_half = oneHalf * input.alpha;
             const float beta_sqrt3_half = sqrt3Div2 * input.beta;
@@ -53,7 +53,7 @@ namespace foc
     {
     public:
         OPTIMIZE_FOR_SPEED
-        RotatingFrame Forward(const TwoPhase& input, const float& cosTheta, const float& sinTheta)
+        RotatingFrame Forward(const TwoPhase& input, const float& cosTheta, const float& sinTheta) const
         {
             const float alpha_cos = input.alpha * cosTheta;
             const float beta_sin = input.beta * sinTheta;
@@ -64,7 +64,7 @@ namespace foc
         }
 
         OPTIMIZE_FOR_SPEED
-        TwoPhase Inverse(const RotatingFrame& input, const float& cosTheta, const float& sinTheta)
+        TwoPhase Inverse(const RotatingFrame& input, const float& cosTheta, const float& sinTheta) const
         {
             const float d_cos = input.d * cosTheta;
             const float q_sin = input.q * sinTheta;
@@ -79,13 +79,13 @@ namespace foc
     {
     public:
         OPTIMIZE_FOR_SPEED
-        RotatingFrame Forward(const ThreePhase& input, const float& cosTheta, const float& sinTheta)
+        RotatingFrame Forward(const ThreePhase& input, const float& cosTheta, const float& sinTheta) const
         {
             return park.Forward(clarke.Forward(input), cosTheta, sinTheta);
         }
 
         OPTIMIZE_FOR_SPEED
-        ThreePhase Inverse(const RotatingFrame& input, const float& cosTheta, const float& sinTheta)
+        ThreePhase Inverse(const RotatingFrame& input, const float& cosTheta, const float& sinTheta) const
         {
             return clarke.Inverse(park.Inverse(input, cosTheta, sinTheta));
         }

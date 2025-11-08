@@ -1,4 +1,3 @@
-#include "application/foc/implementations/NormalizedAngles.hpp"
 #include "application/foc/implementations/TransformsClarkePark.hpp"
 #include "numerical/math/Tolerance.hpp"
 #include <gmock/gmock.h>
