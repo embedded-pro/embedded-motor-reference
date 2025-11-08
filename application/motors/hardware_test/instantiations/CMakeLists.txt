@@ -10,7 +10,7 @@ target_link_libraries(motor_ref.hardware_test.instantiations PUBLIC
     motor_ref.hardware
     motor_ref.hardware_test.components
     motor_ref.foc.instantiations
-    numerical.controllers
+    numerical.controllers.implementations
 )
 
 target_sources(motor_ref.hardware_test.instantiations PRIVATE

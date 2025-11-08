@@ -8,7 +8,6 @@ target_link_libraries(motor_ref.motor.dc.logic_test PUBLIC
     hal.interfaces_test_doubles
     infra.timer_test_helper
     infra.event_test_helper
-    motor_ref.pid_mock
 )
 
 target_sources(motor_ref.motor.dc.logic_test PRIVATE

@@ -24,6 +24,8 @@ namespace application
         infra::MemoryRange<hal::GpioPin> Leds() override;
         hal::PerformanceTracker& PerformanceTimer() override;
         hal::Hertz BaseFrequency() const override;
+        foc::Volts PowerSupplyVoltage() override;
+        foc::Ampere MaxCurrentSupported() override;
 
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
         infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;

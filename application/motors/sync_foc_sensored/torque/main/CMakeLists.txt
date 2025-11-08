@@ -8,7 +8,7 @@ target_include_directories(motor_ref.sync_foc_sensored.torque.main PUBLIC
 target_link_libraries(motor_ref.sync_foc_sensored.torque.main PUBLIC
     motor_ref.hardware_impl
     motor_ref.sync_foc_sensored.torque.inst
-    numerical.controllers
+    numerical.controllers.implementations
 )
 
 target_sources(motor_ref.sync_foc_sensored.torque.main PRIVATE

@@ -1,5 +1,8 @@
 #pragma once
 
+#include "application/foc/instantiations/FieldOrientedControllerImpl.hpp"
+#include "application/foc/instantiations/TrigonometricImpl.hpp"
+#include "application/foc/interfaces/Driver.hpp"
 #include "application/hardware/HardwareFactory.hpp"
 #include "hal/interfaces/AdcMultiChannel.hpp"
 #include "infra/util/BoundedDeque.hpp"
@@ -19,9 +22,12 @@ namespace application
         void PrintHeader();
         StatusWithMessage ConfigurePwm(const infra::BoundedConstString& param);
         StatusWithMessage ConfigureAdc(const infra::BoundedConstString& param);
+        StatusWithMessage SimulateFoc(const infra::BoundedConstString& param);
+        StatusWithMessage ConfigurePid(const infra::BoundedConstString& param);
         StatusWithMessage Stop();
         StatusWithMessage ReadAdcWithSampleTime();
         StatusWithMessage SetPwmDuty(const infra::BoundedConstString& param);
+        StatusWithMessage SetMotorParameters(const infra::BoundedConstString& param);
 
     private:
         static constexpr std::size_t averageSampleSize = 10;
@@ -29,7 +35,8 @@ namespace application
         using AdcChannelSamples = infra::BoundedDeque<uint16_t>::WithMaxSize<averageSampleSize>;
 
         void StartAdc(HardwareFactory::SampleAndHold sampleAndHold);
-        bool IsAdcBufferPopulated();
+        bool IsAdcBufferPopulated() const;
+        void RunFocSimulation(foc::PhaseCurrents input, foc::Radians angle);
 
     private:
         const infra::BoundedVector<infra::BoundedConstString>::WithMaxSize<5> acceptedAdcValues{ { "shortest", "shorter", "medium", "longer", "longest" } };
@@ -40,5 +47,12 @@ namespace application
         infra::DelayedProxyCreator<hal::AdcMultiChannel, void(HardwareFactory::SampleAndHold)> adcCreator;
         infra::DelayedProxyCreator<hal::SynchronousQuadratureEncoder, void()> encoderCreator;
         infra::BoundedVector<AdcChannelSamples>::WithMaxSize<numberOfChannels> adcChannelSamples;
+        hal::PerformanceTracker& performanceTimer;
+        foc::Volts Vdc;
+        controllers::PidTunings<float> speedPidTunings;
+        controllers::PidTunings<float> dqPidTunings;
+        std::optional<std::size_t> polePairs = 0;
+        foc::TrigonometricFunctions trigFunctions;
+        foc::FieldOrientedControllerSpeedImpl foc;
     };
 }

@@ -7,9 +7,8 @@ target_include_directories(motor_ref.sync_foc_sensored.torque.components PUBLIC
 
 target_link_libraries(motor_ref.sync_foc_sensored.torque.components PUBLIC
     infra.util
-    motor_ref.pid
     motor_ref.hardware
-    motor_ref.foc
+    motor_ref.foc.instantiations
     services.util
     services.tracer
 )

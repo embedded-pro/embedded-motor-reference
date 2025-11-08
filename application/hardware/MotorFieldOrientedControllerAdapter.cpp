@@ -3,19 +3,19 @@
 
 namespace application
 {
-    HardwareAdapter::HardwareAdapter(application::HardwareFactory& hardware)
-        : adcMultiChannelCreator{ hardware.AdcMultiChannelCreator(), application::HardwareFactory::SampleAndHold::shorter }
+    HardwareAdapter::HardwareAdapter(HardwareFactory& hardware)
+        : adcMultiChannelCreator{ hardware.AdcMultiChannelCreator(), HardwareFactory::SampleAndHold::shorter }
         , synchronousThreeChannelsPwmCreator{ hardware.SynchronousThreeChannelsPwmCreator(), std::chrono::nanoseconds{ 1000 }, hal::Hertz{ 10000 } }
         , synchronousQuadratureEncoderCreator(hardware.SynchronousQuadratureEncoderCreator())
     {
     }
 
-    void HardwareAdapter::PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(std::tuple<MilliVolt, MilliVolt, MilliVolt> voltagePhases)>& onDone)
+    void HardwareAdapter::PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(foc::PhaseCurrents currentPhases)>& onDone)
     {
         synchronousThreeChannelsPwmCreator->SetBaseFrequency(baseFrequency);
     }
 
-    void HardwareAdapter::ThreePhasePwmOutput(const std::tuple<hal::Percent, hal::Percent, hal::Percent>& dutyPhases)
+    void HardwareAdapter::ThreePhasePwmOutput(const foc::PhasePwmDutyCycles& dutyPhases)
     {
         // Implementation for handling three-phase PWM output
     }
@@ -29,13 +29,13 @@ namespace application
         // Implementation for stopping the motor
     }
 
-    Degrees HardwareAdapter::Read()
+    foc::Radians HardwareAdapter::Read()
     {
         // Implementation for reading the encoder value
-        return Degrees{ 0 };
+        return foc::Radians{ 0 };
     }
 
-    void HardwareAdapter::Set(Degrees value)
+    void HardwareAdapter::Set(foc::Radians value)
     {
         // Implementation for setting the encoder value
     }

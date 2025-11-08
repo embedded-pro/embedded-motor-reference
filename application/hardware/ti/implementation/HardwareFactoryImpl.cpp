@@ -1,4 +1,5 @@
 #include "application/hardware/ti/implementation/HardwareFactoryImpl.hpp"
+#include "application/hardware/HardwareFactory.hpp"
 #include "infra/util/MemoryRange.hpp"
 
 namespace application
@@ -43,13 +44,25 @@ namespace application
         return hal::Hertz(SystemCoreClock);
     }
 
+    foc::Volts HardwareFactoryImpl::PowerSupplyVoltage()
+    {
+        return foc::Volts(24.0f);
+    }
+
+    foc::Ampere HardwareFactoryImpl::MaxCurrentSupported()
+    {
+        return foc::Ampere(15.0f);
+    }
+
     void HardwareFactoryImpl::Start()
     {
-        return peripherals->cortex.dataWatchPointAndTrace.Start();
+        peripherals->cortex.dataWatchPointAndTrace.Start();
+        peripherals->performance.Set(true);
     }
 
     uint32_t HardwareFactoryImpl::ElapsedCycles()
     {
+        peripherals->performance.Set(false);
         return peripherals->cortex.dataWatchPointAndTrace.Stop();
     }
 

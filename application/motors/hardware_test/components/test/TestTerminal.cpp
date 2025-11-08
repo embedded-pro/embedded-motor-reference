@@ -1,4 +1,5 @@
 #include "application/motors/hardware_test/components/Terminal.hpp"
+#include "foc/interfaces/Driver.hpp"
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
@@ -32,6 +33,8 @@ namespace
         MOCK_METHOD(infra::MemoryRange<hal::GpioPin>, Leds, (), (override));
         MOCK_METHOD(hal::PerformanceTracker&, PerformanceTimer, (), (override));
         MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
+        MOCK_METHOD(foc::Volts, PowerSupplyVoltage, (), (override));
+        MOCK_METHOD(foc::Ampere, MaxCurrentSupported, (), (override));
         MOCK_METHOD((infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)>&), SynchronousThreeChannelsPwmCreator, (), (override));
         MOCK_METHOD((infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>&), AdcMultiChannelCreator, (), (override));
         MOCK_METHOD((infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>&), SynchronousQuadratureEncoderCreator, (), (override));
@@ -64,6 +67,14 @@ namespace
         MOCK_METHOD(uint32_t, Speed, (), (override));
     };
 
+    class PerformanceTrackerMock
+        : public hal::PerformanceTracker
+    {
+    public:
+        MOCK_METHOD(void, Start, (), (override));
+        MOCK_METHOD(uint32_t, ElapsedCycles, (), (override));
+    };
+
     class TestHardwareTerminal
         : public testing::Test
         , public infra::EventDispatcherWithWeakPtrFixture
@@ -76,6 +87,10 @@ namespace
             EXPECT_CALL(hardwareFactoryMock, SynchronousThreeChannelsPwmCreator()).WillRepeatedly(testing::ReturnRef(pwmCreator));
             EXPECT_CALL(hardwareFactoryMock, AdcMultiChannelCreator()).WillRepeatedly(testing::ReturnRef(adcCreator));
             EXPECT_CALL(hardwareFactoryMock, SynchronousQuadratureEncoderCreator()).WillRepeatedly(testing::ReturnRef(encoderCreator));
+            EXPECT_CALL(hardwareFactoryMock, PerformanceTimer()).WillRepeatedly(testing::ReturnRef(performanceTrackerMock));
+            EXPECT_CALL(hardwareFactoryMock, PowerSupplyVoltage()).WillRepeatedly(testing::Return(foc::Volts{ 24.0f }));
+            EXPECT_CALL(hardwareFactoryMock, MaxCurrentSupported()).WillRepeatedly(testing::Return(foc::Ampere{ 5.0f }));
+            EXPECT_CALL(hardwareFactoryMock, BaseFrequency()).WillRepeatedly(testing::Return(hal::Hertz{ 10000 }));
 
             EXPECT_CALL(encoderCreator, Constructed());
             EXPECT_CALL(pwmCreator, Constructed(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 }));
@@ -108,6 +123,7 @@ namespace
         testing::StrictMock<PwmMock> pwmMock;
         testing::StrictMock<AdcMock> adcMock;
         testing::StrictMock<EncoderMock> encoderMock;
+        testing::NiceMock<PerformanceTrackerMock> performanceTrackerMock;
 
         infra::CreatorMock<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)> pwmCreator{ pwmMock };
         infra::CreatorMock<hal::AdcMultiChannel, void(application::HardwareFactory::SampleAndHold)> adcCreator{ adcMock };
@@ -355,6 +371,408 @@ TEST_F(TestHardwareTerminal, adc_invalid_value)
             EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
             EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
             EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pid_command)
+{
+    InvokeCommand("pid 1.0 0.5 0.1 2.0 1.0 0.2", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pid_alias)
+{
+    InvokeCommand("c 1.5 0.75 0.15 2.5 1.5 0.25", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pid_invalid_argument_count)
+{
+    InvokeCommand("pid 1.0 0.5 0.1", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid number of arguments" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pid_invalid_speed_kp)
+{
+    InvokeCommand("pid invalid 0.5 0.1 2.0 1.0 0.2", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for Speed Kp" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pid_invalid_dq_ki)
+{
+    InvokeCommand("pid 1.0 0.5 0.1 2.0 invalid 0.2", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for DQ-axis Ki" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_command)
+{
+    InvokeCommand("foc 45.0 1.5 2.0 2.5", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1000));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_alias)
+{
+    InvokeCommand("f 90.0 2.0 3.0 4.0", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1500));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_invalid_argument_count)
+{
+    InvokeCommand("foc 45.0 1.5", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid number of arguments" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_invalid_angle)
+{
+    InvokeCommand("foc 400.0 1.5 2.0 2.5", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for angle. It should be a float between -360 and 360." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_invalid_phase_a_current)
+{
+    InvokeCommand("foc 45.0 invalid 2.0 2.5", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for phase A current. It should be a float between -1000 and 1000." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_invalid_phase_c_current)
+{
+    InvokeCommand("foc 45.0 1.5 2.0 1500.0", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for phase C current. It should be a float between -1000 and 1000." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_with_negative_angle)
+{
+    InvokeCommand("foc -90.0 1.5 2.0 2.5", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1200));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_with_negative_currents)
+{
+    InvokeCommand("foc 45.0 -1.5 -2.0 -2.5", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1100));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_simulation_output_format)
+{
+    InvokeCommand("foc 0.0 0.0 0.0 0.0", [this]()
+        {
+            ::testing::InSequence _;
+
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(2000));
+
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_with_maximum_angle)
+{
+    InvokeCommand("foc 360.0 1.0 2.0 3.0", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1300));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_with_minimum_angle)
+{
+    InvokeCommand("foc -360.0 1.0 2.0 3.0", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1250));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_with_maximum_currents)
+{
+    InvokeCommand("foc 45.0 1000.0 1000.0 1000.0", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1400));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_with_minimum_currents)
+{
+    InvokeCommand("foc 45.0 -1000.0 -1000.0 -1000.0", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1350));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_multiple_simulations)
+{
+    InvokeCommand("foc 30.0 1.0 2.0 3.0", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1050));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+
+    InvokeCommand("foc 60.0 2.0 3.0 4.0", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1150));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_with_fractional_values)
+{
+    InvokeCommand("foc 45.5 1.234 2.567 3.891", [this]()
+        {
+            EXPECT_CALL(performanceTrackerMock, Start());
+            EXPECT_CALL(performanceTrackerMock, ElapsedCycles()).WillOnce(testing::Return(1075));
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, motor_command)
+{
+    InvokeCommand("motor 14", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, motor_alias)
+{
+    InvokeCommand("m 8", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, motor_invalid_argument_count)
+{
+    InvokeCommand("motor 14 8", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid number of arguments" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, motor_invalid_poles_too_low)
+{
+    InvokeCommand("motor 1", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for poles. It should be an integer between 2 and 16." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, motor_invalid_poles_too_high)
+{
+    InvokeCommand("motor 18", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for poles. It should be an integer between 2 and 16." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, motor_invalid_poles_not_a_number)
+{
+    InvokeCommand("motor invalid", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for poles. It should be an integer between 2 and 16." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, motor_minimum_valid_poles)
+{
+    InvokeCommand("motor 2", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, motor_maximum_valid_poles)
+{
+    InvokeCommand("motor 16", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
         });
 
     ExecuteAllActions();

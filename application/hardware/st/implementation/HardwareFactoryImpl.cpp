@@ -41,6 +41,16 @@ namespace application
         return hal::Hertz(SystemCoreClock);
     }
 
+    foc::Volts HardwareFactoryImpl::PowerSupplyVoltage()
+    {
+        return foc::Volts(48.0f);
+    }
+
+    foc::Ampere HardwareFactoryImpl::MaxCurrentSupported()
+    {
+        return foc::Ampere(15.0f);
+    }
+
     void HardwareFactoryImpl::Start()
     {
     }

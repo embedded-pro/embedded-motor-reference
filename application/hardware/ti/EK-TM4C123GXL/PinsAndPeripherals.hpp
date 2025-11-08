@@ -32,6 +32,8 @@ namespace application
 
         static hal::tiva::GpioPin uartTx{ hal::tiva::Port::A, 0 };
         static hal::tiva::GpioPin uartRx{ hal::tiva::Port::A, 1 };
+
+        static hal::tiva::GpioPin performance{ hal::tiva::Port::A, 2 };
     }
 
     namespace Peripheral

@@ -45,13 +45,20 @@ endif()
 
 if (DEFINED TARGET_MCU_VENDOR)
     add_subdirectory(hal/${TARGET_MCU_VENDOR})
+    emil_exclude_directory_from_coverage(hal/${TARGET_MCU_VENDOR})
 endif()
 
 add_subdirectory(numerical-toolbox)
 add_subdirectory(application)
 
+if (MOTOR_REFERENCE_BUILD_SIMULATOR)
+    add_subdirectory(simulator)
+endif()
+
 emil_clangformat_directories(motor_ref DIRECTORIES application)
 emil_folderize_all_targets()
+emil_exclude_directory_from_coverage(embedded-infra-lib)
+emil_coverage_targets(DIRECTORIES .)
 
 include(scripts/development_environment.cmake)
 

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "application/foc/interfaces/Driver.hpp"
 #include "hal/interfaces/AdcMultiChannel.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include HARDWARE_PINS_AND_PERIPHERALS_HEADER
@@ -35,6 +36,8 @@ namespace application
         infra::MemoryRange<hal::GpioPin> Leds() override;
         hal::PerformanceTracker& PerformanceTimer() override;
         hal::Hertz BaseFrequency() const override;
+        foc::Volts PowerSupplyVoltage() override;
+        foc::Ampere MaxCurrentSupported() override;
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
         infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
         infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;
@@ -92,7 +95,7 @@ namespace application
                     object.Emplace(Peripheral::PwmIndex, Peripheral::pwmPhases, pwmConfig);
                     object->SetBaseFrequency(frequency);
                 } };
-            infra::Function<void(std::tuple<infra::MilliVolt, infra::MilliVolt, infra::MilliVolt> voltagePhases)>
+            infra::Function<void(std::tuple<infra::Ampere, infra::Ampere, infra::Ampere> voltagePhases)>
                 phaseCurrentsReady;
         };
 
@@ -109,6 +112,7 @@ namespace application
         {
             Peripherals() {};
 
+            hal::OutputPin performance{ Pins::performance };
             Cortex cortex;
             TerminalAndTracer terminalAndTracer;
             EncoderImpl encoderImpl;

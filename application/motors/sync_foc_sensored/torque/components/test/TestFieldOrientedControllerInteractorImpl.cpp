@@ -1,12 +1,13 @@
-#include "application/foc/test_doubles/MotorFieldOrientedControllerMock.hpp"
+#include "application/foc/implementations/test_doubles/ControllerMock.hpp"
 #include "application/motors/sync_foc_sensored/torque/components/FieldOrientedControllerInteractorImpl.hpp"
+#include "foc/implementations/TorqueControllerImpl.hpp"
 #include <gmock/gmock.h>
 
 namespace
 {
     using namespace testing;
 
-    MATCHER_P(IdAndIqTunningsEq, expected, "")
+    MATCHER_P(IdAndIqTuningsEq, expected, "")
     {
         return arg.first.kp == expected.first.kp &&
                arg.first.ki == expected.first.ki &&
@@ -25,8 +26,8 @@ namespace
         : public testing::Test
     {
     public:
-        testing::StrictMock<application::MotorFieldOrientedControllerMock> motorFocMock;
-        application::FieldOrientedControllerInteractorImpl interactor{ motorFocMock };
+        testing::StrictMock<foc::TorqueControllerMock> motorFocMock;
+        application::FieldOrientedControllerInteractorImpl interactor{ foc::Volts{ 24.0f }, motorFocMock };
     };
 }
 
@@ -47,7 +48,7 @@ TEST_F(FieldOrientedControllerInteractorTest, StopDisablesMotorFoc)
 TEST_F(FieldOrientedControllerInteractorTest, SetTorqueUpdatesSetPoint)
 {
     const float torqueValue = 0.75f;
-    application::MotorFieldOrientedController::IdAndIqPoint expectedPoint{ torqueValue, 0.0 };
+    foc::IdAndIqPoint expectedPoint{ torqueValue, 0.0 };
     EXPECT_CALL(motorFocMock, SetPoint(IdAndIqPointEq(expectedPoint))).Times(1);
 
     interactor.SetTorque(application::FieldOrientedControllerInteractor::Torque(torqueValue));
@@ -62,12 +63,12 @@ TEST_F(FieldOrientedControllerInteractorTest, SetDQPidParametersWithAllValuesPre
     const float kiQ = 5.0f;
     const float kdQ = 6.0f;
 
-    application::MotorFieldOrientedController::IdAndIqTunnings expectedTunnings{
+    foc::IdAndIqTunings expectedTunings{
         { kpD, kiD, kdD },
         { kpQ, kiQ, kdQ }
     };
 
-    EXPECT_CALL(motorFocMock, SetTunnings(IdAndIqTunningsEq(expectedTunnings))).Times(1);
+    EXPECT_CALL(motorFocMock, SetTunings(::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
 
     application::FieldOrientedControllerInteractor::PidParameters dParams;
     dParams.kp = kpD;
@@ -87,12 +88,12 @@ TEST_F(FieldOrientedControllerInteractorTest, SetDQPidParametersWithPartialValue
     const float kpD = 1.0f;
     const float kiQ = 5.0f;
 
-    application::MotorFieldOrientedController::IdAndIqTunnings expectedTunnings{
+    foc::IdAndIqTunings expectedTunings{
         { kpD, 0.0f, 0.0f },
         { 0.0f, kiQ, 0.0f }
     };
 
-    EXPECT_CALL(motorFocMock, SetTunnings(IdAndIqTunningsEq(expectedTunnings))).Times(1);
+    EXPECT_CALL(motorFocMock, SetTunings(::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
 
     application::FieldOrientedControllerInteractor::PidParameters dParams;
     dParams.kp = kpD;
@@ -119,7 +120,7 @@ TEST_F(FieldOrientedControllerInteractorTest, ExecutionOrder_ConfigureThenStartT
 {
     {
         InSequence seq;
-        EXPECT_CALL(motorFocMock, SetTunnings(_)).Times(1);
+        EXPECT_CALL(motorFocMock, SetTunings(::testing::_, ::testing::_)).Times(1);
         EXPECT_CALL(motorFocMock, Enable()).Times(1);
         EXPECT_CALL(motorFocMock, Disable()).Times(1);
     }
