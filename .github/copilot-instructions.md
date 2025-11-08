@@ -10,7 +10,7 @@ This is an embedded motor control application with strict performance and memory
 - **hal/**: Hardware Abstraction Layer for different microcontroller families (ST, TI)
 - **application/**: Application-specific code for motor control, FOC algorithms, and hardware adapters
 - **numerical-toolbox/**: Generic algorithms (filters, PID controllers, etc.) that can be reused across projects
-- **simulator/**: Python-based motor simulation tools
+- **simulator/**: C++ simulator that plots curves for evaluating motors based on mathematical models
 
 ## Critical Constraints
 
