@@ -170,6 +170,12 @@ namespace application
                 this->terminal.ProcessResult(SimulateFoc(param));
             } });
 
+        terminal.AddCommand({ { "motor", "m", "Set motor parameters [poles [2; 16]]. Ex: motor 14" },
+            [this](const infra::BoundedConstString& param)
+            {
+                this->terminal.ProcessResult(SetMotorParameters(param));
+            } });
+
         encoderCreator.Emplace();
         pwmCreator.Emplace(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 });
         StartAdc(HardwareFactory::SampleAndHold::medium);
@@ -381,9 +387,10 @@ namespace application
 
         auto poles = ParseInput<uint8_t>(tokenizer.Token(0), 2, 16);
         if (!poles.has_value())
-            return { services::TerminalWithStorage::Status::error, "invalid value for poles. It should be a float between 2 and 16." };
+            return { services::TerminalWithStorage::Status::error, "invalid value for poles. It should be an integer between 2 and 16." };
 
         polePairs = static_cast<std::size_t>(*poles / 2);
+        foc.SetPolePairs(polePairs.value());
 
         return { services::TerminalWithStorage::Status::success };
     }
