@@ -13,11 +13,13 @@ target_sources(motor_ref.foc.implementations PRIVATE
     ControllerBaseImpl.cpp
     ControllerBaseImpl.hpp
     NormalizedAngles.hpp
+    SpaceVectorModulation.cpp
     SpaceVectorModulation.hpp
     SpeedControllerImpl.cpp
     SpeedControllerImpl.hpp
     TorqueControllerImpl.cpp
     TorqueControllerImpl.hpp
+    TransformsClarkePark.cpp
     TransformsClarkePark.hpp
 )
 

@@ -2,7 +2,6 @@
 
 #include "application/foc/implementations/TransformsClarkePark.hpp"
 #include "numerical/math/CompilerOptimizations.hpp"
-#include <algorithm>
 
 namespace foc
 {
@@ -17,25 +16,11 @@ namespace foc
         };
 
         OPTIMIZE_FOR_SPEED
-        Output Generate(const TwoPhase& voltagePhase)
-        {
-            auto vA = voltagePhase.alpha;
-            auto vB = (-voltagePhase.alpha * half + voltagePhase.beta * sqrt3Div2);
-            auto vC = (-voltagePhase.alpha * half - voltagePhase.beta * sqrt3Div2);
-
-            auto vMax = std::max({ vA, vB, vC });
-            auto vMin = std::min({ vA, vB, vC });
-            auto vCommon = (vMax + vMin) * -half;
-
-            return Output{ Clip(vA + vCommon), Clip(vB + vCommon), Clip(vC + vCommon) };
-        }
+        Output Generate(const TwoPhase& voltagePhase);
 
     private:
         OPTIMIZE_FOR_SPEED
-        float Clip(float dutyCycle)
-        {
-            return std::clamp(dutyCycle * invSqrt3 + half, zero, one);
-        }
+        float Clip(float dutyCycle) const;
 
         static constexpr float zero{ float(0.0f) };
         static constexpr float one{ float(1.0f) };
