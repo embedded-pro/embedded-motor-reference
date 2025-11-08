@@ -1,6 +1,5 @@
 #include "application/hardware/ti/implementation/HardwareFactoryImpl.hpp"
 #include "application/hardware/HardwareFactory.hpp"
-#include "application/hardware/ti/EK-TM4C1294XL/PinsAndPeripherals.hpp"
 #include "infra/util/MemoryRange.hpp"
 
 namespace application
