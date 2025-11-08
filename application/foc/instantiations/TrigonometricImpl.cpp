@@ -1,18 +1,16 @@
 #include "application/foc/instantiations/TrigonometricImpl.hpp"
 #include "numerical/math/CompilerOptimizations.hpp"
+#include <array>
 #include <cmath>
 
 namespace foc
 {
     namespace
     {
-        constexpr size_t LUT_SIZE = 512;
-        constexpr size_t LUT_MASK = LUT_SIZE - 1;
-        constexpr float PI = 3.14159265358979323846f;
-        constexpr float TWO_PI = 6.28318530717958647692f;
-        constexpr float LUT_SCALE = static_cast<float>(LUT_SIZE) / TWO_PI;
+        constexpr float pi = std::numbers::pi_v<float>;
+        constexpr float two_pi = 2.0f * pi;
 
-        alignas(16) const float sineLUT[LUT_SIZE] = {
+        alignas(16) constexpr std::array<float, 512> sineLUT = {
             0.0000000f, 0.0122715f, 0.0245412f, 0.0368072f, 0.0490677f, 0.0613207f, 0.0735646f, 0.0857973f,
             0.0980171f, 0.1102222f, 0.1224107f, 0.1345807f, 0.1467305f, 0.1588581f, 0.1709619f, 0.1830399f,
             0.1950903f, 0.2071114f, 0.2191012f, 0.2310581f, 0.2429802f, 0.2548656f, 0.2667128f, 0.2785197f,
@@ -83,32 +81,31 @@ namespace foc
     OPTIMIZE_FOR_SPEED
     float TrigonometricFunctions::Sine(const float& angle) const
     {
-        auto scaledAngle = angle * LUT_SCALE;
+        constexpr size_t mask = sineLUT.size() - 1;
+        constexpr float scale = static_cast<float>(sineLUT.size()) / two_pi;
+
+        auto scaledAngle = angle * scale;
         auto rawIndex = static_cast<int>(scaledAngle);
 
-        auto index = rawIndex & (LUT_SIZE - 1);
+        auto index = rawIndex & (sineLUT.size() - 1);
         if (rawIndex < 0)
-            index = (LUT_SIZE + (rawIndex % LUT_SIZE)) & (LUT_SIZE - 1);
+            index = (sineLUT.size() + (rawIndex % sineLUT.size())) & (sineLUT.size() - 1);
 
         auto fraction = scaledAngle - static_cast<float>(rawIndex);
 
-        auto nextIndex = (index + 1) & LUT_MASK;
+        auto nextIndex = (index + 1) & mask;
 
         auto y0 = sineLUT[index];
         auto y1 = sineLUT[nextIndex];
 
-        return y0 + fraction * (y1 - y0);
-
-        // return 0.0f; // Placeholder implementation
+        return std::lerp(y0, y1, fraction);
     }
 
     OPTIMIZE_FOR_SPEED
     float TrigonometricFunctions::Cosine(const float& angle) const
     {
-        constexpr float PI_OVER_2 = PI * 0.5f;
+        constexpr float PI_OVER_2 = pi * 0.5f;
         return Sine(angle + PI_OVER_2);
-
-        // return 0.0f; // Placeholder implementation
     }
 
     OPTIMIZE_FOR_SPEED

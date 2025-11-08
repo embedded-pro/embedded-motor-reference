@@ -4,7 +4,6 @@
 #include "infra/util/BoundedString.hpp"
 #include "infra/util/ReallyAssert.hpp"
 #include "infra/util/Tokenizer.hpp"
-#include "numerical/math/CompilerOptimizations.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 #include <algorithm>
 #include <chrono>
@@ -12,7 +11,7 @@
 
 namespace
 {
-    constexpr float pi_div_180 = 3.14159265359f / 180.0f;
+    constexpr float pi_div_180 = std::numbers::pi_v<float> / 180.0f;
 
     application::HardwareFactory::SampleAndHold ToSampleAndHold(const infra::BoundedConstString& value)
     {
@@ -285,19 +284,19 @@ namespace application
             return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
 
         auto angle = ParseInput<float>(tokenizer.Token(0), -360.0f, 360.0f);
-        if (!angle)
+        if (!angle.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value for angle. It should be a float between -360 and 360." };
 
         auto currentA = ParseInput<float>(tokenizer.Token(1), -1000.0f, 1000.0f);
-        if (!currentA)
+        if (!currentA.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value for phase A current. It should be a float between -1000 and 1000." };
 
         auto currentB = ParseInput<float>(tokenizer.Token(2), -1000.0f, 1000.0f);
-        if (!currentB)
+        if (!currentB.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value for phase B current. It should be a float between -1000 and 1000." };
 
         auto currentC = ParseInput<float>(tokenizer.Token(3), -1000.0f, 1000.0f);
-        if (!currentC)
+        if (!currentC.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value for phase C current. It should be a float between -1000 and 1000." };
 
         RunFocSimulation(foc::PhaseCurrents{ foc::Ampere{ *currentA }, foc::Ampere{ *currentB }, foc::Ampere{ *currentC } }, foc::Radians{ *angle * pi_div_180 });

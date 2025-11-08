@@ -4,9 +4,9 @@
 
 namespace
 {
-    static constexpr float invSqrt3 = 0.577350269189625f;
-    static constexpr float pi = 3.14159265359f;
-    static constexpr float two_pi = 6.28318530718f;
+    constexpr float invSqrt3 = 0.577350269189625f;
+    constexpr float pi = std::numbers::pi_v<float>;
+    constexpr float two_pi = 2.0f * pi;
 
     OPTIMIZE_FOR_SPEED
     float PositionWithWrapAround(float position)
@@ -24,8 +24,6 @@ namespace foc
 {
     FieldOrientedControllerTorqueImpl::FieldOrientedControllerTorqueImpl(math::TrigonometricFunctions<float>& trigFunctions)
         : trigFunctions{ trigFunctions }
-        , dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } }
-        , qPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } }
     {}
 
     OPTIMIZE_FOR_SPEED
@@ -53,7 +51,7 @@ namespace foc
     OPTIMIZE_FOR_SPEED
     void FieldOrientedControllerTorqueImpl::SetTunings(Volts Vdc, const IdAndIqTunings& tunings)
     {
-        auto scale = 1.0f / (invSqrt3 * static_cast<float>(Vdc.Value()));
+        auto scale = 1.0f / (invSqrt3 * Vdc.Value());
 
         dPid.SetTunings({ tunings.first.kp * scale, tunings.first.ki * scale, tunings.first.kd * scale });
         qPid.SetTunings({ tunings.second.kp * scale, tunings.second.ki * scale, tunings.second.kd * scale });
@@ -80,8 +78,6 @@ namespace foc
     FieldOrientedControllerSpeedImpl::FieldOrientedControllerSpeedImpl(math::TrigonometricFunctions<float>& trigFunctions, foc::Ampere maxCurrent, std::chrono::system_clock::duration timeStep)
         : trigFunctions{ trigFunctions }
         , speedPid{ { 0.0f, 0.0f, 0.0f }, { -maxCurrent.Value(), maxCurrent.Value() } }
-        , dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } }
-        , qPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } }
         , dt{ std::chrono::duration_cast<std::chrono::duration<float>>(timeStep).count() }
     {
         really_assert(maxCurrent.Value() > 0);
@@ -106,7 +102,7 @@ namespace foc
     OPTIMIZE_FOR_SPEED
     void FieldOrientedControllerSpeedImpl::SetTunings(Volts Vdc, const SpeedTunings& speedTuning, const IdAndIqTunings& torqueTunings)
     {
-        auto scale = 1.0f / (invSqrt3 * static_cast<float>(Vdc.Value()));
+        auto scale = 1.0f / (invSqrt3 * Vdc.Value());
 
         speedPid.SetTunings({ speedTuning.kp, speedTuning.ki * dt, speedTuning.kd / dt });
         dPid.SetTunings({ torqueTunings.first.kp * scale, torqueTunings.first.ki * scale * dt, torqueTunings.first.kd * scale / dt });

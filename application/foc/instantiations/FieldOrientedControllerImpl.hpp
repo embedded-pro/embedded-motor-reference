@@ -23,11 +23,11 @@ namespace foc
 
     private:
         math::TrigonometricFunctions<float>& trigFunctions;
-        Park park;
-        Clarke clarke;
-        controllers::PidIncrementalSynchronous<float> dPid;
-        controllers::PidIncrementalSynchronous<float> qPid;
-        SpaceVectorModulation spaceVectorModulator;
+        [[no_unique_address]] Park park;
+        [[no_unique_address]] Clarke clarke;
+        controllers::PidIncrementalSynchronous<float> dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } };
+        controllers::PidIncrementalSynchronous<float> qPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } };
+        [[no_unique_address]] SpaceVectorModulation spaceVectorModulator;
         float polePairs;
     };
 
@@ -48,12 +48,12 @@ namespace foc
 
     private:
         math::TrigonometricFunctions<float>& trigFunctions;
-        Park park;
-        Clarke clarke;
+        [[no_unique_address]] Park park;
+        [[no_unique_address]] Clarke clarke;
         controllers::PidIncrementalSynchronous<float> speedPid;
-        controllers::PidIncrementalSynchronous<float> dPid;
-        controllers::PidIncrementalSynchronous<float> qPid;
-        SpaceVectorModulation spaceVectorModulator;
+        controllers::PidIncrementalSynchronous<float> dPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } };
+        controllers::PidIncrementalSynchronous<float> qPid{ { 0.0f, 0.0f, 0.0f }, { -1.0f, 1.0f } };
+        [[no_unique_address]] SpaceVectorModulation spaceVectorModulator;
         float previousPosition = 0.0f;
         float dt;
         float polePairs;

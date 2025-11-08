@@ -3,7 +3,7 @@
 
 namespace foc
 {
-    SpaceVectorModulation::Output SpaceVectorModulation::Generate(const TwoPhase& voltagePhase)
+    SpaceVectorModulation::Output SpaceVectorModulation::Generate(const TwoPhase& voltagePhase) const
     {
         auto vA = voltagePhase.alpha;
         auto vB = (-voltagePhase.alpha * half + voltagePhase.beta * sqrt3Div2);

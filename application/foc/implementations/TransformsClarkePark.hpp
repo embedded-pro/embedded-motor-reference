@@ -1,6 +1,7 @@
 #pragma once
 
 #include "numerical/math/CompilerOptimizations.hpp"
+#include <numbers>
 
 namespace foc
 {
@@ -33,10 +34,10 @@ namespace foc
         ThreePhase Inverse(const TwoPhase& input) const;
 
     private:
-        float oneHalf = float(0.5f);
-        float twoThirds = float(0.666666667f);
-        float invSqrt3 = float(0.577350269f);
-        float sqrt3Div2 = float(0.8660254037f);
+        constexpr static float oneHalf = float(0.5f);
+        constexpr static float twoThirds = float(0.666666667f);
+        constexpr static float invSqrt3 = std::numbers::inv_sqrt3_v<float>;
+        constexpr static float sqrt3Div2 = float(0.8660254037f);
     };
 
     class Park
@@ -59,7 +60,7 @@ namespace foc
         ThreePhase Inverse(const RotatingFrame& input, const float& cosTheta, const float& sinTheta) const;
 
     private:
-        Clarke clarke;
-        Park park;
+        [[no_unique_address]] Clarke clarke;
+        [[no_unique_address]] Park park;
     };
 }

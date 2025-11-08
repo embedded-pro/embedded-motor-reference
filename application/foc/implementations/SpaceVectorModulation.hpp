@@ -16,7 +16,7 @@ namespace foc
         };
 
         OPTIMIZE_FOR_SPEED
-        Output Generate(const TwoPhase& voltagePhase);
+        Output Generate(const TwoPhase& voltagePhase) const;
 
     private:
         OPTIMIZE_FOR_SPEED
