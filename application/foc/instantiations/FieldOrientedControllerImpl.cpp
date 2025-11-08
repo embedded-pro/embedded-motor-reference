@@ -1,6 +1,7 @@
 #include "application/foc/instantiations/FieldOrientedControllerImpl.hpp"
 #include "infra/util/ReallyAssert.hpp"
 #include "numerical/math/CompilerOptimizations.hpp"
+#include <numbers>
 
 namespace
 {

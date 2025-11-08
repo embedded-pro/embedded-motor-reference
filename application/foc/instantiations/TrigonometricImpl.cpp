@@ -2,6 +2,7 @@
 #include "numerical/math/CompilerOptimizations.hpp"
 #include <array>
 #include <cmath>
+#include <numbers>
 
 namespace foc
 {

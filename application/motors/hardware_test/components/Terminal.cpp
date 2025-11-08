@@ -7,6 +7,7 @@
 #include "services/util/TerminalWithStorage.hpp"
 #include <algorithm>
 #include <chrono>
+#include <numbers>
 #include <optional>
 
 namespace
