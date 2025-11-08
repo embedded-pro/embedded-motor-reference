@@ -38,7 +38,7 @@ namespace foc
         }
 
         static constexpr float zero{ float(0.0f) };
-        static constexpr float one{ float(0.9999f) };
+        static constexpr float one{ float(1.0f) };
         static constexpr float half{ float(0.5f) };
         static constexpr float invSqrt3{ float(0.577350269189625f) };
         static constexpr float sqrt3Div2{ float(0.866025403784438f) };
