@@ -83,32 +83,32 @@ namespace foc
     OPTIMIZE_FOR_SPEED
     float TrigonometricFunctions::Sine(const float& angle) const
     {
-        // auto scaledAngle = angle * LUT_SCALE;
-        // auto rawIndex = static_cast<int>(scaledAngle);
+        auto scaledAngle = angle * LUT_SCALE;
+        auto rawIndex = static_cast<int>(scaledAngle);
 
-        // auto index = rawIndex & (LUT_SIZE - 1);
-        // if (rawIndex < 0)
-        //     index = (LUT_SIZE + (rawIndex % LUT_SIZE)) & (LUT_SIZE - 1);
+        auto index = rawIndex & (LUT_SIZE - 1);
+        if (rawIndex < 0)
+            index = (LUT_SIZE + (rawIndex % LUT_SIZE)) & (LUT_SIZE - 1);
 
-        // auto fraction = scaledAngle - static_cast<float>(rawIndex);
+        auto fraction = scaledAngle - static_cast<float>(rawIndex);
 
-        // auto nextIndex = (index + 1) & LUT_MASK;
+        auto nextIndex = (index + 1) & LUT_MASK;
 
-        // auto y0 = sineLUT[index];
-        // auto y1 = sineLUT[nextIndex];
+        auto y0 = sineLUT[index];
+        auto y1 = sineLUT[nextIndex];
 
-        // return y0 + fraction * (y1 - y0);
+        return y0 + fraction * (y1 - y0);
 
-        return 0.0f; // Placeholder implementation
+        // return 0.0f; // Placeholder implementation
     }
 
     OPTIMIZE_FOR_SPEED
     float TrigonometricFunctions::Cosine(const float& angle) const
     {
-        // constexpr float PI_OVER_2 = PI * 0.5f;
-        // return Sine(angle + PI_OVER_2);
+        constexpr float PI_OVER_2 = PI * 0.5f;
+        return Sine(angle + PI_OVER_2);
 
-        return 0.0f; // Placeholder implementation
+        // return 0.0f; // Placeholder implementation
     }
 
     OPTIMIZE_FOR_SPEED
