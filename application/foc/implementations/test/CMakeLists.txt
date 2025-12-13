@@ -1,5 +1,5 @@
 add_executable(motor_ref.foc_test)
-emil_build_for(motor_ref.foc_test HOST All BOOL MOTOR_REFERENCE_BUILD_TESTS)
+emil_build_for(motor_ref.foc_test HOST All BOOL E_FOC_BUILD_TESTS)
 emil_add_test(motor_ref.foc_test)
 
 target_link_libraries(motor_ref.foc_test PUBLIC

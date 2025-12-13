@@ -23,14 +23,14 @@ target_sources(motor_ref.hardware PRIVATE
     PidAdapter.cpp
 )
 
-add_subdirectory(${MOTOR_REFERENCE_TARGET_PLATFORM})
+add_subdirectory(${E_FOC_TARGET_PLATFORM})
 
 add_library(motor_ref.hardware_impl INTERFACE)
 
 target_compile_definitions(motor_ref.hardware_impl INTERFACE
-    HARDWARE_FACTORY_IMPL_HEADER="application/hardware/${MOTOR_REFERENCE_TARGET_PLATFORM}/implementation/HardwareFactoryImpl.hpp"
+    HARDWARE_FACTORY_IMPL_HEADER="application/hardware/${E_FOC_TARGET_PLATFORM}/implementation/HardwareFactoryImpl.hpp"
 )
 
 target_link_libraries(motor_ref.hardware_impl INTERFACE
-    motor_ref.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM}
+    motor_ref.hardware_${E_FOC_TARGET_PLATFORM}
 )

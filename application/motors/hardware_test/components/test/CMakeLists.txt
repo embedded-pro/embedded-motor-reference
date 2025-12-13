@@ -1,5 +1,5 @@
 add_executable(motor_ref.hardware_test.components.test)
-emil_build_for(motor_ref.hardware_test.components.test HOST All BOOL MOTOR_REFERENCE_BUILD_TESTS)
+emil_build_for(motor_ref.hardware_test.components.test HOST All BOOL E_FOC_BUILD_TESTS)
 emil_add_test(motor_ref.hardware_test.components.test)
 
 target_link_libraries(motor_ref.hardware_test.components.test PUBLIC

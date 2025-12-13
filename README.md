@@ -1,9 +1,9 @@
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_embedded-motor-reference&metric=alert_status&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_embedded-motor-reference)
-[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_embedded-motor-reference&metric=coverage&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_embedded-motor-reference)
-[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_embedded-motor-reference&metric=duplicated_lines_density&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_embedded-motor-reference)
-[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_embedded-motor-reference&metric=vulnerabilities&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_embedded-motor-reference)
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_e-foc&metric=alert_status&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_e-foc)
+[![Coverage](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_e-foc&metric=coverage&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_e-foc)
+[![Duplicated Lines (%)](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_e-foc&metric=duplicated_lines_density&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_e-foc)
+[![Vulnerabilities](https://sonarcloud.io/api/project_badges/measure?project=embedded-pro_e-foc&metric=vulnerabilities&token=2d1b7ae361d044a96ba29c5afcbdb009cac319d2)](https://sonarcloud.io/summary/new_code?id=embedded-pro_e-foc)
 
-# embedded-motor-reference
+# e-foc
 
 A comprehensive embedded motor control reference implementation demonstrating Field-Oriented Control (FOC) and PID control for DC, BLDC, and PMSM motors with detailed examples and real-world applications.
 
@@ -43,14 +43,14 @@ This project serves as a practical reference for implementing motor control algo
 ### Quick Start
 1. Clone the repository
 ```bash
-git clone https://github.com/yourusername/embedded-motor-reference.git
+git clone https://github.com/yourusername/e-foc.git
 ```
 
 2. Set up your development environment following the instructions in [docs/setup.md](docs/setup.md)
 
 3. Build the example project
 ```bash
-cd embedded-motor-reference
+cd e-foc
 make
 ```
 

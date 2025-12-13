@@ -1,5 +1,5 @@
 add_library(motor_ref.foc_mock INTERFACE)
-emil_build_for(motor_ref.foc_mock HOST All BOOL MOTOR_REFERENCE_BUILD_TESTS)
+emil_build_for(motor_ref.foc_mock HOST All BOOL E_FOC_BUILD_TESTS)
 
 target_link_libraries(motor_ref.foc_mock INTERFACE
     gmock_main

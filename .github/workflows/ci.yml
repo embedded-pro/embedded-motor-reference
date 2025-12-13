@@ -46,8 +46,8 @@ jobs:
           configurePresetAdditionalArgs: "['-DCMAKE_C_COMPILER_LAUNCHER=ccache', '-DCMAKE_CXX_COMPILER_LAUNCHER=ccache']"
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
-          name: motor_reference
-          path: build/host/motor_reference-*-Linux.tar.gz
+          name: e_foc
+          path: build/host/e_foc-*-Linux.tar.gz
           if-no-files-found: error
       - name: Upload test logs
         if: ${{ failure() }}
@@ -121,9 +121,9 @@ jobs:
           save: ${{ github.ref == 'refs/heads/main' }}
       - uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6.0.0
         with:
-          name: motor_reference
-      - run: tar -zxvf motor_reference-*.tar.gz
-      - run: mkdir install && mv motor_reference-*/* install/
+          name: e_foc
+      - run: tar -zxvf e_foc-*.tar.gz
+      - run: mkdir install && mv e_foc-*/* install/
       - uses: lukka/run-cmake@af1be47fd7c933593f687731bc6fdbee024d3ff4 # v10.8
         with:
           configurePreset: ${{ matrix.target }}
