@@ -1,2 +1,2 @@
-add_subdirectory(${MOTOR_REFERENCE_TARGET_BOARD})
+add_subdirectory(${E_FOC_TARGET_BOARD})
 add_subdirectory(implementation)

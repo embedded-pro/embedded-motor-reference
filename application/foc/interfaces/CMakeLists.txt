@@ -1,17 +1,17 @@
-add_library(motor_ref.foc.interfaces INTERFACE ${EMIL_EXCLUDE_FROM_ALL})
+add_library(e_foc.foc.interfaces INTERFACE ${EMIL_EXCLUDE_FROM_ALL})
 
-target_include_directories(motor_ref.foc.interfaces INTERFACE
+target_include_directories(e_foc.foc.interfaces INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../../>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-target_link_libraries(motor_ref.foc.interfaces INTERFACE
+target_link_libraries(e_foc.foc.interfaces INTERFACE
     infra.util
     numerical.math
     numerical.controllers.interfaces
 )
 
-target_sources(motor_ref.foc.interfaces PRIVATE
+target_sources(e_foc.foc.interfaces PRIVATE
     Controller.hpp
     Driver.hpp
     FieldOrientedController.hpp

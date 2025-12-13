@@ -22,9 +22,9 @@
             "inherits": "defaults",
             "cacheVariables": {
                 "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel",
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "Host",
-                "MOTOR_REFERENCE_BUILD_TESTS": true,
-                "MOTOR_REFERENCE_BUILD_SIMULATOR": true,
+                "E_FOC_TARGET_PLATFORM": "Host",
+                "E_FOC_BUILD_TESTS": true,
+                "E_FOC_BUILD_SIMULATOR": true,
                 "NUMERICAL_TOOLBOX_ENABLE_OPTIMIZATIONS": false
             },
             "generator": "Ninja Multi-Config"
@@ -35,9 +35,24 @@
             "inherits": "defaults",
             "cacheVariables": {
                 "CMAKE_BUILD_TYPE": "Debug",
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "Host",
-                "MOTOR_REFERENCE_BUILD_TESTS": true
+                "E_FOC_TARGET_PLATFORM": "Host",
+                "E_FOC_BUILD_TESTS": true
             }
+        },
+        {
+            "name": "windows",
+            "displayName": "Windows cross compilation",
+            "inherits": "defaults",
+            "toolchainFile": "${sourceDir}/embedded-infra-lib/cmake/toolchain-clang-x86_64-pc-windows-msvc.cmake",
+            "cacheVariables": {
+                "CMAKE_COMPILE_WARNING_AS_ERROR": "Off",
+                "CMAKE_CONFIGURATION_TYPES": "Debug;Release;RelWithDebInfo;MinSizeRel",
+                "E_FOC_TARGET_PLATFORM": "Host",
+                "E_FOC_BUILD_TESTS": true,
+                "E_FOC_BUILD_SIMULATOR": true,
+                "NUMERICAL_TOOLBOX_ENABLE_OPTIMIZATIONS": false
+            },
+            "generator": "Ninja Multi-Config"
         },
         {
             "name": "coverage",
@@ -72,7 +87,7 @@
             },
             "cacheVariables": {
                 "TARGET_MCU_VENDOR": "ti",
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "ti"
+                "E_FOC_TARGET_PLATFORM": "ti"
             }
         },
         {
@@ -84,7 +99,7 @@
             },
             "cacheVariables": {
                 "TARGET_MCU_VENDOR": "st",
-                "MOTOR_REFERENCE_TARGET_PLATFORM": "st"
+                "E_FOC_TARGET_PLATFORM": "st"
             }
         },
         {
@@ -97,7 +112,7 @@
                 "TARGET_CORTEX": "m4",
                 "TARGET_MCU_FAMILY": "TM4C129",
                 "TARGET_MCU": "tm4c1294ncpdt",
-                "MOTOR_REFERENCE_TARGET_BOARD": "EK-TM4C1294XL"
+                "E_FOC_TARGET_BOARD": "EK-TM4C1294XL"
             }
         },
         {
@@ -110,7 +125,7 @@
                 "TARGET_CORTEX": "m4",
                 "TARGET_MCU_FAMILY": "TM4C123",
                 "TARGET_MCU": "tm4c123gh6pm",
-                "MOTOR_REFERENCE_TARGET_BOARD": "EK-TM4C123GXL"
+                "E_FOC_TARGET_BOARD": "EK-TM4C123GXL"
             }
         },
         {
@@ -123,7 +138,7 @@
                 "TARGET_CORTEX": "m4",
                 "TARGET_MCU_FAMILY": "stm32f4xx",
                 "TARGET_MCU": "stm32f407",
-                "MOTOR_REFERENCE_TARGET_BOARD": "STM32F407G-DISC1"
+                "E_FOC_TARGET_BOARD": "STM32F407G-DISC1"
             }
         },
         {
@@ -136,7 +151,7 @@
                 "TARGET_CORTEX": "m33",
                 "TARGET_MCU_FAMILY": "stm32h5xx",
                 "TARGET_MCU": "stm32h563",
-                "MOTOR_REFERENCE_TARGET_BOARD": "NUCLEO-H563ZI"
+                "E_FOC_TARGET_BOARD": "NUCLEO-H563ZI"
             }
         }
     ],
@@ -164,6 +179,16 @@
             "name": "host-single-Debug",
             "configuration": "Debug",
             "configurePreset": "host-single-Debug"
+        },
+        {
+            "name": "windows-RelWithDebInfo",
+            "configuration": "RelWithDebInfo",
+            "configurePreset": "windows"
+        },
+        {
+            "name": "windows-Debug",
+            "configuration": "Debug",
+            "configurePreset": "windows"
         },
         {
             "name": "coverage",

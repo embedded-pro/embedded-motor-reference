@@ -186,7 +186,7 @@ namespace application
     void TerminalInteractor::PrintHeader()
     {
         tracer.Trace() << "================================================";
-        tracer.Trace() << "embedded-motor-reference:hardware_test";
+        tracer.Trace() << "e-foc:hardware_test";
         tracer.Trace() << "Version: 0.0.1";
         tracer.Trace() << "Build: " << __DATE__ << " " << __TIME__;
 #ifdef __VERSION__
@@ -196,7 +196,7 @@ namespace application
 #else
         tracer.Trace() << "Compiler: Unknown";
 #endif
-        tracer.Trace() << "Target: " << MOTOR_REFERENCE_TARGET_BOARD;
+        tracer.Trace() << "Target: " << E_FOC_TARGET_BOARD;
         tracer.Trace() << "================================================";
         tracer.Trace() << "Ready to accept commands. Type 'help' for available commands.";
     }

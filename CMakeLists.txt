@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.24)
 
 if (CMAKE_SOURCE_DIR STREQUAL CMAKE_CURRENT_SOURCE_DIR)
-    set(MOTOR_REFERENCE_STANDALONE On)
+    set(E_FOC_STANDALONE On)
 endif()
 
 option(CMAKE_COMPILE_WARNING_AS_ERROR "Enable warnings-as-error" On)
-option(MOTOR_REFERENCE_INCLUDE_DEFAULT_INIT "Include default initialization code; turn off when providing custom initialization" On)
-option(MOTOR_REFERENCE_BUILD_TESTS "Enable build of the examples" Off)
+option(E_FOC_INCLUDE_DEFAULT_INIT "Include default initialization code; turn off when providing custom initialization" On)
+option(E_FOC_BUILD_TESTS "Enable build of the examples" Off)
 
-if (MOTOR_REFERENCE_BUILD_TESTS)
+if (E_FOC_BUILD_TESTS)
     set(BUILD_TESTING On)
 endif()
 
@@ -21,24 +21,24 @@ endif()
 
 add_definitions(-DEMIL_ENABLE_TRACING=1)
 
-if(DEFINED MOTOR_REFERENCE_TARGET_BOARD)
-    add_definitions(-DMOTOR_REFERENCE_TARGET_BOARD="${MOTOR_REFERENCE_TARGET_BOARD}")
+if(DEFINED E_FOC_TARGET_BOARD)
+    add_definitions(-DE_FOC_TARGET_BOARD="${E_FOC_TARGET_BOARD}")
 else()
-    add_definitions(-DMOTOR_REFERENCE_TARGET_BOARD="host")
+    add_definitions(-DE_FOC_TARGET_BOARD="host")
 endif()
 
-project(motor_reference LANGUAGES C CXX ASM VERSION 0.0.1) # x-release-please-version
+project(e_foc LANGUAGES C CXX ASM VERSION 0.0.1) # x-release-please-version
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED On)
 
 set_directory_properties(PROPERTY USE_FOLDERS ON)
 
-set(MOTOR_REFERENCE_EXCLUDE_FROM_ALL "")
+set(E_FOC_EXCLUDE_FROM_ALL "")
 
 add_subdirectory(embedded-infra-lib)
 
-if (MOTOR_REFERENCE_BUILD_TESTS)
+if (E_FOC_BUILD_TESTS)
     include(CTest)
     emil_enable_testing()
 endif()
@@ -51,11 +51,11 @@ endif()
 add_subdirectory(numerical-toolbox)
 add_subdirectory(application)
 
-if (MOTOR_REFERENCE_BUILD_SIMULATOR)
+if (E_FOC_BUILD_SIMULATOR)
     add_subdirectory(simulator)
 endif()
 
-emil_clangformat_directories(motor_ref DIRECTORIES application)
+emil_clangformat_directories(e_foc DIRECTORIES application)
 emil_folderize_all_targets()
 emil_exclude_directory_from_coverage(embedded-infra-lib)
 emil_coverage_targets(DIRECTORIES .)

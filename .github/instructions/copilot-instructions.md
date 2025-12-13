@@ -1,4 +1,4 @@
-# GitHub Copilot Instructions for Embedded Motor Reference
+# GitHub Copilot Instructions for e-foc
 
 ## Project Overview
 
