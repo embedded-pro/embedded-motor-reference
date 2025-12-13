@@ -5,91 +5,135 @@
 
 # e-foc
 
-A comprehensive embedded motor control reference implementation demonstrating Field-Oriented Control (FOC) and PID control for DC, BLDC, and PMSM motors with detailed examples and real-world applications.
+An embedded motor control application implementing Field-Oriented Control (FOC) for BLDC and PMSM motors with strict real-time and memory constraints. Built for deterministic execution on resource-constrained microcontrollers.
 
 ## Overview
 
-This project serves as a practical reference for implementing motor control algorithms in embedded systems. It provides working examples of common motor control techniques and demonstrates best practices for different motor types and control strategies.
+This project provides a production-ready motor control implementation designed for embedded systems with no heap allocation, deterministic execution, and minimal memory footprint. It demonstrates FOC algorithms with complete hardware integration for ST and TI microcontrollers.
 
 ## Features
 
-### Motor Support
-- **DC Motors**: Basic PWM and current control
-- **BLDC Motors**: Commutation and FOC implementation
-- **PMSM Motors**: Complete FOC with position feedback
-- **Generic Control**: PID implementations and tuning examples
+### Core Capabilities
+- **Field-Oriented Control (FOC)**: Complete implementation for BLDC and PMSM motors
+- **Space Vector Modulation (SVM)**: Efficient PWM generation
+- **PID Control**: Anti-windup implementations for current and velocity loops
+- **Sensored Control**: Encoder and Hall sensor feedback integration
+- **Real-Time Performance**: Deterministic execution with no heap allocation
 
-### Control Algorithms
-- Field-Oriented Control (FOC)
-- Space Vector Modulation (SVM)
-- PID control with anti-windup
-- Current and velocity control loops
-- Position control implementation
+### Embedded Constraints
+- **Zero Heap Allocation**: All memory statically allocated at compile-time
+- **Fixed Memory Footprint**: Uses `infra::BoundedVector`, `infra::BoundedString` instead of standard containers
+- **Minimal Stack Usage**: No recursion, predictable call depths
+- **Hardware Abstraction**: Support for ST and TI microcontrollers
 
-### Hardware Interfacing
-- ADC sampling for current sensing
-- Encoder and Hall sensor feedback
-- PWM generation and dead-time control
-- Temperature and fault monitoring
-- Motor driver integration examples
+### Simulation & Testing
+- **C++ Simulator**: Mathematical models for motor evaluation and curve plotting
+- **Unit Tests**: Comprehensive GoogleTest coverage for control algorithms
+- **Hardware-in-the-Loop Ready**: Mockable interfaces for testability
 
 ## Getting Started
 
 ### Prerequisites
-- Compatible development board (see [Supported Hardware](#supported-hardware))
-- Development environment setup for embedded systems
-- Basic understanding of motor control concepts
+- CMake 3.24 or later
+- Compatible toolchain for embedded targets (ARM GCC)
+- Development board: EK-TM4C1294XL (TI) or STM32F407G-DISC1 (ST)
+- Basic understanding of motor control and embedded systems
 
 ### Quick Start
-1. Clone the repository
+1. Clone the repository with submodules
 ```bash
-git clone https://github.com/yourusername/e-foc.git
-```
-
-2. Set up your development environment following the instructions in [docs/setup.md](docs/setup.md)
-
-3. Build the example project
-```bash
+git clone --recursive https://github.com/embedded-pro/e-foc.git
 cd e-foc
-make
 ```
 
-4. Flash to your development board
+2. Build for host simulation
 ```bash
-make flash
+cmake --preset host
+cmake --build --preset host-Debug
+```
+
+3. Run tests
+```bash
+ctest --preset host-Debug
+```
+
+4. Build for embedded target (example: TI EK-TM4C1294XL)
+```bash
+cmake --preset tm4c
+cmake --build --preset tm4c-Debug
 ```
 
 ## Project Structure
 ```
-├── docs/              # Documentation
-├── application/       # Example applications
-│   ├── dc/            # DC motor examples
-│   ├── bldc/          # BLDC motor examples
-│   ├── pmsm/          # PMSM motor examples
-│   └── pid/           # PID tuning examples
-├── src/               # Source files
-├── include/           # Header files
-└── tests/             # Test suites
+├── application/                # Application-level motor control
+│   ├── foc/                    # FOC implementations and instantiations
+│   │   ├── implementations/    # Concrete FOC algorithm implementations
+│   │   ├── instantiations/     # Application-specific FOC instances
+│   │   └── interfaces/         # FOC interface definitions
+│   ├── hardware/               # Hardware adapters and factory
+│   │   ├── st/                 # STM32-specific adapters
+│   │   ├── ti/                 # TI Tiva C-specific adapters
+│   │   └── Host/               # Host simulation adapters
+│   └── motors/                 # Motor-specific implementations
+│       ├── dc/                 # DC motor control
+│       ├── sync_foc_sensored/  # Synchronous FOC with sensors
+│       └── hardware_test/      # Hardware validation tests
+├── embedded-infra-lib/         # Submodule: infrastructure and utilities
+├── numerical-toolbox/          # Generic algorithms (PID, filters, etc.)
+├── hal/                        # Hardware Abstraction Layer
+│   ├── st/                     # ST microcontroller HAL
+│   └── ti/                     # TI microcontroller HAL
+├── simulator/                  # C++ simulators for motor models
+│   ├── pmsm/                   # PMSM mathematical models
+│   └── speed_control/          # Speed control simulation
+└── build/                      # Build artifacts (host, windows targets)
 ```
+
+## Key Design Principles
+
+### Memory Management
+- **No Heap Allocation**: All memory is statically allocated at compile-time
+- **Bounded Containers**: Uses `infra::BoundedVector`, `infra::BoundedString` instead of STL containers
+- **Fixed Memory Footprint**: Predictable RAM usage for resource-constrained systems
+
+### Real-Time Performance
+- **Deterministic Execution**: No dynamic allocation or unbounded loops in control paths
+- **Minimal Branching**: Optimized control loops for consistent timing
+- **ISR-Safe Design**: Interrupt service routines avoid virtual calls and complex operations
+
+### Architecture
+- **Dependency Injection**: Constructor injection for testability and flexibility
+- **Hardware Abstraction**: Clean separation between application logic and hardware
+- **Interface-Driven Design**: Pure virtual interfaces enable mocking and testing
 
 ## Documentation
 
-Detailed documentation is available in the [docs](docs/) directory:
-- [Motor Control Basics](docs/motor-control.md)
-- [FOC Implementation](docs/foc.md)
-- [PID Tuning Guide](docs/pid-tuning.md)
-- [Hardware Setup](docs/hardware.md)
+For detailed information about the project structure and coding guidelines, see:
+- [Copilot Instructions](/.github/instructions/copilot-instructions.md) - Development guidelines and patterns
+- [embedded-infra-lib Documentation](embedded-infra-lib/README.md) - Infrastructure library reference
+- [numerical-toolbox Documentation](numerical-toolbox/README.md) - Reusable algorithms
 
 ## Contributing
 
-We welcome contributions! Please read our [Contributing Guidelines](CONTRIBUTING.md) before submitting pull requests.
+We welcome contributions! Please follow these guidelines:
 
-### Development Setup
+### Development Workflow
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+3. Follow the coding standards in [copilot-instructions.md](/.github/instructions/copilot-instructions.md)
+4. Ensure all tests pass
+5. Update CHANGELOG.md according to release-please conventions
+6. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
+7. Push to the branch (`git push origin feature/AmazingFeature`)
+8. Open a Pull Request
+
+### Critical Guidelines
+- **NO heap allocation** (`new`, `delete`, `malloc`, `free`)
+- **NO standard containers** (use `infra::Bounded*` alternatives)
+- Use fixed-size types (`uint8_t`, `int32_t`, etc.)
+- Mark all non-mutating methods as `const`
+- Write unit tests for new functionality
+- Follow `.clang-format` rules for code formatting
 
 ## License
 

@@ -1,23 +1,23 @@
-add_library(motor_ref.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM})
+add_library(e_foc.hardware_${E_FOC_TARGET_PLATFORM})
 
-target_include_directories(motor_ref.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM} PUBLIC
+target_include_directories(e_foc.hardware_${E_FOC_TARGET_PLATFORM} PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../../..>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-target_link_libraries(motor_ref.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM} PUBLIC
-    motor_ref.hardware
+target_link_libraries(e_foc.hardware_${E_FOC_TARGET_PLATFORM} PUBLIC
+    e_foc.hardware
     infra.event
     infra.timer
     services.tracer
-    motor_ref.hardware_${MOTOR_REFERENCE_TARGET_BOARD}
+    e_foc.hardware_${E_FOC_TARGET_BOARD}
 )
 
-target_compile_definitions(motor_ref.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM} PUBLIC
-    HARDWARE_PINS_AND_PERIPHERALS_HEADER="application/hardware/${MOTOR_REFERENCE_TARGET_PLATFORM}/${MOTOR_REFERENCE_TARGET_BOARD}/PinsAndPeripherals.hpp"
+target_compile_definitions(e_foc.hardware_${E_FOC_TARGET_PLATFORM} PUBLIC
+    HARDWARE_PINS_AND_PERIPHERALS_HEADER="application/hardware/${E_FOC_TARGET_PLATFORM}/${E_FOC_TARGET_BOARD}/PinsAndPeripherals.hpp"
 )
 
-target_sources(motor_ref.hardware_${MOTOR_REFERENCE_TARGET_PLATFORM} PRIVATE
+target_sources(e_foc.hardware_${E_FOC_TARGET_PLATFORM} PRIVATE
     HardwareFactoryImpl.cpp
     HardwareFactoryImpl.hpp
 )

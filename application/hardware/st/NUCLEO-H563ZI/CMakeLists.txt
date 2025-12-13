@@ -1,15 +1,15 @@
-add_library(motor_ref.hardware_${E_FOC_TARGET_BOARD} INTERFACE)
+add_library(e_foc.hardware_${E_FOC_TARGET_BOARD} INTERFACE)
 
-target_include_directories(motor_ref.hardware_${E_FOC_TARGET_BOARD} INTERFACE
+target_include_directories(e_foc.hardware_${E_FOC_TARGET_BOARD} INTERFACE
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../../..>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-target_link_libraries(motor_ref.hardware_${E_FOC_TARGET_BOARD} INTERFACE
+target_link_libraries(e_foc.hardware_${E_FOC_TARGET_BOARD} INTERFACE
     hal_st.stm32fxxx
     hal_st.synchronous_stm32fxxx
 )
 
-target_sources(motor_ref.hardware_${E_FOC_TARGET_BOARD} INTERFACE
+target_sources(e_foc.hardware_${E_FOC_TARGET_BOARD} INTERFACE
     PinsAndPeripherals.hpp
 )

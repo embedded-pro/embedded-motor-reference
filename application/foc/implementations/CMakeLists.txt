@@ -1,15 +1,15 @@
-add_library(motor_ref.foc.implementations ${EMIL_EXCLUDE_FROM_ALL})
+add_library(e_foc.foc.implementations ${EMIL_EXCLUDE_FROM_ALL})
 
-target_include_directories(motor_ref.foc.implementations PUBLIC
+target_include_directories(e_foc.foc.implementations PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-target_link_libraries(motor_ref.foc.implementations PUBLIC
-    motor_ref.foc.interfaces
+target_link_libraries(e_foc.foc.implementations PUBLIC
+    e_foc.foc.interfaces
 )
 
-target_sources(motor_ref.foc.implementations PRIVATE
+target_sources(e_foc.foc.implementations PRIVATE
     ControllerBaseImpl.cpp
     ControllerBaseImpl.hpp
     NormalizedAngles.hpp
