@@ -3,6 +3,7 @@
 #include "hal/ti/hal_tiva/synchronous_tiva/SynchronousPwm.hpp"
 #include "hal/ti/hal_tiva/tiva/Gpio.hpp"
 #include "hal/ti/hal_tiva/tiva/PinoutTableDefaultTm4c129.hpp"
+#include "hal_tiva/tiva/Adc.hpp"
 #include "hal_tiva/tiva/ClockTm4c129.hpp"
 
 namespace application
@@ -11,7 +12,8 @@ namespace application
     {
         static hal::tiva::GpioPin currentPhaseA{ hal::tiva::Port::E, 3 };
         static hal::tiva::GpioPin currentPhaseB{ hal::tiva::Port::E, 2 };
-        static hal::tiva::GpioPin powerSupplyVoltage{ hal::tiva::Port::E, 1 };
+        static hal::tiva::GpioPin currentPhaseC{ hal::tiva::Port::E, 1 };
+        static hal::tiva::GpioPin powerSupplyVoltage{ hal::tiva::Port::E, 0 };
 
         static hal::tiva::GpioPin hallSensorA{ hal::tiva::Port::E, 4 };
         static hal::tiva::GpioPin hallSensorB{ hal::tiva::Port::E, 5 };
@@ -46,9 +48,11 @@ namespace application
         constexpr static uint8_t UartIndex = 0;
         constexpr static uint8_t PwmIndex = 0;
 
-        static hal_pwm::PinChannel pwmPhase1{ hal_pwm::GeneratorIndex::generator1, Pins::pwmPhase1a, Pins::pwmPhase1b, true, true };
-        static hal_pwm::PinChannel pwmPhase2{ hal_pwm::GeneratorIndex::generator2, Pins::pwmPhase2a, Pins::pwmPhase2b, true, true };
-        static hal_pwm::PinChannel pwmPhase3{ hal_pwm::GeneratorIndex::generator3, Pins::pwmPhase3a, Pins::pwmPhase3b, true, true };
+        static hal::tiva::Adc::Trigger adcTrigger = hal::tiva::Adc::Trigger::pwmGenerator1;
+
+        static hal_pwm::PinChannel pwmPhase1{ hal_pwm::GeneratorIndex::generator1, Pins::pwmPhase1a, Pins::pwmPhase1b, true, true, std::make_optional(hal::tiva::SynchronousPwm::PinChannel::Trigger::countLoad) };
+        static hal_pwm::PinChannel pwmPhase2{ hal_pwm::GeneratorIndex::generator2, Pins::pwmPhase2a, Pins::pwmPhase2b, true, true, std::nullopt };
+        static hal_pwm::PinChannel pwmPhase3{ hal_pwm::GeneratorIndex::generator3, Pins::pwmPhase3a, Pins::pwmPhase3b, true, true, std::nullopt };
 
         static std::array<hal_pwm::PinChannel, 3> pwmPhases{ { pwmPhase1, pwmPhase2, pwmPhase3 } };
     }

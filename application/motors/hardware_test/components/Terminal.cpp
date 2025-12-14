@@ -178,7 +178,7 @@ namespace application
 
         encoderCreator.Emplace();
         pwmCreator.Emplace(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 });
-        StartAdc(HardwareFactory::SampleAndHold::medium);
+        StartAdc(HardwareFactory::SampleAndHold::shortest);
 
         PrintHeader();
     }
@@ -345,8 +345,6 @@ namespace application
             tracer.Trace() << "    Phase A:            [" << static_cast<uint32_t>(Average(adcChannelSamples[0])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[0])) << "]";
             tracer.Trace() << "    Phase B:            [" << static_cast<uint32_t>(Average(adcChannelSamples[1])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[1])) << "]";
             tracer.Trace() << "    Phase C:            [" << static_cast<uint32_t>(Average(adcChannelSamples[2])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[2])) << "]";
-            tracer.Trace() << "    Reference Voltage:  [" << static_cast<uint32_t>(Average(adcChannelSamples[3])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[3])) << "]";
-            tracer.Trace() << "    Total Current:      [" << static_cast<uint32_t>(Average(adcChannelSamples[4])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[4])) << "]";
         }
         else
             tracer.Trace() << "    No ADC data available";

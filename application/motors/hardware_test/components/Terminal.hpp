@@ -30,8 +30,8 @@ namespace application
         StatusWithMessage SetMotorParameters(const infra::BoundedConstString& param);
 
     private:
-        static constexpr std::size_t averageSampleSize = 10;
-        static constexpr std::size_t numberOfChannels = 5;
+        static constexpr std::size_t averageSampleSize = 100;
+        static constexpr std::size_t numberOfChannels = 3;
         using AdcChannelSamples = infra::BoundedDeque<uint16_t>::WithMaxSize<averageSampleSize>;
 
         void StartAdc(HardwareFactory::SampleAndHold sampleAndHold);
