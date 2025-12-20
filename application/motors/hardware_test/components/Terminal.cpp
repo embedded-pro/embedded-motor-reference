@@ -85,6 +85,12 @@ namespace application
         for (std::size_t i = 0; i < numberOfChannels; ++i)
             adcChannelSamples.emplace_back();
 
+        terminal.AddCommand({ { "enc", "e", "Read encoder. stop. Ex: enc" },
+            [this](const auto&)
+            {
+                this->terminal.ProcessResult(Stop());
+            } });
+
         terminal.AddCommand({ { "stop", "stp", "Stop pwm. stop. Ex: stop" },
             [this](const auto&)
             {
