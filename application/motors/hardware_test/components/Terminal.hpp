@@ -25,13 +25,13 @@ namespace application
         StatusWithMessage SimulateFoc(const infra::BoundedConstString& param);
         StatusWithMessage ConfigurePid(const infra::BoundedConstString& param);
         StatusWithMessage Stop();
-        StatusWithMessage ReadAdcWithSampleTime();
+        void ProcessAdcSamples();
         StatusWithMessage SetPwmDuty(const infra::BoundedConstString& param);
         StatusWithMessage SetMotorParameters(const infra::BoundedConstString& param);
 
     private:
-        static constexpr std::size_t averageSampleSize = 10;
-        static constexpr std::size_t numberOfChannels = 5;
+        static constexpr std::size_t averageSampleSize = 2000;
+        static constexpr std::size_t numberOfChannels = 3;
         using AdcChannelSamples = infra::BoundedDeque<uint16_t>::WithMaxSize<averageSampleSize>;
 
         void StartAdc(HardwareFactory::SampleAndHold sampleAndHold);

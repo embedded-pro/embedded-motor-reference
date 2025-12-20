@@ -1,5 +1,6 @@
 #include "application/motors/hardware_test/components/Terminal.hpp"
 #include "foc/interfaces/Driver.hpp"
+#include "infra/event/EventDispatcher.hpp"
 #include "infra/stream/StringInputStream.hpp"
 #include "infra/util/BoundedString.hpp"
 #include "infra/util/ReallyAssert.hpp"
@@ -63,53 +64,9 @@ namespace
             return {};
     }
 
-    float Average(const infra::BoundedDeque<uint16_t>& samples)
+    float ToMilliVolts(uint16_t adcValue, uint32_t adcMaxValue = 4095, float referenceVoltage = 3.3f)
     {
-        if (samples.empty())
-            return 0.0f;
-
-        float sum = 0.0f;
-        for (auto sample : samples)
-            sum += static_cast<float>(sample);
-
-        return sum / static_cast<float>(samples.size());
-    }
-
-    float FastSqrt(float x)
-    {
-        if (x <= 0.0f)
-            return 0.0f;
-
-        if (x == 1.0f)
-            return 1.0f;
-
-        union
-        {
-            float f;
-            uint32_t i;
-        } conv = { x };
-
-        conv.i = (conv.i + 0x3f800000) >> 1;
-        float guess = conv.f;
-
-        for (uint8_t i = 0; i < 6; ++i)
-            guess = 0.5f * (guess + x / guess);
-
-        return guess;
-    }
-
-    float StandardDeviation(const infra::BoundedDeque<uint16_t>& samples)
-    {
-        if (samples.empty())
-            return 0.0f;
-
-        auto average = Average(samples);
-
-        float sum = 0.0f;
-        for (auto sample : samples)
-            sum += (sample - average) * (sample - average);
-
-        return FastSqrt(sum / static_cast<float>(samples.size()));
+        return (static_cast<float>(adcValue) / static_cast<float>(adcMaxValue)) * referenceVoltage * 1000.0f;
     }
 }
 
@@ -134,12 +91,6 @@ namespace application
                 this->terminal.ProcessResult(Stop());
             } });
 
-        terminal.AddCommand({ { "read", "r", "Read adc with sample time. Ex: read" },
-            [this](const auto&)
-            {
-                this->terminal.ProcessResult(ReadAdcWithSampleTime());
-            } });
-
         terminal.AddCommand({ { "duty", "d", "Set and start pwm duty. Ex: duty 0 10 25" },
             [this](const infra::BoundedConstString& param)
             {
@@ -152,7 +103,7 @@ namespace application
                 this->terminal.ProcessResult(ConfigurePwm(param));
             } });
 
-        terminal.AddCommand({ { "adc", "a", "Configure adc [sample_and_hold [short, medium, long]]. Ex: adc short" },
+        terminal.AddCommand({ { "adc", "a", "Configure adc and prints raw data for all three channels [sample_and_hold [short, medium, long]]. Ex: adc short" },
             [this](const infra::BoundedConstString& param)
             {
                 this->terminal.ProcessResult(ConfigureAdc(param));
@@ -178,7 +129,7 @@ namespace application
 
         encoderCreator.Emplace();
         pwmCreator.Emplace(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 });
-        StartAdc(HardwareFactory::SampleAndHold::medium);
+        StartAdc(HardwareFactory::SampleAndHold::shortest);
 
         PrintHeader();
     }
@@ -336,22 +287,21 @@ namespace application
         return { services::TerminalWithStorage::Status::success };
     }
 
-    TerminalInteractor::StatusWithMessage TerminalInteractor::ReadAdcWithSampleTime()
+    void TerminalInteractor::ProcessAdcSamples()
     {
-        tracer.Trace() << "  Measures [average,standard deviation]";
+        adcCreator->Stop();
+        adcCreator.Destroy();
+
+        tracer.Trace() << "  Measures [A;B;C]";
 
         if (IsAdcBufferPopulated())
-        {
-            tracer.Trace() << "    Phase A:            [" << static_cast<uint32_t>(Average(adcChannelSamples[0])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[0])) << "]";
-            tracer.Trace() << "    Phase B:            [" << static_cast<uint32_t>(Average(adcChannelSamples[1])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[1])) << "]";
-            tracer.Trace() << "    Phase C:            [" << static_cast<uint32_t>(Average(adcChannelSamples[2])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[2])) << "]";
-            tracer.Trace() << "    Reference Voltage:  [" << static_cast<uint32_t>(Average(adcChannelSamples[3])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[3])) << "]";
-            tracer.Trace() << "    Total Current:      [" << static_cast<uint32_t>(Average(adcChannelSamples[4])) << "," << static_cast<uint32_t>(StandardDeviation(adcChannelSamples[4])) << "]";
-        }
+            for (std::size_t i = 0; i < adcChannelSamples[0].size(); ++i)
+                tracer.Trace() << ToMilliVolts(adcChannelSamples[0][i]) << ";" << ToMilliVolts(adcChannelSamples[1][i]) << ";" << ToMilliVolts(adcChannelSamples[2][i]);
         else
             tracer.Trace() << "    No ADC data available";
 
-        return { services::TerminalWithStorage::Status::success };
+        for (auto& channelSamples : adcChannelSamples)
+            channelSamples.clear();
     }
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::SetPwmDuty(const infra::BoundedConstString& param)
@@ -406,9 +356,9 @@ namespace application
                 for (auto& channelSamples : adcChannelSamples)
                 {
                     if (channelSamples.full())
-                        channelSamples.pop_front();
-
-                    channelSamples.push_back(*sampleIt++);
+                        ProcessAdcSamples();
+                    else
+                        channelSamples.push_back(*sampleIt++);
                 }
             });
     }
