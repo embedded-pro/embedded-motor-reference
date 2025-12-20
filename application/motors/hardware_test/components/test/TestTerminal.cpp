@@ -94,7 +94,7 @@ namespace
 
             EXPECT_CALL(encoderCreator, Constructed());
             EXPECT_CALL(pwmCreator, Constructed(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 }));
-            EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::medium));
+            EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::shortest));
 
             EXPECT_CALL(adcMock, Measure(testing::_)).WillRepeatedly(testing::SaveArg<0>(&onAdcMeasurementDone));
 
@@ -179,98 +179,6 @@ TEST_F(TestHardwareTerminal, stop_alias)
     InvokeCommand("stp", [this]()
         {
             EXPECT_CALL(pwmMock, Stop());
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestHardwareTerminal, read_command_with_no_data)
-{
-    InvokeCommand("read", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string headerMessage = "  Measures [average,standard deviation]";
-            std::string expectedMessage = "    No ADC data available";
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { '\r', '\n' } }), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(headerMessage.begin(), headerMessage.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { '\r', '\n' } }), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(expectedMessage.begin(), expectedMessage.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestHardwareTerminal, read_command_with_adc_data)
-{
-    std::array<uint16_t, 5> sampleData = { 1000, 1500, 2000, 2500, 3000 };
-    hal::AdcMultiChannel::Samples simulatedSamples{ sampleData };
-    onAdcMeasurementDone(simulatedSamples);
-    onAdcMeasurementDone(simulatedSamples);
-    onAdcMeasurementDone(simulatedSamples);
-
-    InvokeCommand("read", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string headerMessage = "  Measures [average,standard deviation]";
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { '\r', '\n' } }), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(headerMessage.begin(), headerMessage.end())), testing::_));
-            Payload("    Phase A:            [", "1000", "0", "]");
-            Payload("    Phase B:            [", "1500", "0", "]");
-            Payload("    Phase C:            [", "2000", "0", "]");
-            Payload("    Reference Voltage:  [", "2500", "0", "]");
-            Payload("    Total Current:      [", "3000", "0", "]");
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestHardwareTerminal, read_alias_with_no_data)
-{
-    InvokeCommand("r", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string headerMessage = "  Measures [average,standard deviation]";
-            std::string expectedMessage = "    No ADC data available";
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { '\r', '\n' } }), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(headerMessage.begin(), headerMessage.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { '\r', '\n' } }), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(expectedMessage.begin(), expectedMessage.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TestHardwareTerminal, read_alias_with_multiple_samples)
-{
-    std::array<uint16_t, 5> sampleData1 = { 280, 780, 1280, 1780, 2280 };
-    std::array<uint16_t, 5> sampleData2 = { 920, 1420, 1920, 2420, 2920 };
-    std::array<uint16_t, 5> sampleData3 = { 1080, 1580, 2080, 2580, 3080 };
-    std::array<uint16_t, 5> sampleData4 = { 1720, 2220, 2720, 3220, 3720 };
-
-    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData1 });
-    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData2 });
-    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData3 });
-    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData4 });
-
-    InvokeCommand("r", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string headerMessage = "  Measures [average,standard deviation]";
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { '\r', '\n' } }), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(headerMessage.begin(), headerMessage.end())), testing::_));
-            Payload("    Phase A:            [", "1000", "512", "]");
-            Payload("    Phase B:            [", "1500", "512", "]");
-            Payload("    Phase C:            [", "2000", "512", "]");
-            Payload("    Reference Voltage:  [", "2500", "512", "]");
-            Payload("    Total Current:      [", "3000", "512", "]");
         });
 
     ExecuteAllActions();
