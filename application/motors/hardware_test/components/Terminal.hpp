@@ -24,6 +24,7 @@ namespace application
         StatusWithMessage ConfigureAdc(const infra::BoundedConstString& param);
         StatusWithMessage SimulateFoc(const infra::BoundedConstString& param);
         StatusWithMessage ConfigurePid(const infra::BoundedConstString& param);
+        StatusWithMessage ReadEncoder();
         StatusWithMessage Stop();
         void ProcessAdcSamples();
         StatusWithMessage SetPwmDuty(const infra::BoundedConstString& param);

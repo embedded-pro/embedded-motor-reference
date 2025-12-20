@@ -88,7 +88,7 @@ namespace application
         terminal.AddCommand({ { "enc", "e", "Read encoder. stop. Ex: enc" },
             [this](const auto&)
             {
-                this->terminal.ProcessResult(Stop());
+                this->terminal.ProcessResult(ReadEncoder());
             } });
 
         terminal.AddCommand({ { "stop", "stp", "Stop pwm. stop. Ex: stop" },
@@ -231,6 +231,11 @@ namespace application
 
         foc.SetTunings(Vdc, speedPidTunings, { dqPidTunings, dqPidTunings });
 
+        return { services::TerminalWithStorage::Status::success };
+    }
+
+    TerminalInteractor::StatusWithMessage TerminalInteractor::ReadEncoder()
+    {
         return { services::TerminalWithStorage::Status::success };
     }
 
