@@ -685,3 +685,410 @@ TEST_F(TestHardwareTerminal, motor_maximum_valid_poles)
 
     ExecuteAllActions();
 }
+
+TEST_F(TestHardwareTerminal, pwm_invalid_argument_count_too_few)
+{
+    InvokeCommand("pwm 500", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid number of arguments" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pwm_invalid_argument_count_too_many)
+{
+    InvokeCommand("pwm 500 10000 extra", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid number of arguments" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pwm_invalid_dead_time_too_low)
+{
+    InvokeCommand("pwm 100 10000", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float between 500 and 2000." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pwm_invalid_dead_time_too_high)
+{
+    InvokeCommand("pwm 3000 10000", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float between 500 and 2000." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pwm_invalid_frequency_too_low)
+{
+    InvokeCommand("pwm 500 5000", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float between 10000 and 20000." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pwm_invalid_frequency_too_high)
+{
+    InvokeCommand("pwm 500 25000", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float between 10000 and 20000." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_shorter)
+{
+    InvokeCommand("adc shorter", [this]()
+        {
+            EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::shorter)).Times(1);
+            EXPECT_CALL(adcMock, Measure(testing::_)).Times(1);
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_longer)
+{
+    InvokeCommand("adc longer", [this]()
+        {
+            EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::longer)).Times(1);
+            EXPECT_CALL(adcMock, Measure(testing::_)).Times(1);
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_longest)
+{
+    InvokeCommand("adc longest", [this]()
+        {
+            EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::longest)).Times(1);
+            EXPECT_CALL(adcMock, Measure(testing::_)).Times(1);
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_invalid_argument_count)
+{
+    InvokeCommand("adc medium extra", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid number of arguments" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pid_invalid_speed_ki)
+{
+    InvokeCommand("pid 1.0 invalid 0.1 2.0 1.0 0.2", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for Speed Ki" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pid_invalid_speed_kd)
+{
+    InvokeCommand("pid 1.0 0.5 invalid 2.0 1.0 0.2", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for Speed Kd" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pid_invalid_dq_kp)
+{
+    InvokeCommand("pid 1.0 0.5 0.1 invalid 1.0 0.2", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for DQ-axis Kp" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pid_invalid_dq_kd)
+{
+    InvokeCommand("pid 1.0 0.5 0.1 2.0 1.0 invalid", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for DQ-axis Kd" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, duty_invalid_phase_a)
+{
+    InvokeCommand("duty 0 20 30", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for phase A. It should be a float between 1 and 99." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, duty_invalid_phase_b)
+{
+    InvokeCommand("duty 10 100 30", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for phase B. It should be a float between 1 and 99." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, duty_invalid_phase_c)
+{
+    InvokeCommand("duty 10 20 invalid", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for phase C. It should be a float between 1 and 99." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_invalid_phase_b_current)
+{
+    InvokeCommand("foc 45.0 1.5 invalid 2.5", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for phase B current. It should be a float between -1000 and 1000." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, foc_invalid_angle_non_numeric)
+{
+    InvokeCommand("foc invalid 1.5 2.0 2.5", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string newline{ "\r\n" };
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value for angle. It should be a float between -360 and 360." };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, pwm_boundary_values_valid)
+{
+    InvokeCommand("pwm 2000 20000", [this]()
+        {
+            EXPECT_CALL(pwmCreator, Destructed()).Times(1);
+            EXPECT_CALL(pwmCreator, Constructed(std::chrono::nanoseconds{ 2000 }, hal::Hertz{ 20000 })).Times(1);
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, duty_boundary_values_valid)
+{
+    InvokeCommand("duty 1 50 99", [this]()
+        {
+            EXPECT_CALL(pwmMock, Start(hal::Percent{ 1 }, hal::Percent{ 50 }, hal::Percent{ 99 }));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_samples_stored_when_buffer_not_full)
+{
+    std::array<uint16_t, 3> sampleData = { 1000, 2000, 3000 };
+    hal::AdcMultiChannel::Samples samples{ sampleData };
+
+    onAdcMeasurementDone(samples);
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_buffer_full_triggers_processing)
+{
+    std::array<uint16_t, 3> sampleData = { 1000, 2000, 3000 };
+    hal::AdcMultiChannel::Samples samples{ sampleData };
+
+    for (std::size_t i = 0; i < 2000; ++i)
+        onAdcMeasurementDone(samples);
+
+    EXPECT_CALL(adcMock, Stop()).Times(1);
+    EXPECT_CALL(adcCreator, Destructed()).Times(1);
+    EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+
+    onAdcMeasurementDone(samples);
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_reconfigure_after_buffer_full)
+{
+    std::array<uint16_t, 3> sampleData = { 1000, 2000, 3000 };
+    hal::AdcMultiChannel::Samples samples{ sampleData };
+
+    for (std::size_t i = 0; i < 2000; ++i)
+        onAdcMeasurementDone(samples);
+
+    EXPECT_CALL(adcMock, Stop()).Times(1);
+    EXPECT_CALL(adcCreator, Destructed()).Times(1);
+    EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+
+    onAdcMeasurementDone(samples);
+
+    ExecuteAllActions();
+
+    InvokeCommand("adc medium", [this]()
+        {
+            EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::medium)).Times(1);
+            EXPECT_CALL(adcMock, Measure(testing::_)).WillOnce(testing::SaveArg<0>(&onAdcMeasurementDone));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, adc_multiple_samples_before_full)
+{
+    std::array<uint16_t, 3> sampleData1 = { 100, 200, 300 };
+    std::array<uint16_t, 3> sampleData2 = { 400, 500, 600 };
+    std::array<uint16_t, 3> sampleData3 = { 700, 800, 900 };
+
+    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData1 });
+    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData2 });
+    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData3 });
+
+    ExecuteAllActions();
+}
