@@ -28,3 +28,16 @@ jobs:
         with:
           schema-path: documentation/tools/requirement.schema.json
           requirements-dir: documentation/requirements
+
+      - name: Generate PDF
+        uses: ./.github/actions/generate-requirements-pdf
+        with:
+          requirements-dir: documentation/requirements
+          template-path: documentation/templates/requirements.md
+          output-path: documentation/output/requirements.pdf
+
+      - name: Upload PDF
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
+        with:
+          name: requirements-pdf
+          path: documentation/output/requirements.pdf
