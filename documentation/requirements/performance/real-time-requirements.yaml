@@ -1,0 +1,5 @@
+- id: REQ-PERF-001
+  title: FOC execution time
+  shall: >
+    The motor control system shall complete all field-oriented control
+    calculations within 50 microseconds per control cycle.
