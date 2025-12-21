@@ -39,8 +39,8 @@ namespace application
         foc::Volts PowerSupplyVoltage() override;
         foc::Ampere MaxCurrentSupported() override;
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
-        infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
-        infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;
+        infra::CreatorBase<AdcMultiChannelDecorator, void(SampleAndHold)>& AdcMultiChannelCreator() override;
+        infra::CreatorBase<QuadratureEncoderDecorator, void()>& SynchronousQuadratureEncoderCreator() override;
 
         // Implementation of hal::PerformanceTracker
         void Start() override;
@@ -72,13 +72,17 @@ namespace application
                 hal::tiva::Adc::SampleAndHold::sampleAndHold32,
                 hal::tiva::Adc::SampleAndHold::sampleAndHold64,
                 hal::tiva::Adc::SampleAndHold::sampleAndHold256 } };
+            static constexpr float voltageToCurrent = 0.2f;
+            static constexpr float adcReferenceVoltage = 3.3f;
+            static constexpr float adcResolution = 4096.0f;
+            static constexpr float adcToAmpereFactor = adcReferenceVoltage / adcResolution * voltageToCurrent;
             hal::tiva::Adc::Config adcConfig{ false, 0, Peripheral::adcTrigger, hal::tiva::Adc::SampleAndHold::sampleAndHold4 };
             std::array<hal::tiva::AnalogPin, 3> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB }, hal::tiva::AnalogPin{ Pins::currentPhaseC } } };
-            infra::Creator<hal::AdcMultiChannel, hal::tiva::Adc, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
+            infra::Creator<AdcMultiChannelDecorator, AdcMultiChannelDecoratorImpl<hal::tiva::Adc>, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
                 {
                     adcConfig.sampleAndHold = toSampleAndHold.at(static_cast<std::size_t>(sampleAndHold));
 
-                    object.Emplace(Peripheral::AdcIndex, Peripheral::AdcSequencerIndex, currentPhaseAnalogPins, adcConfig);
+                    object.Emplace(adcToAmpereFactor, Peripheral::AdcIndex, Peripheral::AdcSequencerIndex, currentPhaseAnalogPins, adcConfig);
                 } };
             hal::tiva::SynchronousPwm::Config::ClockDivisor clockDivisor{ hal::tiva::SynchronousPwm::Config::ClockDivisor::divisor8 };
             hal::tiva::SynchronousPwm::Config::Control controlConfig{ hal::tiva::SynchronousPwm::Config::Control::Mode::centerAligned, hal::tiva::SynchronousPwm::Config::Control::UpdateMode::globally, false };
@@ -100,10 +104,13 @@ namespace application
 
         struct EncoderImpl
         {
-            hal::tiva::QuadratureEncoder::Config qeiConfig;
-            infra::Creator<hal::SynchronousQuadratureEncoder, hal::tiva::QuadratureEncoder, void()> synchronousQuadratureEncoderCreator{ [this](auto& object)
+            using Conf = hal::tiva::QuadratureEncoder::Config;
+
+            static constexpr uint32_t resolution = 1000;
+            hal::tiva::QuadratureEncoder::Config qeiConfig{ resolution, 0, false, false, false, Conf::ResetMode::onMaxPosition, Conf::CaptureMode::phaseAandPhaseB, Conf::SignalMode::quadrature };
+            infra::Creator<QuadratureEncoderDecorator, QuadratureEncoderDecoratorImpl<hal::tiva::QuadratureEncoder>, void()> synchronousQuadratureEncoderCreator{ [this](auto& object)
                 {
-                    object.Emplace(Peripheral::QeiIndex, Pins::encoderA, Pins::encoderB, Pins::encoderZ, qeiConfig);
+                    object.Emplace(resolution, Peripheral::QeiIndex, Pins::encoderA, Pins::encoderB, Pins::encoderZ, qeiConfig);
                 } };
         };
 

@@ -5,43 +5,48 @@ namespace application
 {
     HardwareAdapter::HardwareAdapter(HardwareFactory& hardware)
         : adcMultiChannelCreator{ hardware.AdcMultiChannelCreator(), HardwareFactory::SampleAndHold::shorter }
-        , synchronousThreeChannelsPwmCreator{ hardware.SynchronousThreeChannelsPwmCreator(), std::chrono::nanoseconds{ 1000 }, hal::Hertz{ 10000 } }
+        , synchronousThreeChannelsPwmCreator{ hardware.SynchronousThreeChannelsPwmCreator(), std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 } }
         , synchronousQuadratureEncoderCreator(hardware.SynchronousQuadratureEncoderCreator())
     {
     }
 
     void HardwareAdapter::PhaseCurrentsReady(hal::Hertz baseFrequency, const infra::Function<void(foc::PhaseCurrents currentPhases)>& onDone)
     {
+        onPhaseCurrentsReady = onDone;
         synchronousThreeChannelsPwmCreator->SetBaseFrequency(baseFrequency);
+        adcMultiChannelCreator->Measure([this](auto phaseA, auto phaseB, auto phaseC)
+            {
+                onPhaseCurrentsReady(foc::PhaseCurrents{ phaseA, phaseB, phaseC });
+            });
     }
 
     void HardwareAdapter::ThreePhasePwmOutput(const foc::PhasePwmDutyCycles& dutyPhases)
     {
-        // Implementation for handling three-phase PWM output
+        synchronousThreeChannelsPwmCreator->Start(dutyPhases.a, dutyPhases.b, dutyPhases.c);
     }
 
     void HardwareAdapter::Start()
     {
+        synchronousThreeChannelsPwmCreator->Start(hal::Percent{ 1 }, hal::Percent{ 1 }, hal::Percent{ 1 });
     }
 
     void HardwareAdapter::Stop()
     {
-        // Implementation for stopping the motor
+        synchronousThreeChannelsPwmCreator->Stop();
     }
 
     foc::Radians HardwareAdapter::Read()
     {
-        // Implementation for reading the encoder value
-        return foc::Radians{ 0 };
+        return synchronousQuadratureEncoderCreator->Read() - encoderOffset;
     }
 
     void HardwareAdapter::Set(foc::Radians value)
     {
-        // Implementation for setting the encoder value
+        encoderOffset = synchronousQuadratureEncoderCreator->Read() - value;
     }
 
     void HardwareAdapter::SetZero()
     {
-        // Implementation for setting the encoder value to zero
+        encoderOffset = synchronousQuadratureEncoderCreator->Read();
     }
 }

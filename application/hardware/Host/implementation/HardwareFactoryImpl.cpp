@@ -1,4 +1,5 @@
 #include "application/hardware/Host/implementation/HardwareFactoryImpl.hpp"
+#include "application/hardware/AdcMultiChannelDecorator.hpp"
 #include "infra/util/MemoryRange.hpp"
 
 namespace application
@@ -60,12 +61,12 @@ namespace application
         return pwmBrushless;
     }
 
-    infra::CreatorBase<hal::AdcMultiChannel, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
+    infra::CreatorBase<AdcMultiChannelDecorator, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
     {
         return adcCurrentPhases;
     }
 
-    infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& HardwareFactoryImpl::SynchronousQuadratureEncoderCreator()
+    infra::CreatorBase<QuadratureEncoderDecorator, void()>& HardwareFactoryImpl::SynchronousQuadratureEncoderCreator()
     {
         return synchronousQuadratureEncoderCreator;
     }

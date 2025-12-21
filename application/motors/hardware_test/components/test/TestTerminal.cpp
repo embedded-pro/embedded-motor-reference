@@ -1,6 +1,7 @@
 #include "application/motors/hardware_test/components/Terminal.hpp"
 #include "foc/interfaces/Driver.hpp"
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
+#include "hardware/AdcMultiChannelDecorator.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
 #include "infra/util/test_helper/ProxyCreatorMock.hpp"
@@ -36,8 +37,8 @@ namespace
         MOCK_METHOD(foc::Volts, PowerSupplyVoltage, (), (override));
         MOCK_METHOD(foc::Ampere, MaxCurrentSupported, (), (override));
         MOCK_METHOD((infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)>&), SynchronousThreeChannelsPwmCreator, (), (override));
-        MOCK_METHOD((infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>&), AdcMultiChannelCreator, (), (override));
-        MOCK_METHOD((infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>&), SynchronousQuadratureEncoderCreator, (), (override));
+        MOCK_METHOD((infra::CreatorBase<application::AdcMultiChannelDecorator, void(SampleAndHold)>&), AdcMultiChannelCreator, (), (override));
+        MOCK_METHOD((infra::CreatorBase<application::QuadratureEncoderDecorator, void()>&), SynchronousQuadratureEncoderCreator, (), (override));
     };
 
     class PwmMock
@@ -65,6 +66,21 @@ namespace
         MOCK_METHOD(uint32_t, Resolution, (), (override));
         MOCK_METHOD(MotionDirection, Direction, (), (override));
         MOCK_METHOD(uint32_t, Speed, (), (override));
+    };
+
+    class AdcMultiChannelDecoratorMock
+        : public application::AdcMultiChannelDecorator
+    {
+    public:
+        MOCK_METHOD(void, Measure, ((const infra::Function<void(foc::Ampere phaseA, foc::Ampere phaseB, foc::Ampere phaseC)>& onDone)), (override));
+        MOCK_METHOD(void, Stop, (), (override));
+    };
+
+    class QuadratureEncoderDecoratorMock
+        : public application::QuadratureEncoderDecorator
+    {
+    public:
+        MOCK_METHOD(foc::Radians, Read, (), (override));
     };
 
     class PerformanceTrackerMock
@@ -96,7 +112,7 @@ namespace
             EXPECT_CALL(pwmCreator, Constructed(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 }));
             EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::shortest));
 
-            EXPECT_CALL(adcMock, Measure(testing::_)).WillRepeatedly(testing::SaveArg<0>(&onAdcMeasurementDone));
+            EXPECT_CALL(adcDecoratorMock, Measure(testing::_)).WillRepeatedly(testing::SaveArg<0>(&onAdcMeasurementDone));
 
             terminalInteractor.emplace(terminal, hardwareFactoryMock);
         }
@@ -124,13 +140,15 @@ namespace
         testing::StrictMock<AdcMock> adcMock;
         testing::StrictMock<EncoderMock> encoderMock;
         testing::NiceMock<PerformanceTrackerMock> performanceTrackerMock;
+        testing::StrictMock<AdcMultiChannelDecoratorMock> adcDecoratorMock;
+        testing::StrictMock<QuadratureEncoderDecoratorMock> encoderDecoratorMock;
 
         infra::CreatorMock<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)> pwmCreator{ pwmMock };
-        infra::CreatorMock<hal::AdcMultiChannel, void(application::HardwareFactory::SampleAndHold)> adcCreator{ adcMock };
-        infra::CreatorMock<hal::SynchronousQuadratureEncoder, void()> encoderCreator{ encoderMock };
+        infra::CreatorMock<application::AdcMultiChannelDecorator, void(application::HardwareFactory::SampleAndHold)> adcCreator{ adcDecoratorMock };
+        infra::CreatorMock<application::QuadratureEncoderDecorator, void()> encoderCreator{ encoderDecoratorMock };
 
         std::optional<application::TerminalInteractor> terminalInteractor;
-        infra::Function<void(hal::AdcMultiChannel::Samples)> onAdcMeasurementDone;
+        infra::Function<void(foc::Ampere, foc::Ampere, foc::Ampere)> onAdcMeasurementDone;
 
         void InvokeCommand(std::string command, const std::function<void()>& onCommandReceived)
         {
@@ -249,7 +267,7 @@ TEST_F(TestHardwareTerminal, adc_command)
     InvokeCommand("adc medium", [this]()
         {
             EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::medium)).Times(1);
-            EXPECT_CALL(adcMock, Measure(testing::_)).Times(1);
+            EXPECT_CALL(adcDecoratorMock, Measure(testing::_)).Times(1);
         });
 
     ExecuteAllActions();
@@ -260,7 +278,7 @@ TEST_F(TestHardwareTerminal, adc_alias)
     InvokeCommand("a shortest", [this]()
         {
             EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::shortest)).Times(1);
-            EXPECT_CALL(adcMock, Measure(testing::_)).Times(1);
+            EXPECT_CALL(adcDecoratorMock, Measure(testing::_)).Times(1);
         });
 
     ExecuteAllActions();
@@ -799,7 +817,7 @@ TEST_F(TestHardwareTerminal, adc_shorter)
     InvokeCommand("adc shorter", [this]()
         {
             EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::shorter)).Times(1);
-            EXPECT_CALL(adcMock, Measure(testing::_)).Times(1);
+            EXPECT_CALL(adcDecoratorMock, Measure(testing::_)).Times(1);
         });
 
     ExecuteAllActions();
@@ -810,7 +828,7 @@ TEST_F(TestHardwareTerminal, adc_longer)
     InvokeCommand("adc longer", [this]()
         {
             EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::longer)).Times(1);
-            EXPECT_CALL(adcMock, Measure(testing::_)).Times(1);
+            EXPECT_CALL(adcDecoratorMock, Measure(testing::_)).Times(1);
         });
 
     ExecuteAllActions();
@@ -821,7 +839,7 @@ TEST_F(TestHardwareTerminal, adc_longest)
     InvokeCommand("adc longest", [this]()
         {
             EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::longest)).Times(1);
-            EXPECT_CALL(adcMock, Measure(testing::_)).Times(1);
+            EXPECT_CALL(adcDecoratorMock, Measure(testing::_)).Times(1);
         });
 
     ExecuteAllActions();
@@ -1030,51 +1048,54 @@ TEST_F(TestHardwareTerminal, duty_boundary_values_valid)
 
 TEST_F(TestHardwareTerminal, adc_samples_stored_when_buffer_not_full)
 {
-    std::array<uint16_t, 3> sampleData = { 1000, 2000, 3000 };
-    hal::AdcMultiChannel::Samples samples{ sampleData };
+    foc::Ampere phaseA{ 1.0f };
+    foc::Ampere phaseB{ 2.0f };
+    foc::Ampere phaseC{ 3.0f };
 
-    onAdcMeasurementDone(samples);
+    onAdcMeasurementDone(phaseA, phaseB, phaseC);
 
     ExecuteAllActions();
 }
 
 TEST_F(TestHardwareTerminal, adc_buffer_full_triggers_processing)
 {
-    std::array<uint16_t, 3> sampleData = { 1000, 2000, 3000 };
-    hal::AdcMultiChannel::Samples samples{ sampleData };
+    foc::Ampere phaseA{ 1.0f };
+    foc::Ampere phaseB{ 2.0f };
+    foc::Ampere phaseC{ 3.0f };
 
     for (std::size_t i = 0; i < 2000; ++i)
-        onAdcMeasurementDone(samples);
+        onAdcMeasurementDone(phaseA, phaseB, phaseC);
 
-    EXPECT_CALL(adcMock, Stop()).Times(1);
+    EXPECT_CALL(adcDecoratorMock, Stop()).Times(1);
     EXPECT_CALL(adcCreator, Destructed()).Times(1);
     EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
 
-    onAdcMeasurementDone(samples);
+    onAdcMeasurementDone(phaseA, phaseB, phaseC);
 
     ExecuteAllActions();
 }
 
 TEST_F(TestHardwareTerminal, adc_reconfigure_after_buffer_full)
 {
-    std::array<uint16_t, 3> sampleData = { 1000, 2000, 3000 };
-    hal::AdcMultiChannel::Samples samples{ sampleData };
+    foc::Ampere phaseA{ 1.0f };
+    foc::Ampere phaseB{ 2.0f };
+    foc::Ampere phaseC{ 3.0f };
 
     for (std::size_t i = 0; i < 2000; ++i)
-        onAdcMeasurementDone(samples);
+        onAdcMeasurementDone(phaseA, phaseB, phaseC);
 
-    EXPECT_CALL(adcMock, Stop()).Times(1);
+    EXPECT_CALL(adcDecoratorMock, Stop()).Times(1);
     EXPECT_CALL(adcCreator, Destructed()).Times(1);
     EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
 
-    onAdcMeasurementDone(samples);
+    onAdcMeasurementDone(phaseA, phaseB, phaseC);
 
     ExecuteAllActions();
 
     InvokeCommand("adc medium", [this]()
         {
             EXPECT_CALL(adcCreator, Constructed(application::HardwareFactory::SampleAndHold::medium)).Times(1);
-            EXPECT_CALL(adcMock, Measure(testing::_)).WillOnce(testing::SaveArg<0>(&onAdcMeasurementDone));
+            EXPECT_CALL(adcDecoratorMock, Measure(testing::_)).WillOnce(testing::SaveArg<0>(&onAdcMeasurementDone));
         });
 
     ExecuteAllActions();
@@ -1082,13 +1103,19 @@ TEST_F(TestHardwareTerminal, adc_reconfigure_after_buffer_full)
 
 TEST_F(TestHardwareTerminal, adc_multiple_samples_before_full)
 {
-    std::array<uint16_t, 3> sampleData1 = { 100, 200, 300 };
-    std::array<uint16_t, 3> sampleData2 = { 400, 500, 600 };
-    std::array<uint16_t, 3> sampleData3 = { 700, 800, 900 };
+    foc::Ampere phaseA1{ 1.0f };
+    foc::Ampere phaseB1{ 2.0f };
+    foc::Ampere phaseC1{ 3.0f };
+    foc::Ampere phaseA2{ 4.0f };
+    foc::Ampere phaseB2{ 5.0f };
+    foc::Ampere phaseC2{ 6.0f };
+    foc::Ampere phaseA3{ 7.0f };
+    foc::Ampere phaseB3{ 8.0f };
+    foc::Ampere phaseC3{ 9.0f };
 
-    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData1 });
-    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData2 });
-    onAdcMeasurementDone(hal::AdcMultiChannel::Samples{ sampleData3 });
+    onAdcMeasurementDone(phaseA1, phaseB1, phaseC1);
+    onAdcMeasurementDone(phaseA2, phaseB2, phaseC2);
+    onAdcMeasurementDone(phaseA3, phaseB3, phaseC3);
 
     ExecuteAllActions();
 }

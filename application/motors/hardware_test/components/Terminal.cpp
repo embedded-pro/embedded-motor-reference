@@ -1,6 +1,5 @@
 #include "application/motors/hardware_test/components/Terminal.hpp"
 #include "foc/interfaces/Driver.hpp"
-#include "infra/event/EventDispatcher.hpp"
 #include "infra/stream/StringInputStream.hpp"
 #include "infra/util/BoundedString.hpp"
 #include "infra/util/ReallyAssert.hpp"
@@ -63,11 +62,6 @@ namespace
         else
             return {};
     }
-
-    float ToMilliVolts(uint16_t adcValue, uint32_t adcMaxValue = 4095, float referenceVoltage = 3.3f)
-    {
-        return (static_cast<float>(adcValue) / static_cast<float>(adcMaxValue)) * referenceVoltage * 1000.0f;
-    }
 }
 
 namespace application
@@ -82,9 +76,6 @@ namespace application
         , Vdc{ hardware.PowerSupplyVoltage() }
         , foc{ trigFunctions, hardware.MaxCurrentSupported(), std::chrono::microseconds(static_cast<std::size_t>(1e6f / static_cast<float>(hardware.BaseFrequency().Value()))) }
     {
-        for (std::size_t i = 0; i < numberOfChannels; ++i)
-            adcChannelSamples.emplace_back();
-
         terminal.AddCommand({ { "enc", "e", "Read encoder. stop. Ex: enc" },
             [this](const auto&)
             {
@@ -236,6 +227,9 @@ namespace application
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::ReadEncoder()
     {
+        tracer.Trace() << "  Encoder Readings:";
+        tracer.Trace() << "    Position:  " << encoderCreator->Read().Value() << " radians";
+
         return { services::TerminalWithStorage::Status::success };
     }
 
@@ -303,16 +297,12 @@ namespace application
         adcCreator->Stop();
         adcCreator.Destroy();
 
-        tracer.Trace() << "  Measures [A;B;C]";
+        tracer.Trace() << "  Current Phases [A;B;C] ampere";
 
-        if (IsAdcBufferPopulated())
-            for (std::size_t i = 0; i < adcChannelSamples[0].size(); ++i)
-                tracer.Trace() << ToMilliVolts(adcChannelSamples[0][i]) << ";" << ToMilliVolts(adcChannelSamples[1][i]) << ";" << ToMilliVolts(adcChannelSamples[2][i]);
-        else
-            tracer.Trace() << "    No ADC data available";
+        for (std::size_t i = 0; i < queueOfPhaseCurrents.size(); ++i)
+            tracer.Trace() << queueOfPhaseCurrents[i].a.Value() << ";" << queueOfPhaseCurrents[i].b.Value() << ";" << queueOfPhaseCurrents[i].c.Value();
 
-        for (auto& channelSamples : adcChannelSamples)
-            channelSamples.clear();
+        queueOfPhaseCurrents.clear();
     }
 
     TerminalInteractor::StatusWithMessage TerminalInteractor::SetPwmDuty(const infra::BoundedConstString& param)
@@ -359,27 +349,12 @@ namespace application
     void TerminalInteractor::StartAdc(HardwareFactory::SampleAndHold sampleAndHold)
     {
         adcCreator.Emplace(sampleAndHold);
-        adcCreator->Measure([this](auto samples)
+        adcCreator->Measure([this](auto phaseA, auto phaseB, auto phaseC)
             {
-                really_assert(samples.size() == numberOfChannels);
-
-                auto sampleIt = samples.begin();
-                for (auto& channelSamples : adcChannelSamples)
-                {
-                    if (channelSamples.full())
-                        ProcessAdcSamples();
-                    else
-                        channelSamples.push_back(*sampleIt++);
-                }
+                if (!queueOfPhaseCurrents.full())
+                    queueOfPhaseCurrents.emplace_back(foc::PhaseCurrents{ phaseA, phaseB, phaseC });
+                else
+                    ProcessAdcSamples();
             });
-    }
-
-    bool TerminalInteractor::IsAdcBufferPopulated() const
-    {
-        for (const auto& channelSamples : adcChannelSamples)
-            if (channelSamples.empty())
-                return false;
-
-        return true;
     }
 }

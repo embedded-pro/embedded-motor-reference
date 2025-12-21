@@ -2,7 +2,6 @@
 
 namespace foc
 {
-    // Clarke Transform Implementation
     TwoPhase Clarke::Forward(const ThreePhase& input) const
     {
         const float bc_sum = input.b + input.c;
@@ -16,7 +15,6 @@ namespace foc
         return ThreePhase{ input.alpha, -alpha_half + beta_sqrt3_half, -alpha_half - beta_sqrt3_half };
     }
 
-    // Park Transform Implementation
     RotatingFrame Park::Forward(const TwoPhase& input, const float& cosTheta, const float& sinTheta) const
     {
         const float alpha_cos = input.alpha * cosTheta;
@@ -37,7 +35,6 @@ namespace foc
         return TwoPhase{ d_cos - q_sin, d_sin + q_cos };
     }
 
-    // ClarkePark Combined Transform Implementation
     RotatingFrame ClarkePark::Forward(const ThreePhase& input, const float& cosTheta, const float& sinTheta) const
     {
         return park.Forward(clarke.Forward(input), cosTheta, sinTheta);

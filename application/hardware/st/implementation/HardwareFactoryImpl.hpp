@@ -26,8 +26,8 @@ namespace application
         foc::Volts PowerSupplyVoltage() override;
         foc::Ampere MaxCurrentSupported() override;
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
-        infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() override;
-        infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() override;
+        infra::CreatorBase<AdcMultiChannelDecorator, void(SampleAndHold)>& AdcMultiChannelCreator() override;
+        infra::CreatorBase<QuadratureEncoderDecorator, void()>& SynchronousQuadratureEncoderCreator() override;
 
         // Implementation of hal::PerformanceTracker
         void Start() override;
@@ -108,17 +108,17 @@ namespace application
         GpioPinStub pin;
         SerialCommunicationStub serial;
         TerminalAndTracer terminalAndTracer{ serial };
-        infra::Creator<hal::AdcMultiChannel, AdcMultiChannelStub, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
+        infra::Creator<AdcMultiChannelDecorator, AdcMultiChannelDecoratorImpl<AdcMultiChannelStub>, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
             {
-                object.Emplace();
+                object.Emplace(0.0f);
             } };
         infra::Creator<hal::SynchronousThreeChannelsPwm, SynchronousThreeChannelsPwmStub, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)> pwmBrushless{ [this](auto& object, auto deadTime, auto frequency)
             {
                 object.Emplace();
             } };
-        infra::Creator<hal::SynchronousQuadratureEncoder, SynchronousQuadratureEncoderStub, void()> synchronousQuadratureEncoderCreator{ [this](auto& object)
+        infra::Creator<QuadratureEncoderDecorator, QuadratureEncoderDecoratorImpl<SynchronousQuadratureEncoderStub>, void()> synchronousQuadratureEncoderCreator{ [this](auto& object)
             {
-                object.Emplace();
+                object.Emplace(0);
             } };
     };
 }
