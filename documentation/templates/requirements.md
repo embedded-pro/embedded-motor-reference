@@ -1,6 +1,5 @@
 ---
 title: E-FOC Requirements Specification
-author: E-FOC Team
 date: \today
 geometry: margin=1in
 toc-title: Table of Contents
