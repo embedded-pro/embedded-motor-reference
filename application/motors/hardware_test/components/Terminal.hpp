@@ -24,15 +24,15 @@ namespace application
         StatusWithMessage ConfigureAdc(const infra::BoundedConstString& param);
         StatusWithMessage SimulateFoc(const infra::BoundedConstString& param);
         StatusWithMessage ConfigurePid(const infra::BoundedConstString& param);
+        StatusWithMessage ReadEncoder();
         StatusWithMessage Stop();
         void ProcessAdcSamples();
         StatusWithMessage SetPwmDuty(const infra::BoundedConstString& param);
         StatusWithMessage SetMotorParameters(const infra::BoundedConstString& param);
 
     private:
-        static constexpr std::size_t averageSampleSize = 2000;
-        static constexpr std::size_t numberOfChannels = 3;
-        using AdcChannelSamples = infra::BoundedDeque<uint16_t>::WithMaxSize<averageSampleSize>;
+        static constexpr std::size_t averageSampleSize = 100;
+        using QueueOfPhaseCurrents = infra::BoundedDeque<foc::PhaseCurrents>::WithMaxSize<averageSampleSize>;
 
         void StartAdc(HardwareFactory::SampleAndHold sampleAndHold);
         bool IsAdcBufferPopulated() const;
@@ -44,9 +44,9 @@ namespace application
         services::TerminalWithStorage& terminal;
         services::Tracer& tracer;
         infra::DelayedProxyCreator<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)> pwmCreator;
-        infra::DelayedProxyCreator<hal::AdcMultiChannel, void(HardwareFactory::SampleAndHold)> adcCreator;
-        infra::DelayedProxyCreator<hal::SynchronousQuadratureEncoder, void()> encoderCreator;
-        infra::BoundedVector<AdcChannelSamples>::WithMaxSize<numberOfChannels> adcChannelSamples;
+        infra::DelayedProxyCreator<AdcMultiChannelDecorator, void(HardwareFactory::SampleAndHold)> adcCreator;
+        infra::DelayedProxyCreator<QuadratureEncoderDecorator, void()> encoderCreator;
+        QueueOfPhaseCurrents queueOfPhaseCurrents;
         hal::PerformanceTracker& performanceTimer;
         foc::Volts Vdc;
         controllers::PidTunings<float> speedPidTunings;

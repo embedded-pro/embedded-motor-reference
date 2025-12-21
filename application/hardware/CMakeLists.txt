@@ -16,11 +16,11 @@ target_link_libraries(e_foc.hardware PUBLIC
 )
 
 target_sources(e_foc.hardware PRIVATE
+    AdcMultiChannelDecorator.hpp
     HardwareFactory.hpp
     MotorFieldOrientedControllerAdapter.hpp
     MotorFieldOrientedControllerAdapter.cpp
-    PidAdapter.hpp
-    PidAdapter.cpp
+    QuadratureEncoderDecorator.hpp
 )
 
 add_subdirectory(${E_FOC_TARGET_PLATFORM})

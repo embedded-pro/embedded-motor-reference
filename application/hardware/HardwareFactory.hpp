@@ -1,7 +1,8 @@
 #pragma once
 
 #include "application/foc/interfaces/Driver.hpp"
-#include "hal/interfaces/AdcMultiChannel.hpp"
+#include "application/hardware/AdcMultiChannelDecorator.hpp"
+#include "application/hardware/QuadratureEncoderDecorator.hpp"
 #include "hal/interfaces/Gpio.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
@@ -44,7 +45,7 @@ namespace application
         virtual foc::Volts PowerSupplyVoltage() = 0;
         virtual foc::Ampere MaxCurrentSupported() = 0;
         virtual infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() = 0;
-        virtual infra::CreatorBase<hal::AdcMultiChannel, void(SampleAndHold)>& AdcMultiChannelCreator() = 0;
-        virtual infra::CreatorBase<hal::SynchronousQuadratureEncoder, void()>& SynchronousQuadratureEncoderCreator() = 0;
+        virtual infra::CreatorBase<AdcMultiChannelDecorator, void(SampleAndHold)>& AdcMultiChannelCreator() = 0;
+        virtual infra::CreatorBase<QuadratureEncoderDecorator, void()>& SynchronousQuadratureEncoderCreator() = 0;
     };
 }
