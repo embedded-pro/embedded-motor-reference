@@ -43,6 +43,7 @@ def main():
 
     # Write intermediate markdown
     md_path = args.output.with_suffix(".md")
+    md_path.parent.mkdir(parents=True, exist_ok=True)
     md_path.write_text(markdown)
 
     # Convert to PDF with pandoc
