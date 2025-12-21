@@ -31,7 +31,7 @@ namespace application
         StatusWithMessage SetMotorParameters(const infra::BoundedConstString& param);
 
     private:
-        static constexpr std::size_t averageSampleSize = 2000;
+        static constexpr std::size_t averageSampleSize = 100;
         using QueueOfPhaseCurrents = infra::BoundedDeque<foc::PhaseCurrents>::WithMaxSize<averageSampleSize>;
 
         void StartAdc(HardwareFactory::SampleAndHold sampleAndHold);
