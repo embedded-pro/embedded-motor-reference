@@ -1119,3 +1119,51 @@ TEST_F(TestHardwareTerminal, adc_multiple_samples_before_full)
 
     ExecuteAllActions();
 }
+
+TEST_F(TestHardwareTerminal, encoder_command)
+{
+    EXPECT_CALL(encoderDecoratorMock, Read()).WillOnce(testing::Return(foc::Radians{ 1.57f }));
+
+    InvokeCommand("enc", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, encoder_alias)
+{
+    EXPECT_CALL(encoderDecoratorMock, Read()).WillOnce(testing::Return(foc::Radians{ 3.14f }));
+
+    InvokeCommand("e", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, encoder_returns_zero_position)
+{
+    EXPECT_CALL(encoderDecoratorMock, Read()).WillOnce(testing::Return(foc::Radians{ 0.0f }));
+
+    InvokeCommand("enc", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TestHardwareTerminal, encoder_returns_negative_position)
+{
+    EXPECT_CALL(encoderDecoratorMock, Read()).WillOnce(testing::Return(foc::Radians{ -1.57f }));
+
+    InvokeCommand("enc", [this]()
+        {
+            EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AnyNumber());
+        });
+
+    ExecuteAllActions();
+}
