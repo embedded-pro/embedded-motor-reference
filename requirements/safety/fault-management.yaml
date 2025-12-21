@@ -1,0 +1,203 @@
+---
+title: Fault Management and Safety Requirements
+description: Fault detection, response, and recovery mechanisms
+
+requirements:
+  
+  - id: "FAULT-001"
+    title: "Over-Current Detection"
+    rationale: "Phase currents exceeding safe limits can damage motor and power stage; must be detected immediately"
+    content:
+      given: "Motor is running and drawing current"
+      when: "Phase current exceeds I_max + 10% margin"
+      then: "Hardware comparator or firmware ADC detects condition within 100 nanoseconds"
+  - id: "FAULT-002"
+    title: "Over-Current Fault Action - Power Stage Shutdown"
+    rationale: "Critical fault requires immediate power cutoff to prevent component damage"
+    content:
+      given: "Over-current fault is detected"
+      when: "Protection mechanism activates"
+      then: "All PWM gate driver outputs are set LOW within 1 microsecond"
+  - id: "FAULT-003"
+    title: "Over-Current Fault is Latched"
+    rationale: "Latched fault prevents automatic restart of damaged system"
+    content:
+      given: "Over-current fault has occurred"
+      when: "User attempts to restart without external intervention"
+      then: "System remains in fault state until manual reset or power cycle"
+  - id: "FAULT-004"
+    title: "Over-Current Fault LED Indication"
+    rationale: "Visual indication enables immediate recognition of over-current condition"
+    content:
+      given: "Over-current fault is active"
+      when: "LED controller runs fault display routine"
+      then: "Red LED blinks 2 times, repeats every 2 seconds"
+  
+  - id: "FAULT-010"
+    title: "Over-Voltage Detection"
+    rationale: "Excessive supply voltage can destroy power stage and motor windings"
+    content:
+      given: "Supply voltage is monitored"
+      when: "Voltage exceeds V_max parameter"
+      then: "Hardware comparator detects and signals fault within 100 nanoseconds"
+  - id: "FAULT-011"
+    title: "Over-Voltage Fault Action"
+    rationale: "Over-voltage requires immediate power shutdown"
+    content:
+      given: "Over-voltage fault is detected"
+      when: "Protection activates"
+      then: "All PWM outputs are disabled within 1 microsecond"
+  - id: "FAULT-012"
+    title: "Over-Voltage Fault is Latched"
+    rationale: "Supply voltage issue requires investigation; automatic restart is unsafe"
+    content:
+      given: "Over-voltage condition has occurred"
+      when: "System attempts to restart"
+      then: "Fault remains latched until manual intervention and voltage stabilizes"
+  - id: "FAULT-013"
+    title: "Over-Voltage Fault LED Indication"
+    rationale: "Specific LED pattern distinguishes over-voltage from other faults"
+    content:
+      given: "Over-voltage fault is active"
+      when: "LED fault display routine executes"
+      then: "Red LED blinks 3 times, repeats every 2 seconds"
+  
+  - id: "FAULT-020"
+    title: "Over-Temperature Detection"
+    rationale: "Temperature exceeding safe limits risks fire and component destruction"
+    content:
+      given: "Temperature sensor is reading motor or inverter temperature"
+      when: "Temperature exceeds configured limit (e.g., 80°C)"
+      then: "Firmware detects threshold crossing within 10 milliseconds"
+  - id: "FAULT-021"
+    title: "Over-Temperature Thermal Hysteresis"
+    rationale: "Hysteresis prevents oscillation around threshold"
+    content:
+      given: "System is in over-temperature fault state"
+      when: "Temperature drops below threshold"
+      then: "Fault does not clear until temperature drops 5°C below limit"
+  - id: "FAULT-022"
+    title: "Over-Temperature Automatic Recovery"
+    rationale: "Unlike electrical faults, temperature recovers naturally with time"
+    content:
+      given: "Over-temperature fault is active"
+      when: "Temperature drops to safe level after cooling"
+      then: "System automatically transitions from fault to healthy state"
+  - id: "FAULT-023"
+    title: "Over-Temperature LED Indication"
+    rationale: "Distinct blink pattern identifies thermal issues"
+    content:
+      given: "Over-temperature fault is active"
+      when: "LED fault display routine runs"
+      then: "Red LED blinks 4 times, repeats every 2 seconds"
+  
+  - id: "FAULT-030"
+    title: "Hall Sensor Pattern Validation"
+    rationale: "Invalid Hall pattern indicates sensor failure, wiring issue, or EMI"
+    content:
+      given: "Motor is running"
+      when: "Hall sensor pattern validation occurs each control loop"
+      then: "System verifies 6-state pattern is correct and edge rate matches expected speed"
+  - id: "FAULT-031"
+    title: "Hall Sensor Stuck State Detection"
+    rationale: "Stuck Hall state indicates sensor failure or connection loss"
+    content:
+      given: "Hall sensor signals are monitored"
+      when: "Hall state remains unchanged for more than 1 second"
+      then: "System detects stuck state and triggers Hall sensor fault"
+  - id: "FAULT-032"
+    title: "Hall Sensor Fault Disables Motor"
+    rationale: "Motor cannot be safely commutated without valid Hall feedback"
+    content:
+      given: "Hall sensor fault is detected"
+      when: "Sensor validation fails"
+      then: "All PWM outputs are disabled and motor stops"
+  - id: "FAULT-033"
+    title: "Hall Sensor Fault LED Indication"
+    rationale: "Unique blink pattern alerts technician to sensor/wiring problem"
+    content:
+      given: "Hall sensor fault is active"
+      when: "LED controller generates fault pattern"
+      then: "Red LED blinks 5 times, repeats every 2 seconds"
+  - id: "FAULT-034"
+    title: "Hall Sensor Fault Requires Manual Reset"
+    rationale: "Sensor or wiring issue requires investigation and repair"
+    content:
+      given: "Hall sensor fault has occurred"
+      when: "System attempts automatic recovery"
+      then: "Fault remains latched until manual reset via CLEARFAULTS or power cycle"
+  
+  - id: "FAULT-040"
+    title: "System Starts in HEALTHY State"
+    rationale: "System assumes safe condition at power-on"
+    content:
+      given: "System initializes"
+      when: "Boot sequence completes"
+      then: "Fault state machine transitions to HEALTHY (no faults)"
+  - id: "FAULT-041"
+    title: "Critical Fault Transitions to FAULT State"
+    rationale: "Critical faults immediately disable motor"
+    content:
+      given: "Critical fault is detected (OC, OV, Hall sensor)"
+      when: "Fault validation is complete"
+      then: "State machine transitions from HEALTHY to FAULT, motor disabled"
+  - id: "FAULT-042"
+    title: "Fault Recovery Requires Reset"
+    rationale: "Manual reset confirms user awareness and root cause resolution"
+    content:
+      given: "System is in FAULT state"
+      when: "User sends CLEARFAULTS command or power cycle occurs"
+      then: "State machine transitions to HEALTHY only after explicit reset"
+  
+  - id: "FAULT-050"
+    title: "Multiple Faults Show Highest Priority"
+    rationale: "Most critical fault should be immediately visible to user"
+    content:
+      given: "Multiple fault conditions are active simultaneously"
+      when: "Fault display logic evaluates all active faults"
+      then: "LED blink pattern displays fault with highest priority: OC > OV > OT > Hall"
+  
+  - id: "FAULT-060"
+    title: "Immediate PWM Disable on Critical Fault"
+    rationale: "All gate drivers must be disabled to prevent component damage"
+    content:
+      given: "Over-current or over-voltage fault is detected"
+      when: "Hardware protection circuit activates"
+      then: "All PWM outputs are set to safe state (low) within 1 microsecond"
+  - id: "FAULT-061"
+    title: "Current Limiting on Minor Over-Current"
+    rationale: "Non-critical current overshoot can be managed by limiting duty cycle"
+    content:
+      given: "Current exceeds safe value slightly (below shutdown threshold)"
+      when: "Firmware detects elevated current"
+      then: "PWM duty cycle is limited to reduce current toward reference"
+  
+  - id: "FAULT-070"
+    title: "Fault Status via Serial Interface"
+    rationale: "Users need access to fault history and current status"
+    content:
+      given: "User sends FAULTS command via serial"
+      when: "System processes diagnostic request"
+      then: "System responds with list of active and latched fault codes"
+  - id: "FAULT-071"
+    title: "Fault Status via CAN Bus"
+    rationale: "Master controller needs real-time fault information"
+    content:
+      given: "Fault occurs during motor operation"
+      when: "CAN status message is transmitted"
+      then: "Motor status message includes fault bit flags indicating active faults"
+  
+  - id: "FAULT-080"
+    title: "Power-On Self-Test"
+    rationale: "System must validate critical hardware before operation"
+    content:
+      given: "System powers on"
+      when: "Initialization routine executes"
+      then: "System verifies Hall sensors, ADC channels, and temperature sensor are responsive"
+  - id: "FAULT-081"
+    title: "Periodic Fault Validation"
+    rationale: "Continuous monitoring detects intermittent faults and EMI issues"
+    content:
+      given: "Motor is running normally"
+      when: "1 second diagnostic interval elapses"
+      then: "System validates Hall sensor pattern, ADC readings, and sensor response times"

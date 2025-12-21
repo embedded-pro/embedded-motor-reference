@@ -1,0 +1,152 @@
+---
+title: Serial Communication Interface Requirements
+description: Serial port protocol for parameter configuration and monitoring
+
+requirements:
+  
+  - id: "SERIAL-001"
+    title: "Serial Port 115200 Baud Rate"
+    rationale: "115200 bps is standard for embedded systems, provides good range and bandwidth"
+    content:
+      given: "Serial port is initialized"
+      when: "System configures UART peripheral"
+      then: "Baud rate is set to exactly 115200 bits per second"
+  - id: "SERIAL-002"
+    title: "Serial Port 8 Data Bits"
+    rationale: "8-bit data format supports full ASCII character range"
+    content:
+      given: "Serial interface is configured"
+      when: "UART initialization occurs"
+      then: "Data frame format is set to 8 bits per character"
+  - id: "SERIAL-003"
+    title: "Serial Port No Parity"
+    rationale: "Simplifies protocol; CAN interface provides error checking for critical commands"
+    content:
+      given: "Serial port configuration"
+      when: "UART peripheral is initialized"
+      then: "Parity checking is disabled"
+  - id: "SERIAL-004"
+    title: "Serial Port 1 Stop Bit"
+    rationale: "Standard configuration for reliable communication at 115200 bps"
+    content:
+      given: "UART settings are configured"
+      when: "Serial port initialization occurs"
+      then: "One stop bit is used per character (8N1 standard)"
+  
+  - id: "SERIAL-005"
+    title: "ASCII Text Commands with CRLF Termination"
+    rationale: "Human-readable format enables manual testing and diagnostics"
+    content:
+      given: "User sends command via terminal"
+      when: "Command is typed and Enter key is pressed"
+      then: "System receives command terminated with CR+LF (\\r\\n) and processes it"
+  - id: "SERIAL-006"
+    title: "Serial Command Response Format"
+    rationale: "Consistent response format enables reliable parsing"
+    content:
+      given: "System processes valid command"
+      when: "Command execution completes"
+      then: "System responds with 'OK' or error message followed by CRLF"
+  
+  - id: "SERIAL-010"
+    title: "HELP Command Lists Available Commands"
+    rationale: "Users need reference for available commands without external documentation"
+    content:
+      given: "User is connected via serial terminal"
+      when: "User types 'HELP' and presses Enter"
+      then: "System displays list of all available commands with brief descriptions"
+  - id: "SERIAL-011"
+    title: "STATUS Command Shows System State"
+    rationale: "Users need quick visibility into current operating state"
+    content:
+      given: "Motor is running under load"
+      when: "User sends STATUS command"
+      then: "System responds with motor speed, current, temperature, and fault status"
+  - id: "SERIAL-012"
+    title: "RESET Command Performs Software Reset"
+    rationale: "Users need ability to restart system without power cycling"
+    content:
+      given: "System is operational"
+      when: "User sends RESET command"
+      then: "System acknowledges with 'OK', performs full software reset, and reboots"
+  
+  - id: "SERIAL-020"
+    title: "MOTOR_POLES Get/Set Pole Pair Count"
+    rationale: "Motor pole pairs affect commutation frequency and must be configurable"
+    content:
+      given: "Motor parameters need adjustment"
+      when: "User sends 'MOTOR_POLES 4' command"
+      then: "System stores new pole pair value and responds with 'OK'"
+  - id: "SERIAL-021"
+    title: "MOTOR_IMAX Get/Set Maximum Current"
+    rationale: "Current limit must be adjustable per motor specifications"
+    content:
+      given: "User needs to set motor current limit"
+      when: "User sends 'MOTOR_IMAX 15' command"
+      then: "System stores new current limit and responds with 'OK'"
+  - id: "SERIAL-022"
+    title: "PID_CURRENT Get/Set Current Loop Gains"
+    rationale: "PI gains must be tunable for different motor characteristics"
+    content:
+      given: "Current control loop needs tuning"
+      when: "User sends 'PID_CURRENT 0.5 0.2' command"
+      then: "System updates Kp and Ki gains and responds with 'OK'"
+  - id: "SERIAL-023"
+    title: "PWM_FREQ Get/Set PWM Frequency"
+    rationale: "PWM frequency must be adjustable for different applications"
+    content:
+      given: "System is idle or motor is stopped"
+      when: "User sends 'PWM_FREQ 16' command (16 kHz)"
+      then: "System updates PWM frequency and responds with 'OK'"
+  
+  - id: "SERIAL-030"
+    title: "START Command Enables Motor Control"
+    rationale: "Users need simple command to begin motor operation"
+    content:
+      given: "System is in idle state and no faults are active"
+      when: "User sends START command"
+      then: "FOC control loop activates, motor begins running, green LED becomes solid"
+  - id: "SERIAL-031"
+    title: "STOP Command Disables Motor"
+    rationale: "Users need immediate ability to stop motor"
+    content:
+      given: "Motor is running"
+      when: "User sends STOP command"
+      then: "All PWM outputs are disabled, motor drifts, green LED transitions to blinking"
+  - id: "SERIAL-032"
+    title: "SETSPEED Command Sets Desired Speed"
+    rationale: "Users need to control motor speed precisely"
+    content:
+      given: "Motor is running with speed control enabled"
+      when: "User sends 'SETSPEED 1500' command (1500 RPM)"
+      then: "System updates speed reference and closes velocity loop toward target"
+  
+  - id: "SERIAL-040"
+    title: "FAULTS Command Displays Fault Codes"
+    rationale: "Users need quick access to current fault status for diagnostics"
+    content:
+      given: "System has detected one or more faults"
+      when: "User sends FAULTS command"
+      then: "System displays list of active and latched fault codes"
+  - id: "SERIAL-041"
+    title: "CLEARFAULTS Command Clears Latched Faults"
+    rationale: "Users need ability to reset latched faults after resolving root cause"
+    content:
+      given: "System is in fault state"
+      when: "User sends CLEARFAULTS command"
+      then: "All latched fault flags are cleared and system returns to HEALTHY state"
+  
+  - id: "SERIAL-050"
+    title: "Invalid Command Returns Error"
+    rationale: "System must inform user of command syntax errors"
+    content:
+      given: "User types unrecognized command"
+      when: "System parses command line"
+      then: "System responds with 'ERROR UNKNOWN_CMD' and waits for next command"
+  - id: "SERIAL-051"
+    title: "Out-of-Range Parameter Rejected"
+    rationale: "Invalid parameters must be rejected to prevent dangerous operation"
+    content:
+      given: "User attempts to set parameter outside valid range"
+      when: "System validates parameter value"
+      then: "System responds with 'ERROR OUT_OF_RANGE' and does not apply change"
