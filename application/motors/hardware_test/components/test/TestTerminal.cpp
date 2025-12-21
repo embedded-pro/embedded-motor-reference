@@ -1063,7 +1063,7 @@ TEST_F(TestHardwareTerminal, adc_buffer_full_triggers_processing)
     foc::Ampere phaseB{ 2.0f };
     foc::Ampere phaseC{ 3.0f };
 
-    for (std::size_t i = 0; i < 2000; ++i)
+    for (std::size_t i = 0; i < 100; ++i)
         onAdcMeasurementDone(phaseA, phaseB, phaseC);
 
     EXPECT_CALL(adcDecoratorMock, Stop()).Times(1);
@@ -1081,7 +1081,7 @@ TEST_F(TestHardwareTerminal, adc_reconfigure_after_buffer_full)
     foc::Ampere phaseB{ 2.0f };
     foc::Ampere phaseC{ 3.0f };
 
-    for (std::size_t i = 0; i < 2000; ++i)
+    for (std::size_t i = 0; i < 100; ++i)
         onAdcMeasurementDone(phaseA, phaseB, phaseC);
 
     EXPECT_CALL(adcDecoratorMock, Stop()).Times(1);
