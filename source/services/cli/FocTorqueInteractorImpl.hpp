@@ -1,7 +1,7 @@
 #pragma once
 
 #include "source/foc/interfaces/Controller.hpp"
-#include "source/services/terminal/FocInteractor.hpp"
+#include "source/services/cli/FocInteractor.hpp"
 
 namespace services
 {

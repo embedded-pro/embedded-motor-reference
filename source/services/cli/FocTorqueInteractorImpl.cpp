@@ -1,4 +1,4 @@
-#include "source/services/terminal/FocTorqueInteractorImpl.hpp"
+#include "source/services/cli/FocTorqueInteractorImpl.hpp"
 
 namespace services
 {

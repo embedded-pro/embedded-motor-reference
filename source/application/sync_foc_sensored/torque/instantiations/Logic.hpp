@@ -6,8 +6,8 @@
 #include "source/foc/instantiations/TrigonometricImpl.hpp"
 #include "source/hardware/HardwareFactory.hpp"
 #include "source/hardware/MotorFieldOrientedControllerAdapter.hpp"
-#include "source/services/terminal/FocTorqueInteractorImpl.hpp"
-#include "source/services/terminal/TerminalTorque.hpp"
+#include "source/services/cli/FocTorqueInteractorImpl.hpp"
+#include "source/services/cli/TerminalTorque.hpp"
 
 namespace application
 {

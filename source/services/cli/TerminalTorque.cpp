@@ -1,4 +1,4 @@
-#include "source/services/terminal/TerminalTorque.hpp"
+#include "source/services/cli/TerminalTorque.hpp"
 #include "infra/stream/StringInputStream.hpp"
 #include "infra/util/Function.hpp"
 #include "infra/util/Tokenizer.hpp"

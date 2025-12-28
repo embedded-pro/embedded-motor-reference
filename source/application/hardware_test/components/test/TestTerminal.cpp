@@ -5,7 +5,7 @@
 #include "infra/util/test_helper/MockHelpers.hpp"
 #include "infra/util/test_helper/ProxyCreatorMock.hpp"
 #include "services/tracer/Tracer.hpp"
-#include "source/motors/hardware_test/components/Terminal.hpp"
+#include "source/application/hardware_test/components/Terminal.hpp"
 #include "gmock/gmock.h"
 #include "gtest/gtest.h"
 

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "services/util/TerminalWithStorage.hpp"
-#include "source/services/terminal/FocInteractor.hpp"
+#include "source/services/cli/FocInteractor.hpp"
 
 namespace services
 {
