@@ -1,6 +1,6 @@
 #include "simulator/pmsm/Model.hpp"
-#include "application/foc/interfaces/Driver.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
+#include "source/foc/interfaces/Driver.hpp"
 #include <cmath>
 
 namespace simulator

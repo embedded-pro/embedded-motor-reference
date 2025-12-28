@@ -1,0 +1,27 @@
+#pragma once
+
+#include "source/foc/interfaces/Controller.hpp"
+#include "source/services/terminal/FocInteractor.hpp"
+
+namespace services
+{
+    class FocTorqueInteractorImpl
+        : public FocTorqueInteractor
+    {
+    public:
+        explicit FocTorqueInteractorImpl(foc::Volts vdc, foc::TorqueController& focTorqueController);
+
+        // Implementation of FocTorqueInteractor
+        void AutoTune(const infra::Function<void()>& onDone) override;
+        void SetDQPidParameters(const std::pair<PidParameters, PidParameters>& pidDAndQParameters) override;
+        void SetTorque(const foc::Nm& torque) override;
+        void Start() override;
+        void Stop() override;
+
+    private:
+        foc::Volts vdc;
+        foc::TorqueController& focTorqueController;
+        foc::IdAndIqPoint focSetPoint;
+        foc::IdAndIqTunings IdAndIqTunings;
+    };
+}

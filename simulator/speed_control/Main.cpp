@@ -1,9 +1,9 @@
-#include "application/foc/instantiations/FieldOrientedControllerImpl.hpp"
-#include "application/foc/instantiations/TrigonometricImpl.hpp"
-#include "application/foc/interfaces/Driver.hpp"
 #include "foc/interfaces/FieldOrientedController.hpp"
 #include "simulator/pmsm/Model.hpp"
 #include "simulator/speed_control/Plot.hpp"
+#include "source/foc/instantiations/FieldOrientedControllerImpl.hpp"
+#include "source/foc/instantiations/TrigonometricImpl.hpp"
+#include "source/foc/interfaces/Driver.hpp"
 #include <chrono>
 #include <cmath>
 #include <iomanip>

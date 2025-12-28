@@ -1,8 +1,8 @@
 
 #pragma once
 
-#include "application/foc/interfaces/Driver.hpp"
 #include "hal/synchronous_interfaces/SynchronousPwm.hpp"
+#include "source/foc/interfaces/Driver.hpp"
 #include <tuple>
 #include <utility>
 
