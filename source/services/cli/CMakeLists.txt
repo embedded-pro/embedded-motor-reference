@@ -1,11 +1,11 @@
-add_library(e_foc.services.terminal ${EMIL_EXCLUDE_FROM_ALL})
+add_library(e_foc.services.cli ${EMIL_EXCLUDE_FROM_ALL})
 
-target_include_directories(e_foc.services.terminal PUBLIC
+target_include_directories(e_foc.services.cli PUBLIC
     "$<BUILD_INTERFACE:${CMAKE_CURRENT_LIST_DIR}/../../../../>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>"
 )
 
-target_link_libraries(e_foc.services.terminal PUBLIC
+target_link_libraries(e_foc.services.cli PUBLIC
     infra.util
     e_foc.hardware
     e_foc.foc.interfaces
@@ -13,7 +13,7 @@ target_link_libraries(e_foc.services.terminal PUBLIC
     services.tracer
 )
 
-target_sources(e_foc.services.terminal PRIVATE
+target_sources(e_foc.services.cli PRIVATE
     FocInteractor.hpp
     FocTorqueInteractorImpl.cpp
     FocTorqueInteractorImpl.hpp
