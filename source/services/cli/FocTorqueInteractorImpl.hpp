@@ -9,7 +9,7 @@ namespace services
         : public FocTorqueInteractor
     {
     public:
-        explicit FocTorqueInteractorImpl(foc::Volts vdc, foc::TorqueController& focTorqueController);
+        explicit FocTorqueInteractorImpl(foc::Volts vdc, foc::TorqueController& foc);
 
         // Implementation of FocTorqueInteractor
         void AutoTune(const infra::Function<void()>& onDone) override;
@@ -20,8 +20,8 @@ namespace services
 
     private:
         foc::Volts vdc;
-        foc::TorqueController& focTorqueController;
-        foc::IdAndIqPoint focSetPoint;
+        foc::TorqueController& foc;
+        foc::IdAndIqPoint setPoint;
         foc::IdAndIqTunings IdAndIqTunings;
     };
 }

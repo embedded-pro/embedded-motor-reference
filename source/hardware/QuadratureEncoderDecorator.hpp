@@ -17,7 +17,7 @@ namespace application
     {
     public:
         template<typename... Args>
-        QuadratureEncoderDecoratorImpl(uint32_t resolution, Args&&... args);
+        explicit QuadratureEncoderDecoratorImpl(uint32_t resolution, Args&&... args);
 
         foc::Radians Read() override;
 
@@ -37,7 +37,7 @@ namespace application
     template<typename Impl, typename Enable>
     foc::Radians QuadratureEncoderDecoratorImpl<Impl, Enable>::Read()
     {
-        static constexpr float twoPi = 2.0f * 3.14159265359f;
+        static constexpr float twoPi = 2.0f * std::numbers::pi_v<float>;
 
         auto count = static_cast<float>(encoder.Position());
         return foc::Radians{ count * twoPi / static_cast<float>(encoder.Resolution()) };

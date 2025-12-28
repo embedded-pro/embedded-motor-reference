@@ -15,6 +15,8 @@ target_link_libraries(e_foc.services.cli PUBLIC
 
 target_sources(e_foc.services.cli PRIVATE
     FocInteractor.hpp
+    FocSpeedInteractorImpl.cpp
+    FocSpeedInteractorImpl.hpp
     FocTorqueInteractorImpl.cpp
     FocTorqueInteractorImpl.hpp
     TerminalTorque.cpp

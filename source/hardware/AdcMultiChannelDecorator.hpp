@@ -20,7 +20,7 @@ namespace application
     {
     public:
         template<typename... Args>
-        AdcMultiChannelDecoratorImpl(float adcToAmpereFactor, Args&&... args);
+        explicit AdcMultiChannelDecoratorImpl(float adcToAmpereFactor, Args&&... args);
 
         void Measure(const infra::Function<void(foc::Ampere phaseA, foc::Ampere phaseB, foc::Ampere phaseC)>& onDone) override;
         void Stop() override;

@@ -70,27 +70,27 @@ namespace services
             return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
 
         auto dkp = ParseInput(tokenizer.Token(0));
-        if (!dkp)
+        if (!dkp.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
         auto dki = ParseInput(tokenizer.Token(1));
-        if (!dki)
+        if (!dki.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
         auto dkd = ParseInput(tokenizer.Token(2));
-        if (!dkd)
+        if (!dkd.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
         auto qkp = ParseInput(tokenizer.Token(3));
-        if (!qkp)
+        if (!qkp.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
         auto qki = ParseInput(tokenizer.Token(4));
-        if (!qki)
+        if (!qki.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
         auto qkd = ParseInput(tokenizer.Token(5));
-        if (!qkd)
+        if (!qkd.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
         auto dPid = FocInteractor::PidParameters{

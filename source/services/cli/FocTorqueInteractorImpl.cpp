@@ -2,9 +2,9 @@
 
 namespace services
 {
-    FocTorqueInteractorImpl::FocTorqueInteractorImpl(foc::Volts vdc, foc::TorqueController& focTorqueController)
+    FocTorqueInteractorImpl::FocTorqueInteractorImpl(foc::Volts vdc, foc::TorqueController& foc)
         : vdc{ vdc }
-        , focTorqueController{ focTorqueController }
+        , foc{ foc }
     {}
 
     void FocTorqueInteractorImpl::AutoTune(const infra::Function<void()>& onDone)
@@ -13,42 +13,42 @@ namespace services
 
     void FocTorqueInteractorImpl::SetDQPidParameters(const std::pair<PidParameters, PidParameters>& pidDAndQParameters)
     {
-        if (pidDAndQParameters.first.kp)
+        if (pidDAndQParameters.first.kp.has_value())
             IdAndIqTunings.first.kp = *pidDAndQParameters.first.kp;
 
-        if (pidDAndQParameters.first.ki)
+        if (pidDAndQParameters.first.ki.has_value())
             IdAndIqTunings.first.ki = *pidDAndQParameters.first.ki;
 
-        if (pidDAndQParameters.first.kd)
+        if (pidDAndQParameters.first.kd.has_value())
             IdAndIqTunings.first.kd = *pidDAndQParameters.first.kd;
 
-        if (pidDAndQParameters.second.kp)
+        if (pidDAndQParameters.second.kp.has_value())
             IdAndIqTunings.second.kp = *pidDAndQParameters.second.kp;
 
-        if (pidDAndQParameters.second.ki)
+        if (pidDAndQParameters.second.ki.has_value())
             IdAndIqTunings.second.ki = *pidDAndQParameters.second.ki;
 
-        if (pidDAndQParameters.second.kd)
+        if (pidDAndQParameters.second.kd.has_value())
             IdAndIqTunings.second.kd = *pidDAndQParameters.second.kd;
 
-        focTorqueController.SetTunings(vdc, IdAndIqTunings);
+        foc.SetTunings(vdc, IdAndIqTunings);
     }
 
     void FocTorqueInteractorImpl::SetTorque(const foc::Nm& torque)
     {
-        focSetPoint.first = foc::Ampere{ torque.Value() };
-        focSetPoint.second = foc::Ampere{ 0.0f };
+        setPoint.first = foc::Ampere{ torque.Value() };
+        setPoint.second = foc::Ampere{ 0.0f };
 
-        focTorqueController.SetPoint(focSetPoint);
+        foc.SetPoint(setPoint);
     }
 
     void FocTorqueInteractorImpl::Start()
     {
-        focTorqueController.Enable();
+        foc.Enable();
     }
 
     void FocTorqueInteractorImpl::Stop()
     {
-        focTorqueController.Disable();
+        foc.Disable();
     }
 }
