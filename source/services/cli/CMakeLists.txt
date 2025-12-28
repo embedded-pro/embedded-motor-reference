@@ -19,6 +19,8 @@ target_sources(e_foc.services.cli PRIVATE
     FocSpeedInteractorImpl.hpp
     FocTorqueInteractorImpl.cpp
     FocTorqueInteractorImpl.hpp
+    TerminalSpeed.cpp
+    TerminalSpeed.hpp
     TerminalTorque.cpp
     TerminalTorque.hpp
 )

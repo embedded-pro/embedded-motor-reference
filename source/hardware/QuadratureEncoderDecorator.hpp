@@ -1,7 +1,8 @@
 #pragma once
 
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
-#include "source/foc/interfaces/Driver.hpp"
+#include "source/foc/interfaces/Units.hpp"
+#include <numbers>
 
 namespace application
 {

@@ -13,6 +13,8 @@ namespace services
     FocSpeedInteractorImpl::FocSpeedInteractorImpl(foc::Volts vdc, foc::SpeedController& foc)
         : vdc(vdc)
         , foc(foc)
+        , IdAndIqTunings{}
+        , speedTunings{}
     {
     }
 
