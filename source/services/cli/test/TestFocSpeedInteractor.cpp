@@ -1,10 +1,17 @@
 #include "source/foc/implementations/test_doubles/ControllerMock.hpp"
-#include "source/services/cli/FocTorqueInteractorImpl.hpp"
+#include "source/services/cli/FocSpeedInteractorImpl.hpp"
 #include <gmock/gmock.h>
 
 namespace
 {
     using namespace testing;
+
+    MATCHER_P(SpeedTuningsEq, expected, "")
+    {
+        return arg.first.kp == expected.first.kp &&
+               arg.first.ki == expected.first.ki &&
+               arg.first.kd == expected.first.kd;
+    }
 
     MATCHER_P(IdAndIqTuningsEq, expected, "")
     {
@@ -21,40 +28,44 @@ namespace
         return arg.first == expected.first && arg.second == expected.second;
     }
 
-    class FocTorqueInteractorTest
+    class FocSpeedInteractorTest
         : public testing::Test
     {
     public:
-        testing::StrictMock<foc::TorqueControllerMock> focMock;
-        services::FocTorqueInteractorImpl interactor{ foc::Volts{ 24.0f }, focMock };
+        testing::StrictMock<foc::SpeedControllerMock> focMock;
+        services::FocSpeedInteractorImpl interactor{ foc::Volts{ 24.0f }, focMock };
     };
 }
 
-TEST_F(FocTorqueInteractorTest, StartEnablesMotorFoc)
+TEST_F(FocSpeedInteractorTest, StartEnablesMotorFoc)
 {
     EXPECT_CALL(focMock, Enable()).Times(1);
 
     interactor.Start();
 }
 
-TEST_F(FocTorqueInteractorTest, StopDisablesMotorFoc)
+TEST_F(FocSpeedInteractorTest, StopDisablesMotorFoc)
 {
     EXPECT_CALL(focMock, Disable()).Times(1);
 
     interactor.Stop();
 }
 
-TEST_F(FocTorqueInteractorTest, SetTorqueUpdatesSetPoint)
+TEST_F(FocSpeedInteractorTest, SetSpeedUpdatesSetPoint)
 {
-    const float torqueValue = 0.75f;
-    foc::IdAndIqPoint expectedPoint{ torqueValue, 0.0 };
+    const float speedValue = 0.75f;
+    foc::IdAndIqPoint expectedPoint{ speedValue, 0.0 };
     EXPECT_CALL(focMock, SetPoint(IdAndIqPointEq(expectedPoint))).Times(1);
 
-    interactor.SetTorque(foc::Nm(torqueValue));
+    interactor.SetSpeed(foc::RadiansPerSecond(speedValue));
 }
 
-TEST_F(FocTorqueInteractorTest, SetDQPidParametersWithAllValuesPresent)
+TEST_F(FocSpeedInteractorTest, SetDQPidParametersWithAllValuesPresent)
 {
+    const float kpSpeed = 1.0f;
+    const float kiSpeed = 2.0f;
+    const float kdSpeed = 3.0f;
+
     const float kpD = 1.0f;
     const float kiD = 2.0f;
     const float kdD = 3.0f;
@@ -62,12 +73,14 @@ TEST_F(FocTorqueInteractorTest, SetDQPidParametersWithAllValuesPresent)
     const float kiQ = 5.0f;
     const float kdQ = 6.0f;
 
+    foc::SpeedTunings expectedSpeedTunings{ kpSpeed, kiSpeed, kdSpeed };
+
     foc::IdAndIqTunings expectedTunings{
         { kpD, kiD, kdD },
         { kpQ, kiQ, kdQ }
     };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
+    EXPECT_CALL(focMock, SetTunings(::testing::_, SpeedTuningsEq(expectedSpeedTunings), IdAndIqTuningsEq(expectedTunings))).Times(1);
 
     services::FocInteractor::PidParameters dParams;
     dParams.kp = kpD;
@@ -82,7 +95,7 @@ TEST_F(FocTorqueInteractorTest, SetDQPidParametersWithAllValuesPresent)
     interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
 }
 
-TEST_F(FocTorqueInteractorTest, SetDQPidParametersWithPartialValues)
+TEST_F(FocSpeedInteractorTest, SetDQPidParametersWithPartialValues)
 {
     const float kpD = 1.0f;
     const float kiQ = 5.0f;
@@ -92,7 +105,7 @@ TEST_F(FocTorqueInteractorTest, SetDQPidParametersWithPartialValues)
         { 0.0f, kiQ, 0.0f }
     };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
+    EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
 
     services::FocInteractor::PidParameters dParams;
     dParams.kp = kpD;
@@ -103,7 +116,7 @@ TEST_F(FocTorqueInteractorTest, SetDQPidParametersWithPartialValues)
     interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
 }
 
-TEST_F(FocTorqueInteractorTest, ExecutionOrder_StartThenSetTorque)
+TEST_F(FocSpeedInteractorTest, ExecutionOrder_StartThenSetSpeed)
 {
     {
         InSequence seq;
@@ -112,14 +125,14 @@ TEST_F(FocTorqueInteractorTest, ExecutionOrder_StartThenSetTorque)
     }
 
     interactor.Start();
-    interactor.SetTorque(foc::Nm(0.5f));
+    interactor.SetSpeed(foc::RadiansPerSecond(0.5f));
 }
 
-TEST_F(FocTorqueInteractorTest, ExecutionOrder_ConfigureThenStartThenStop)
+TEST_F(FocSpeedInteractorTest, ExecutionOrder_ConfigureThenStartThenStop)
 {
     {
         InSequence seq;
-        EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_)).Times(1);
+        EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, ::testing::_)).Times(1);
         EXPECT_CALL(focMock, Enable()).Times(1);
         EXPECT_CALL(focMock, Disable()).Times(1);
     }
@@ -134,7 +147,7 @@ TEST_F(FocTorqueInteractorTest, ExecutionOrder_ConfigureThenStartThenStop)
     interactor.Stop();
 }
 
-TEST_F(FocTorqueInteractorTest, AutoTuneDoesNotCallMock)
+TEST_F(FocSpeedInteractorTest, AutoTuneDoesNotCallMock)
 {
     bool callbackCalled = false;
     interactor.AutoTune([&callbackCalled]()
