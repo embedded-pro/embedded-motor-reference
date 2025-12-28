@@ -120,8 +120,8 @@ We welcome contributions! Please follow these guidelines:
 ### Development Workflow
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Follow the coding standards in [copilot-instructions.md](/.github/instructions/copilot-instructions.md)
-	and keep paths aligned with the current `source/` layout.
+3. Follow the coding standards in [copilot-instructions.md](/.github/copilot-instructions.md)
+    and keep paths aligned with the current `source/` layout.
 4. Ensure all tests pass
 5. Update CHANGELOG.md according to release-please conventions
 6. Commit your changes (`git commit -m 'Add some AmazingFeature'`)

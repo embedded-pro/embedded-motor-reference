@@ -70,7 +70,7 @@ if (-not $connectionEstablished) {
 Write-Host "Starting JLink RTT Viewer..." -ForegroundColor Green
 $RTTViewerArgs = @(
     "-device", "@TARGET_MCU_UPPER@",
-    "-ct", "sess"
+    "-ct", "sess",
     "-if", "SWD",
     "-speed", "auto",
     "--rttrange", "20000000", "400",
