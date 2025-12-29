@@ -59,13 +59,13 @@ ctest --preset host-Debug
 
 4. Build for embedded target (example: TI EK-TM4C1294XL)
 ```bash
-cmake --preset tm4c
-cmake --build --preset tm4c-Debug
+cmake --preset EK-TM4C1294XL
+cmake --build --preset EK-TM4C1294XL-Debug
 ```
 
 ## Project Structure
 ```
-├── application/                # Application-level motor control
+├── source/                     # Application-level motor control
 │   ├── foc/                    # FOC implementations and instantiations
 │   │   ├── implementations/    # Concrete FOC algorithm implementations
 │   │   ├── instantiations/     # Application-specific FOC instances
@@ -74,8 +74,8 @@ cmake --build --preset tm4c-Debug
 │   │   ├── st/                 # STM32-specific adapters
 │   │   ├── ti/                 # TI Tiva C-specific adapters
 │   │   └── Host/               # Host simulation adapters
-│   └── motors/                 # Motor-specific implementations
-│       ├── dc/                 # DC motor control
+│   ├── services/               # Application-level services
+│   └── application/            # Motor-specific implementations
 │       ├── sync_foc_sensored/  # Synchronous FOC with sensors
 │       └── hardware_test/      # Hardware validation tests
 ├── embedded-infra-lib/         # Submodule: infrastructure and utilities
@@ -109,7 +109,7 @@ cmake --build --preset tm4c-Debug
 ## Documentation
 
 For detailed information about the project structure and coding guidelines, see:
-- [Copilot Instructions](/.github/instructions/copilot-instructions.md) - Development guidelines and patterns
+- [Copilot Instructions](/.github/copilot-instructions.md) - Development guidelines and patterns
 - [embedded-infra-lib Documentation](embedded-infra-lib/README.md) - Infrastructure library reference
 - [numerical-toolbox Documentation](numerical-toolbox/README.md) - Reusable algorithms
 
@@ -120,7 +120,8 @@ We welcome contributions! Please follow these guidelines:
 ### Development Workflow
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Follow the coding standards in [copilot-instructions.md](/.github/instructions/copilot-instructions.md)
+3. Follow the coding standards in [copilot-instructions.md](/.github/copilot-instructions.md)
+    and keep paths aligned with the current `source/` layout.
 4. Ensure all tests pass
 5. Update CHANGELOG.md according to release-please conventions
 6. Commit your changes (`git commit -m 'Add some AmazingFeature'`)

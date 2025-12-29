@@ -33,11 +33,44 @@ $JLinkArgs = @(
 $JLinkProcess = Start-Process -FilePath "JLinkGDBServerCL.exe" -ArgumentList $JLinkArgs -PassThru -WindowStyle Minimized
 Write-Host "JLink GDB Server started with PID: $($JLinkProcess.Id)" -ForegroundColor Green
 
+# Wait for JLink GDB Server to establish a connection
+Write-Host "Waiting for JLink GDB Server to establish connection..." -ForegroundColor Yellow
+$maxRetries = 5
+$retryCount = 0
+$connectionEstablished = $false
+
+while ($retryCount -lt $maxRetries) {
+    try {
+        $connection = Test-NetConnection -ComputerName "127.0.0.1" -Port "@GDB_PORT@" -WarningAction SilentlyContinue
+        if ($connection.TcpTestSucceeded) {
+            Write-Host "JLink GDB Server connection established successfully!" -ForegroundColor Green
+            $connectionEstablished = $true
+            break
+        }
+    }
+    catch {
+        # Connection test failed, will retry
+    }
+    
+    $retryCount++
+    Start-Sleep -Seconds 1
+}
+
+if (-not $connectionEstablished) {
+    Write-Error "Failed to establish connection with JLink GDB Server after $maxRetries seconds."
+    Write-Host "JLink GDB Server may have failed to start. Please check the configuration." -ForegroundColor Red
+    if ($JLinkProcess -and -not $JLinkProcess.HasExited) {
+        $JLinkProcess.Kill()
+    }
+    exit 1
+}
+
 # Start JLink RTT Viewer with Terminal 0 configuration
 # Configured for: Terminal 0 only, Send on input, Windows EOL, Echo disabled
 Write-Host "Starting JLink RTT Viewer..." -ForegroundColor Green
 $RTTViewerArgs = @(
     "-device", "@TARGET_MCU_UPPER@",
+    "-ct", "sess",
     "-if", "SWD",
     "-speed", "auto",
     "--rttrange", "20000000", "400",

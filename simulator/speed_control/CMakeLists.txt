@@ -1,22 +1,20 @@
-add_executable(simulator.torque_control)
-emil_build_for(simulator.torque_control HOST All PREREQUISITE_BOOL E_FOC_BUILD_SIMULATOR)
+add_executable(e_foc.simulator.speed_control)
+emil_build_for(e_foc.simulator.speed_control HOST All PREREQUISITE_BOOL E_FOC_BUILD_SIMULATOR)
 
-target_link_libraries(simulator.torque_control PUBLIC
-    sciplot
+target_link_libraries(e_foc.simulator.speed_control PUBLIC
     e_foc.simulator.pmsm
+    e_foc.simulator.plot
     e_foc.foc.instantiations
 )
 
-target_sources(simulator.torque_control PRIVATE
+target_sources(e_foc.simulator.speed_control PRIVATE
     Main.cpp
-    Plot.cpp
-    Plot.hpp
 )
 
 if(MSVC)
-    target_compile_options(simulator.torque_control PRIVATE /W4)
+    target_compile_options(e_foc.simulator.speed_control PRIVATE /W4)
 else()
-    target_compile_options(simulator.torque_control PRIVATE 
+    target_compile_options(e_foc.simulator.speed_control PRIVATE 
         -Wno-error
     )
 endif()

@@ -49,13 +49,13 @@ if (DEFINED TARGET_MCU_VENDOR)
 endif()
 
 add_subdirectory(numerical-toolbox)
-add_subdirectory(application)
+add_subdirectory(source)
 
 if (E_FOC_BUILD_SIMULATOR)
     add_subdirectory(simulator)
 endif()
 
-emil_clangformat_directories(e_foc DIRECTORIES application)
+emil_clangformat_directories(e_foc DIRECTORIES source)
 emil_folderize_all_targets()
 emil_exclude_directory_from_coverage(embedded-infra-lib)
 emil_coverage_targets(DIRECTORIES .)

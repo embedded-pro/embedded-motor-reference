@@ -12,4 +12,4 @@ ignore:
   - embedded-infra-lib
   - numerical-toolbox
   - hal
-  - application/hardware/Host
+  - source/hardware/Host

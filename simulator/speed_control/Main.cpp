@@ -1,9 +1,10 @@
-#include "application/foc/instantiations/FieldOrientedControllerImpl.hpp"
-#include "application/foc/instantiations/TrigonometricImpl.hpp"
-#include "application/foc/interfaces/Driver.hpp"
 #include "foc/interfaces/FieldOrientedController.hpp"
+#include "simulator/plot/Plot.hpp"
+#include "simulator/pmsm/Jk42bls01X038ed.hpp"
 #include "simulator/pmsm/Model.hpp"
-#include "simulator/speed_control/Plot.hpp"
+#include "source/foc/instantiations/FieldOrientedControllerImpl.hpp"
+#include "source/foc/instantiations/TrigonometricImpl.hpp"
+#include "source/foc/interfaces/Driver.hpp"
 #include <chrono>
 #include <cmath>
 #include <iomanip>
@@ -23,8 +24,7 @@ namespace
     public:
         void Run()
         {
-            simulator::PmsmModel::Parameters params{};
-            simulator::PmsmModel model{ params, std::chrono::duration_cast<std::chrono::duration<float>>(timeStep).count() };
+            simulator::PmsmModel model{ motorParameters, std::chrono::duration_cast<std::chrono::duration<float>>(timeStep).count() };
 
             float Kp_speed = 2.5f;
             float Ki_speed = 80.0f;
@@ -38,10 +38,10 @@ namespace
             float speed_rad_s_mechanical = speed_rpm * 2.0f * M_PI / 60.0f;
 
             std::cout << "Motor Parameters:\n";
-            std::cout << "  R = " << params.R << " Ω\n";
-            std::cout << "  L = " << params.Ld * 1000.0f << " mH\n";
-            std::cout << "  Vdc = " << params.Vdc << " V\n";
-            std::cout << "  Pole pairs = " << params.p << "\n";
+            std::cout << "  R = " << motorParameters.R << " Ω\n";
+            std::cout << "  L = " << motorParameters.Ld * 1000.0f << " mH\n";
+            std::cout << "  Vdc = " << motorParameters.Vdc << " V\n";
+            std::cout << "  Pole pairs = " << motorParameters.p << "\n";
             std::cout << "  Max current = 15 A\n";
             std::cout << "\nPID Tuning:\n";
             std::cout << "Current Loop (Id/Iq):\n";
@@ -64,10 +64,12 @@ namespace
             theta_data.reserve(steps);
             speed_data.reserve(steps);
 
-            foc.SetPolePairs(static_cast<std::size_t>(params.p));
-            foc.SetTunings(
+            foc.SetPolePairs(static_cast<std::size_t>(motorParameters.p));
+            foc.SetSpeedTunings(
                 foc::Volts{ motorParameters.Vdc },
-                foc::SpeedTunings{ Kp_speed, Ki_speed, Kd_speed },
+                foc::SpeedTunings{ Kp_speed, Ki_speed, Kd_speed });
+            foc.SetCurrentTunings(
+                foc::Volts{ motorParameters.Vdc },
                 foc::IdAndIqTunings{
                     { Kp_current, Ki_current, Kd_current },
                     { Kp_current, Ki_current, Kd_current } });
@@ -77,7 +79,7 @@ namespace
             std::cout << "Duration: " << simulationTime.count() << " ms\n";
             std::cout << "Time step: " << timeStep.count() << " μs\n";
             std::cout << "Total steps: " << steps << "\n";
-            std::cout << "Motor: R=" << params.R << "Ω, L=" << params.Ld * 1000 << "mH, λ=" << params.psi_f << "Wb\n\n";
+            std::cout << "Motor: R=" << motorParameters.R << "Ω, L=" << motorParameters.Ld * 1000 << "mH, λ=" << motorParameters.psi_f << "Wb\n\n";
 
             for (size_t i = 0; i < steps; ++i)
             {
@@ -119,15 +121,13 @@ namespace
                 }
             }
 
+            graphics::PlotResults plotter{ "FOC Speed Control", "foc_speed_results" };
+            plotter.Save(time, { i_a_data, i_b_data, i_c_data }, theta_data);
             std::cout << "\nSimulation completed!\n";
-
-            graphics::PlotResults(time, i_a_data, i_b_data, i_c_data, theta_data);
-
-            std::cout << "Plots saved to foc_simulation_results.png and foc_simulation_results.pdf\n";
         }
 
     private:
-        static constexpr simulator::PmsmModel::Parameters motorParameters{};
+        static constexpr simulator::PmsmModel::Parameters motorParameters{ simulator::JK42BLS01_X038ED::parameters };
         static constexpr std::chrono::microseconds timeStep{ 10 };
         static constexpr std::chrono::milliseconds simulationTime{ 1000 };
         static constexpr auto steps = static_cast<std::size_t>(std::chrono::duration_cast<std::chrono::duration<float>>(simulationTime).count() / std::chrono::duration_cast<std::chrono::duration<float>>(timeStep).count());
