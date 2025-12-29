@@ -58,9 +58,9 @@ namespace graphics
         plot3.drawCurve(time_d, i_c_d).label("i_c").lineWidth(2).lineColor("green");
 
         sciplot::Figure fig = { { plot1 }, { plot2 }, { plot3 } };
-        fig.title("FOC Speed Simulation Results");
+        fig.title("FOC Torque Simulation Results");
         fig.size(950, 1200); // Increased height for third plot
 
-        fig.save("foc_speed_simulation_results.png");
+        fig.save("foc_torque_simulation_results.png");
     }
 }
