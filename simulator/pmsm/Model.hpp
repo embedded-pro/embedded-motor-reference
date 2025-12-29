@@ -1,9 +1,7 @@
 
 #pragma once
 
-#include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "source/foc/interfaces/Driver.hpp"
-#include <tuple>
 #include <utility>
 
 namespace simulator

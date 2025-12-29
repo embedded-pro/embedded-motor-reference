@@ -1,6 +1,6 @@
 #include "foc/interfaces/FieldOrientedController.hpp"
+#include "simulator/plot/Plot.hpp"
 #include "simulator/pmsm/Model.hpp"
-#include "simulator/torque_control/Plot.hpp"
 #include "source/foc/instantiations/FieldOrientedControllerImpl.hpp"
 #include "source/foc/instantiations/TrigonometricImpl.hpp"
 #include "source/foc/interfaces/Driver.hpp"
@@ -30,8 +30,8 @@ namespace
             float Ki_current = 2000.0f;
             float Kd_current = 0.0f;
 
-            float Id_setpoint = 0.0f; // Field weakening current
-            float Iq_setpoint = 5.0f; // Torque-producing current (A)
+            float Id_setpoint = 0.0f;
+            float Iq_setpoint = 0.05f;
 
             std::cout << "Motor Parameters:\n";
             std::cout << "  R = " << params.R << " Ω\n";
@@ -110,11 +110,10 @@ namespace
                 }
             }
 
+            graphics::PlotResults plotter{ "FOC Torque Control", "foc_torque_results" };
+            plotter.Save(time, { i_a_data, i_b_data, i_c_data }, theta_data);
+
             std::cout << "\nSimulation completed!\n";
-
-            graphics::PlotResults(time, i_a_data, i_b_data, i_c_data, theta_data);
-
-            std::cout << "Plots saved to foc_simulation_results.png and foc_simulation_results.pdf\n";
         }
 
     private:

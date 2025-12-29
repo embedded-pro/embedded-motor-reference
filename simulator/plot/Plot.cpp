@@ -1,19 +1,19 @@
-#include "Plot.hpp"
+#include "simulator/plot/Plot.hpp"
 
 namespace graphics
 {
-    void PlotResults(const std::vector<float>& time,
-        const std::vector<float>& i_a,
-        const std::vector<float>& i_b,
-        const std::vector<float>& i_c,
-        const std::vector<float>& theta)
+    PlotResults::PlotResults(const std::string title, const std::string& filename)
+        : title(title)
+        , filename(filename) {};
+
+    void PlotResults::Save(const std::vector<float>& time, const Currents& currents, const std::vector<float>& theta)
     {
         using namespace sciplot;
 
         std::vector<double> time_d(time.begin(), time.end());
-        std::vector<double> i_a_d(i_a.begin(), i_a.end());
-        std::vector<double> i_b_d(i_b.begin(), i_b.end());
-        std::vector<double> i_c_d(i_c.begin(), i_c.end());
+        std::vector<double> i_a_d(currents.i_a.begin(), currents.i_a.end());
+        std::vector<double> i_b_d(currents.i_b.begin(), currents.i_b.end());
+        std::vector<double> i_c_d(currents.i_c.begin(), currents.i_c.end());
         std::vector<double> theta_d(theta.begin(), theta.end());
 
         Plot plot1;
@@ -38,14 +38,12 @@ namespace graphics
 
         plot2.drawCurve(time_d, theta_d).label("theta").lineWidth(2).lineColor("blue");
 
-        // Plot 3: Zoomed-in view of phase currents to show 120-degree phase shift
         sciplot::Plot plot3;
         plot3.xlabel("Time [s]");
         plot3.ylabel("Phase Currents [A]");
-        // Zoom to show approximately 2-3 electrical cycles during steady state
-        // Show last 200ms of simulation (steady state)
+
         double zoom_end = static_cast<double>(time.back());
-        double zoom_start = std::max(zoom_end - 0.2, 0.0); // 200ms window at the end
+        double zoom_start = std::max(zoom_end - 0.2, 0.0);
         plot3.xrange(zoom_start, zoom_end);
         plot3.yrange(-0.3, 0.3);
         plot3.legend()
@@ -58,9 +56,9 @@ namespace graphics
         plot3.drawCurve(time_d, i_c_d).label("i_c").lineWidth(2).lineColor("green");
 
         sciplot::Figure fig = { { plot1 }, { plot2 }, { plot3 } };
-        fig.title("FOC Speed Simulation Results");
-        fig.size(950, 1200); // Increased height for third plot
-
-        fig.save("foc_speed_simulation_results.png");
+        fig.title(title);
+        fig.size(950, 1200);
+        fig.save(filename + ".png");
+        fig.save(filename + ".pdf");
     }
 }
