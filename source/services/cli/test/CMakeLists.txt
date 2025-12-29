@@ -15,5 +15,6 @@ target_sources(e_foc.services.cli_test PRIVATE
     TestFocSpeedInteractor.cpp
     TestTerminalSpeed.cpp
     TestFocTorqueInteractor.cpp
+    TestTerminalPosition.cpp
     TestTerminalTorque.cpp
 )

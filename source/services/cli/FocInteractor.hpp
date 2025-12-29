@@ -43,6 +43,7 @@ namespace services
     {
     public:
         virtual void SetPosition(const foc::Radians& position) = 0;
+        virtual void SetSpeedPidParameters(const PidParameters& pidParameters) = 0;
         virtual void SetPositionPidParameters(const PidParameters& pidParameters) = 0;
     };
 }

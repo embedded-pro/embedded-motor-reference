@@ -23,7 +23,7 @@ namespace services
     private:
         foc::Volts vdc;
         foc::SpeedController& foc;
-        foc::IdAndIqTunings IdAndIqTunings;
-        foc::SpeedTunings speedTunings;
+        foc::IdAndIqTunings IdAndIqTunings{};
+        foc::SpeedTunings speedTunings{};
     };
 }

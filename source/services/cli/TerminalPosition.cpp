@@ -1,4 +1,4 @@
-#include "source/services/cli/TerminalSpeed.hpp"
+#include "source/services/cli/TerminalPosition.hpp"
 #include "infra/util/Function.hpp"
 #include "infra/util/Tokenizer.hpp"
 #include "services/util/TerminalWithStorage.hpp"
@@ -6,7 +6,7 @@
 
 namespace services
 {
-    TerminalFocSpeedInteractor::TerminalFocSpeedInteractor(services::TerminalWithStorage& terminal, FocSpeedInteractor& foc)
+    TerminalFocPositionInteractor::TerminalFocPositionInteractor(services::TerminalWithStorage& terminal, FocPositionInteractor& foc)
         : terminal(terminal)
         , foc(foc)
     {
@@ -22,16 +22,22 @@ namespace services
                 this->terminal.ProcessResult(SetFocPid(params));
             } });
 
-        terminal.AddCommand({ { "set_speed_pid", "sspid", "Set speed PID parameters. set_speed_pid <kp> <ki> <kd>. Ex: sspid 1.0 0.2 0.01" },
+        terminal.AddCommand({ { "set_speed_pid", "sspid", "Set speed PID parameters. set_speed_pid <kp> <ki> <kd>. Ex: sspid 1.0 0.765 -0.56" },
             [this](const auto& params)
             {
                 this->terminal.ProcessResult(SetSpeedPid(params));
             } });
 
-        terminal.AddCommand({ { "set_speed", "ss", "Set speed in rad/s. set_speed <speed>. Ex: ss 20.0" },
+        terminal.AddCommand({ { "set_pos_pid", "sppid", "Set position PID parameters. set_pos_pid <kp> <ki> <kd>. Ex: sppid 1.0 0.765 -0.56" },
             [this](const auto& params)
             {
-                this->terminal.ProcessResult(SetSpeed(params));
+                this->terminal.ProcessResult(SetPositionPid(params));
+            } });
+
+        terminal.AddCommand({ { "set_position", "spr", "Set position in rad. set_position <position>. Ex: spr 20.0" },
+            [this](const auto& params)
+            {
+                this->terminal.ProcessResult(SetPosition(params));
             } });
 
         terminal.AddCommand({ { "start", "sts", "Start system. start. Ex: start" },
@@ -47,13 +53,13 @@ namespace services
             } });
     }
 
-    TerminalFocSpeedInteractor::StatusWithMessage TerminalFocSpeedInteractor::AutoTune()
+    TerminalFocPositionInteractor::StatusWithMessage TerminalFocPositionInteractor::AutoTune()
     {
         foc.AutoTune(infra::emptyFunction);
-        return TerminalFocSpeedInteractor::StatusWithMessage();
+        return TerminalFocPositionInteractor::StatusWithMessage();
     }
 
-    TerminalFocSpeedInteractor::StatusWithMessage TerminalFocSpeedInteractor::SetFocPid(const infra::BoundedConstString& input)
+    TerminalFocPositionInteractor::StatusWithMessage TerminalFocPositionInteractor::SetFocPid(const infra::BoundedConstString& input)
     {
         infra::Tokenizer tokenizer(input, ' ');
 
@@ -96,10 +102,10 @@ namespace services
         };
 
         foc.SetDQPidParameters(std::make_pair(dPid, qPid));
-        return TerminalFocSpeedInteractor::StatusWithMessage();
+        return TerminalFocPositionInteractor::StatusWithMessage();
     }
 
-    TerminalFocSpeedInteractor::StatusWithMessage TerminalFocSpeedInteractor::SetSpeedPid(const infra::BoundedConstString& input)
+    TerminalFocPositionInteractor::StatusWithMessage TerminalFocPositionInteractor::SetSpeedPid(const infra::BoundedConstString& input)
     {
         infra::Tokenizer tokenizer(input, ' ');
 
@@ -123,33 +129,62 @@ namespace services
         };
 
         foc.SetSpeedPidParameters(pid);
-        return TerminalFocSpeedInteractor::StatusWithMessage();
+        return TerminalFocPositionInteractor::StatusWithMessage();
     }
 
-    TerminalFocSpeedInteractor::StatusWithMessage TerminalFocSpeedInteractor::Start()
+    TerminalFocPositionInteractor::StatusWithMessage TerminalFocPositionInteractor::SetPositionPid(const infra::BoundedConstString& input)
+    {
+        infra::Tokenizer tokenizer(input, ' ');
+
+        if (tokenizer.Size() != 3)
+            return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
+
+        auto kp = ParseInput(tokenizer.Token(0));
+        if (!kp.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
+        auto ki = ParseInput(tokenizer.Token(1));
+        if (!ki.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
+        auto kd = ParseInput(tokenizer.Token(2));
+        if (!kd.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
+
+        auto pid = FocInteractor::PidParameters{
+            std::optional<float>(*kp),
+            std::optional<float>(*ki),
+            std::optional<float>(*kd)
+        };
+
+        foc.SetPositionPidParameters(pid);
+        return TerminalFocPositionInteractor::StatusWithMessage();
+    }
+
+    TerminalFocPositionInteractor::StatusWithMessage TerminalFocPositionInteractor::Start()
     {
         foc.Start();
-        return TerminalFocSpeedInteractor::StatusWithMessage();
+        return TerminalFocPositionInteractor::StatusWithMessage();
     }
 
-    TerminalFocSpeedInteractor::StatusWithMessage TerminalFocSpeedInteractor::SetSpeed(const infra::BoundedConstString& input)
+    TerminalFocPositionInteractor::StatusWithMessage TerminalFocPositionInteractor::SetPosition(const infra::BoundedConstString& input)
     {
         infra::Tokenizer tokenizer(input, ' ');
 
         if (tokenizer.Size() != 1)
             return { services::TerminalWithStorage::Status::error, "invalid number of arguments." };
 
-        auto speedValue = ParseInput(tokenizer.Token(0));
-        if (!speedValue.has_value())
+        auto t = ParseInput(tokenizer.Token(0));
+        if (!t.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        foc.SetSpeed(foc::RadiansPerSecond(*speedValue));
-        return TerminalFocSpeedInteractor::StatusWithMessage();
+        foc::Radians position(*t);
+
+        foc.SetPosition(position);
+        return TerminalFocPositionInteractor::StatusWithMessage();
     }
 
-    TerminalFocSpeedInteractor::StatusWithMessage TerminalFocSpeedInteractor::Stop()
+    TerminalFocPositionInteractor::StatusWithMessage TerminalFocPositionInteractor::Stop()
     {
         foc.Stop();
-        return TerminalFocSpeedInteractor::StatusWithMessage();
+        return TerminalFocPositionInteractor::StatusWithMessage();
     }
 }

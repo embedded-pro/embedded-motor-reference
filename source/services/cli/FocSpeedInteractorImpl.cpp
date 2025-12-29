@@ -4,7 +4,7 @@ namespace
 {
     float ToRadiansPerSecond(const foc::RevPerMinute& rpm)
     {
-        return rpm.Value() * (M_PI / 30.0);
+        return rpm.Value() * (M_PI / 30.0f);
     }
 }
 
@@ -13,8 +13,6 @@ namespace services
     FocSpeedInteractorImpl::FocSpeedInteractorImpl(foc::Volts vdc, foc::SpeedController& foc)
         : vdc(vdc)
         , foc(foc)
-        , IdAndIqTunings{}
-        , speedTunings{}
     {
     }
 

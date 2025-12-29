@@ -21,7 +21,7 @@ namespace services
     private:
         foc::Volts vdc;
         foc::TorqueController& foc;
-        foc::IdAndIqPoint setPoint;
-        foc::IdAndIqTunings IdAndIqTunings;
+        foc::IdAndIqPoint setPoint{};
+        foc::IdAndIqTunings IdAndIqTunings{};
     };
 }

@@ -107,7 +107,7 @@ namespace services
             return { services::TerminalWithStorage::Status::error, "invalid number of arguments." };
 
         auto t = ParseInput(tokenizer.Token(0));
-        if (!t)
+        if (!t.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
         foc::Nm torque(*t);

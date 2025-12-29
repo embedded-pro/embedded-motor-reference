@@ -30,7 +30,7 @@ namespace application
 
     template<typename Impl, typename Enable>
     template<typename... Args>
-    QuadratureEncoderDecoratorImpl<Impl, Enable>::QuadratureEncoderDecoratorImpl(uint32_t resolution, Args&&... args)
+    QuadratureEncoderDecoratorImpl<Impl, Enable>::QuadratureEncoderDecoratorImpl(uint32_t, Args&&... args)
         : encoder(std::forward<Args>(args)...)
     {
     }
