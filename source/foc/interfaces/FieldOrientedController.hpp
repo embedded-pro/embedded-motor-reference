@@ -8,6 +8,7 @@ namespace foc
     using IdAndIqPoint = std::pair<Ampere, Ampere>;
     using IdAndIqTunings = std::pair<controllers::PidTunings<float>, controllers::PidTunings<float>>;
     using SpeedTunings = controllers::PidTunings<float>;
+    using PositionTunings = controllers::PidTunings<float>;
 
     class FieldOrientedControllerBase
     {

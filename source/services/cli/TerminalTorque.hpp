@@ -2,25 +2,20 @@
 
 #include "services/util/TerminalWithStorage.hpp"
 #include "source/services/cli/FocInteractor.hpp"
+#include "source/services/cli/TerminalBase.hpp"
 
 namespace services
 {
     class TerminalFocTorqueInteractor
+        : public TerminalFocBaseInteractor
     {
     public:
-        TerminalFocTorqueInteractor(services::TerminalWithStorage& terminal, FocTorqueInteractor& focInteractor);
+        TerminalFocTorqueInteractor(services::TerminalWithStorage& terminal, FocInteractor& foc, FocTorqueInteractor& focInteractor);
 
     private:
-        using StatusWithMessage = services::TerminalWithStorage::StatusWithMessage;
-
-        StatusWithMessage AutoTune();
-        StatusWithMessage SetFocPid(const infra::BoundedConstString& param);
         StatusWithMessage SetTorque(const infra::BoundedConstString& param);
-        StatusWithMessage Start();
-        StatusWithMessage Stop();
 
     private:
-        services::TerminalWithStorage& terminal;
         FocTorqueInteractor& foc;
     };
 }

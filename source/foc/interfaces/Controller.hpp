@@ -27,4 +27,12 @@ namespace foc
         virtual void SetTunings(Volts Vcd, const SpeedTunings& speedTuning, const IdAndIqTunings& torqueTunings) = 0;
         virtual void SetPoint(RadiansPerSecond point) = 0;
     };
+
+    class PositionController
+        : public ControllerBase
+    {
+    public:
+        virtual void SetTunings(Volts Vcd, const PositionTunings& positionTuning, const SpeedTunings& speedTuning, const IdAndIqTunings& torqueTunings) = 0;
+        virtual void SetPoint(Radians point) = 0;
+    };
 }

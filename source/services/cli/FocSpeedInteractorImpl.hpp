@@ -2,11 +2,13 @@
 
 #include "source/foc/interfaces/Controller.hpp"
 #include "source/services/cli/FocInteractor.hpp"
+#include "source/services/cli/FocInteractorImpl.hpp"
 
 namespace services
 {
     class FocSpeedInteractorImpl
         : public FocSpeedInteractor
+        , public FocInteractorImpl<foc::SpeedController>
     {
     public:
         explicit FocSpeedInteractorImpl(foc::Volts vdc, foc::SpeedController& focSpeedController);
@@ -15,15 +17,8 @@ namespace services
         void SetSpeed(const foc::RevPerMinute& speed) override;
         void SetSpeed(const foc::RadiansPerSecond& speed) override;
         void SetSpeedPidParameters(const PidParameters& pidParameters) override;
-        void AutoTune(const infra::Function<void()>& onDone) override;
-        void SetDQPidParameters(const std::pair<PidParameters, PidParameters>& pidDAndQParameters) override;
-        void Start() override;
-        void Stop() override;
 
     private:
-        foc::Volts vdc;
-        foc::SpeedController& foc;
-        foc::IdAndIqTunings IdAndIqTunings{};
         foc::SpeedTunings speedTunings{};
     };
 }
