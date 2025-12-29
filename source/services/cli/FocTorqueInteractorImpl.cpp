@@ -8,6 +8,8 @@ namespace services
 
     void FocTorqueInteractorImpl::SetTorque(const foc::Nm& torque)
     {
+        foc::IdAndIqPoint setPoint{};
+
         setPoint.first = foc::Ampere{ torque.Value() };
         setPoint.second = foc::Ampere{ 0.0f };
 

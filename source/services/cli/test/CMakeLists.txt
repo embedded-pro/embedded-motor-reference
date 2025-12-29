@@ -12,6 +12,7 @@ target_link_libraries(e_foc.services.cli_test PUBLIC
 )
 
 target_sources(e_foc.services.cli_test PRIVATE
+    TestFocPositionInteractor.cpp
     TestFocSpeedInteractor.cpp
     TestFocTorqueInteractor.cpp
     TestTerminalBase.cpp

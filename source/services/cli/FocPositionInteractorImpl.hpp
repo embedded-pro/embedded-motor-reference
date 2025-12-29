@@ -17,9 +17,5 @@ namespace services
         void SetPosition(const foc::Radians& position) override;
         void SetSpeedPidParameters(const PidParameters& pidParameters) override;
         void SetPositionPidParameters(const PidParameters& pidParameters) override;
-
-    private:
-        foc::SpeedTunings speedTunings{};
-        foc::PositionTunings positionTunings{};
     };
 }

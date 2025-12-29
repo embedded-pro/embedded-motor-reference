@@ -27,6 +27,8 @@ namespace services
 
     void FocSpeedInteractorImpl::SetSpeedPidParameters(const PidParameters& pidParameters)
     {
+        foc::SpeedTunings speedTunings{};
+
         speedTunings.kd = pidParameters.kd.has_value() ? *pidParameters.kd : speedTunings.kd;
         speedTunings.ki = pidParameters.ki.has_value() ? *pidParameters.ki : speedTunings.ki;
         speedTunings.kp = pidParameters.kp.has_value() ? *pidParameters.kp : speedTunings.kp;

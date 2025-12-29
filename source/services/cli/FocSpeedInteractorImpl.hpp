@@ -17,8 +17,5 @@ namespace services
         void SetSpeed(const foc::RevPerMinute& speed) override;
         void SetSpeed(const foc::RadiansPerSecond& speed) override;
         void SetSpeedPidParameters(const PidParameters& pidParameters) override;
-
-    private:
-        foc::SpeedTunings speedTunings{};
     };
 }

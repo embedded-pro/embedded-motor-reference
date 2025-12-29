@@ -1,5 +1,5 @@
 #include "source/foc/implementations/test_doubles/ControllerMock.hpp"
-#include "source/services/cli/FocSpeedInteractorImpl.hpp"
+#include "source/services/cli/FocPositionInteractorImpl.hpp"
 #include <cmath>
 #include <gmock/gmock.h>
 
@@ -8,6 +8,13 @@ namespace
     using namespace testing;
 
     MATCHER_P(SpeedTuningsEq, expected, "")
+    {
+        return arg.kp == expected.kp &&
+               arg.ki == expected.ki &&
+               arg.kd == expected.kd;
+    }
+
+    MATCHER_P(PositionTuningsEq, expected, "")
     {
         return arg.kp == expected.kp &&
                arg.ki == expected.ki &&
@@ -24,54 +31,44 @@ namespace
                arg.second.kd == expected.second.kd;
     }
 
-    MATCHER_P(SpeedEq, expected, "")
+    MATCHER_P(PositionEq, expected, "")
     {
         return std::abs(arg.Value() - expected.Value()) < 1e-5f;
     }
 
-    class FocSpeedInteractorTest
+    class FocPositionInteractorTest
         : public testing::Test
     {
     public:
-        testing::StrictMock<foc::SpeedControllerMock> focMock;
-        services::FocSpeedInteractorImpl interactor{ foc::Volts{ 24.0f }, focMock };
+        testing::StrictMock<foc::PositionControllerMock> focMock;
+        services::FocPositionInteractorImpl interactor{ foc::Volts{ 24.0f }, focMock };
     };
 }
 
-TEST_F(FocSpeedInteractorTest, StartEnablesMotorFoc)
+TEST_F(FocPositionInteractorTest, StartEnablesMotorFoc)
 {
     EXPECT_CALL(focMock, Enable()).Times(1);
 
     interactor.Start();
 }
 
-TEST_F(FocSpeedInteractorTest, StopDisablesMotorFoc)
+TEST_F(FocPositionInteractorTest, StopDisablesMotorFoc)
 {
     EXPECT_CALL(focMock, Disable()).Times(1);
 
     interactor.Stop();
 }
 
-TEST_F(FocSpeedInteractorTest, SetSpeedInRadiansPerSecondUpdatesSetPoint)
+TEST_F(FocPositionInteractorTest, SetPositionInRadiansUpdatesSetPoint)
 {
-    const float speedValue = 0.75f;
-    foc::RadiansPerSecond expectedSpeed{ speedValue };
-    EXPECT_CALL(focMock, SetPoint(SpeedEq(expectedSpeed))).Times(1);
+    const float positionValue = 1.5f;
+    foc::Radians expectedPosition{ positionValue };
+    EXPECT_CALL(focMock, SetPoint(PositionEq(expectedPosition))).Times(1);
 
-    interactor.SetSpeed(foc::RadiansPerSecond(speedValue));
+    interactor.SetPosition(foc::Radians(positionValue));
 }
 
-TEST_F(FocSpeedInteractorTest, SetSpeedInRevPerMinuteUpdatesSetPoint)
-{
-    const float rpmValue = 100.0f;
-    const float expectedRadPerSec = rpmValue * (M_PI / 30.0f);
-    foc::RadiansPerSecond expectedSpeed{ expectedRadPerSec };
-    EXPECT_CALL(focMock, SetPoint(SpeedEq(expectedSpeed))).Times(1);
-
-    interactor.SetSpeed(foc::RevPerMinute(rpmValue));
-}
-
-TEST_F(FocSpeedInteractorTest, SetDQPidParametersWithAllValuesPresent)
+TEST_F(FocPositionInteractorTest, SetDQPidParametersWithAllValuesPresent)
 {
     const float kpD = 1.0f;
     const float kiD = 2.0f;
@@ -100,7 +97,7 @@ TEST_F(FocSpeedInteractorTest, SetDQPidParametersWithAllValuesPresent)
     interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
 }
 
-TEST_F(FocSpeedInteractorTest, SetDQPidParametersWithPartialValues)
+TEST_F(FocPositionInteractorTest, SetDQPidParametersWithPartialValues)
 {
     const float kpD = 1.0f;
     const float kiQ = 5.0f;
@@ -121,7 +118,7 @@ TEST_F(FocSpeedInteractorTest, SetDQPidParametersWithPartialValues)
     interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
 }
 
-TEST_F(FocSpeedInteractorTest, SetDQPidParametersDoesNotPreserveExistingValues)
+TEST_F(FocPositionInteractorTest, SetDQPidParametersDoesNotPreserveExistingValues)
 {
     {
         foc::IdAndIqTunings expectedTunings1{
@@ -151,7 +148,7 @@ TEST_F(FocSpeedInteractorTest, SetDQPidParametersDoesNotPreserveExistingValues)
     }
 }
 
-TEST_F(FocSpeedInteractorTest, SetDQPidParametersAllSixParameters)
+TEST_F(FocPositionInteractorTest, SetDQPidParametersAllSixParameters)
 {
     services::PidParameters dParams;
     dParams.kp = 1.0f;
@@ -172,7 +169,7 @@ TEST_F(FocSpeedInteractorTest, SetDQPidParametersAllSixParameters)
     interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
 }
 
-TEST_F(FocSpeedInteractorTest, ExecutionOrder_StartThenSetSpeed)
+TEST_F(FocPositionInteractorTest, ExecutionOrder_StartThenSetPosition)
 {
     {
         InSequence seq;
@@ -181,10 +178,10 @@ TEST_F(FocSpeedInteractorTest, ExecutionOrder_StartThenSetSpeed)
     }
 
     interactor.Start();
-    interactor.SetSpeed(foc::RadiansPerSecond(0.5f));
+    interactor.SetPosition(foc::Radians(0.5f));
 }
 
-TEST_F(FocSpeedInteractorTest, ExecutionOrder_ConfigureThenStartThenStop)
+TEST_F(FocPositionInteractorTest, ExecutionOrder_ConfigureThenStartThenStop)
 {
     {
         InSequence seq;
@@ -203,7 +200,7 @@ TEST_F(FocSpeedInteractorTest, ExecutionOrder_ConfigureThenStartThenStop)
     interactor.Stop();
 }
 
-TEST_F(FocSpeedInteractorTest, SetSpeedPidParametersWithAllValues)
+TEST_F(FocPositionInteractorTest, SetSpeedPidParametersWithAllValues)
 {
     const float kp = 1.5f;
     const float ki = 0.5f;
@@ -221,7 +218,7 @@ TEST_F(FocSpeedInteractorTest, SetSpeedPidParametersWithAllValues)
     interactor.SetSpeedPidParameters(params);
 }
 
-TEST_F(FocSpeedInteractorTest, SetSpeedPidParametersWithPartialValues)
+TEST_F(FocPositionInteractorTest, SetSpeedPidParametersWithPartialValues)
 {
     const float kp = 2.0f;
 
@@ -235,7 +232,7 @@ TEST_F(FocSpeedInteractorTest, SetSpeedPidParametersWithPartialValues)
     interactor.SetSpeedPidParameters(params);
 }
 
-TEST_F(FocSpeedInteractorTest, SetSpeedPidParametersDoesNotPreserveExistingValues)
+TEST_F(FocPositionInteractorTest, SetSpeedPidParametersDoesNotPreserveExistingValues)
 {
     {
         services::PidParameters params1;
@@ -254,7 +251,58 @@ TEST_F(FocSpeedInteractorTest, SetSpeedPidParametersDoesNotPreserveExistingValue
     }
 }
 
-TEST_F(FocSpeedInteractorTest, AutoTuneDoesNotCallMock)
+TEST_F(FocPositionInteractorTest, SetPositionPidParametersWithAllValues)
+{
+    const float kp = 2.5f;
+    const float ki = 1.0f;
+    const float kd = 0.2f;
+
+    foc::PositionTunings expectedTunings{ kp, ki, kd };
+
+    EXPECT_CALL(focMock, SetPositionTunings(::testing::_, PositionTuningsEq(expectedTunings))).Times(1);
+
+    services::PidParameters params;
+    params.kp = kp;
+    params.ki = ki;
+    params.kd = kd;
+
+    interactor.SetPositionPidParameters(params);
+}
+
+TEST_F(FocPositionInteractorTest, SetPositionPidParametersWithPartialValues)
+{
+    const float ki = 1.5f;
+
+    foc::PositionTunings expectedTunings{ 0.0f, ki, 0.0f };
+
+    EXPECT_CALL(focMock, SetPositionTunings(::testing::_, PositionTuningsEq(expectedTunings))).Times(1);
+
+    services::PidParameters params;
+    params.ki = ki;
+
+    interactor.SetPositionPidParameters(params);
+}
+
+TEST_F(FocPositionInteractorTest, SetPositionPidParametersDoesNotPreserveExistingValues)
+{
+    {
+        services::PidParameters params1;
+        params1.kp = 2.0f;
+        EXPECT_CALL(focMock, SetPositionTunings(::testing::_, ::testing::_)).Times(1);
+        interactor.SetPositionPidParameters(params1);
+    }
+
+    {
+        foc::PositionTunings expectedTunings{ 0.0f, 1.0f, 0.0f };
+        EXPECT_CALL(focMock, SetPositionTunings(::testing::_, PositionTuningsEq(expectedTunings))).Times(1);
+
+        services::PidParameters params2;
+        params2.ki = 1.0f;
+        interactor.SetPositionPidParameters(params2);
+    }
+}
+
+TEST_F(FocPositionInteractorTest, AutoTuneDoesNotCallMock)
 {
     bool callbackCalled = false;
     interactor.AutoTune([&callbackCalled]()

@@ -15,8 +15,5 @@ namespace services
 
         // Implementation of FocTorqueInteractor
         void SetTorque(const foc::Nm& torque) override;
-
-    private:
-        foc::IdAndIqPoint setPoint{};
     };
 }
