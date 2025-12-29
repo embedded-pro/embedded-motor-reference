@@ -1,7 +1,7 @@
 #include "foc/interfaces/FieldOrientedController.hpp"
 #include "simulator/plot/Plot.hpp"
+#include "simulator/pmsm/Jk42bls01X038ed.hpp"
 #include "simulator/pmsm/Model.hpp"
-#include "simulator/pmsm/jk42bls01_x038ed.hpp"
 #include "source/foc/instantiations/FieldOrientedControllerImpl.hpp"
 #include "source/foc/instantiations/TrigonometricImpl.hpp"
 #include "source/foc/interfaces/Driver.hpp"
