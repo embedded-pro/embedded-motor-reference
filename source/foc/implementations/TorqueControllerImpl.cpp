@@ -8,9 +8,9 @@ namespace foc
     {
     }
 
-    void TorqueControllerImpl::SetTunings(Volts Vcd, IdAndIqTunings tunings)
+    void TorqueControllerImpl::SetCurrentTunings(Volts Vcd, IdAndIqTunings tunings)
     {
-        foc.SetTunings(Vcd, tunings);
+        foc.SetCurrentTunings(Vcd, tunings);
     }
 
     void TorqueControllerImpl::SetPoint(const IdAndIqPoint& point)

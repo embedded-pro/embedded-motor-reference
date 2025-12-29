@@ -50,7 +50,7 @@ namespace foc
     }
 
     OPTIMIZE_FOR_SPEED
-    void FieldOrientedControllerTorqueImpl::SetTunings(Volts Vdc, const IdAndIqTunings& tunings)
+    void FieldOrientedControllerTorqueImpl::SetCurrentTunings(Volts Vdc, const IdAndIqTunings& tunings)
     {
         auto scale = 1.0f / (invSqrt3 * Vdc.Value());
 
@@ -101,13 +101,18 @@ namespace foc
     }
 
     OPTIMIZE_FOR_SPEED
-    void FieldOrientedControllerSpeedImpl::SetTunings(Volts Vdc, const SpeedTunings& speedTuning, const IdAndIqTunings& torqueTunings)
+    void FieldOrientedControllerSpeedImpl::SetCurrentTunings(Volts Vdc, const IdAndIqTunings& torqueTunings)
     {
         auto scale = 1.0f / (invSqrt3 * Vdc.Value());
 
-        speedPid.SetTunings({ speedTuning.kp, speedTuning.ki * dt, speedTuning.kd / dt });
         dPid.SetTunings({ torqueTunings.first.kp * scale, torqueTunings.first.ki * scale * dt, torqueTunings.first.kd * scale / dt });
         qPid.SetTunings({ torqueTunings.second.kp * scale, torqueTunings.second.ki * scale * dt, torqueTunings.second.kd * scale / dt });
+    }
+
+    OPTIMIZE_FOR_SPEED
+    void FieldOrientedControllerSpeedImpl::SetSpeedTunings(Volts Vdc, const SpeedTunings& speedTuning)
+    {
+        speedPid.SetTunings({ speedTuning.kp, speedTuning.ki * dt, speedTuning.kd / dt });
     }
 
     OPTIMIZE_FOR_SPEED

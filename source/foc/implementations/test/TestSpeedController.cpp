@@ -89,8 +89,10 @@ TEST_F(TestSpeedController, set_tunings_updates_speed_and_torque_pid_controllers
     controllers::PidTunings<float> dTunings{ 2.0f, 1.0f, 0.2f };
     controllers::PidTunings<float> qTunings{ 3.0f, 1.5f, 0.3f };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::Eq(Vdc), SpeedTuningsEq(speedTunings), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
-    controller->SetTunings(Vdc, speedTunings, { dTunings, qTunings });
+    EXPECT_CALL(focMock, SetCurrentTunings(::testing::Eq(Vdc), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
+    EXPECT_CALL(focMock, SetSpeedTunings(::testing::Eq(Vdc), SpeedTuningsEq(speedTunings)));
+    controller->SetCurrentTunings(Vdc, { dTunings, qTunings });
+    controller->SetSpeedTunings(Vdc, speedTunings);
 }
 
 TEST_F(TestSpeedController, set_point_updates_speed_setpoint)
@@ -145,8 +147,10 @@ TEST_F(TestSpeedController, phase_currents_with_modified_speed_and_torque_tuning
     controllers::PidTunings<float> dTunings{ 1.5f, 0.75f, 0.15f };
     controllers::PidTunings<float> qTunings{ 2.5f, 1.25f, 0.25f };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::Eq(Vdc), SpeedTuningsEq(speedTunings), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
-    controller->SetTunings(Vdc, speedTunings, { dTunings, qTunings });
+    EXPECT_CALL(focMock, SetCurrentTunings(::testing::Eq(Vdc), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
+    EXPECT_CALL(focMock, SetSpeedTunings(::testing::Eq(Vdc), SpeedTuningsEq(speedTunings)));
+    controller->SetCurrentTunings(Vdc, { dTunings, qTunings });
+    controller->SetSpeedTunings(Vdc, speedTunings);
 
     foc::RadiansPerSecond speedSetpoint{ 150.0f };
     EXPECT_CALL(focMock, SetPoint(::testing::Eq(speedSetpoint)));

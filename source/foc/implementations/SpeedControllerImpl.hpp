@@ -13,7 +13,8 @@ namespace foc
     public:
         SpeedControllerImpl(MotorDriver& interface, Encoder& position, FieldOrientedControllerSpeedControl& foc);
 
-        void SetTunings(Volts Vcd, const SpeedTunings& speedTuning, const IdAndIqTunings& torqueTunings) override;
+        void SetCurrentTunings(Volts Vcd, IdAndIqTunings tunings) override;
+        void SetSpeedTunings(Volts Vcd, const SpeedTunings& speedTuning) override;
         void SetPoint(RadiansPerSecond point) override;
         void Enable() override;
         void Disable() override;

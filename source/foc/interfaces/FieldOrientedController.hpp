@@ -15,6 +15,7 @@ namespace foc
     public:
         virtual void SetPolePairs(std::size_t polePairs) = 0;
         virtual void Reset() = 0;
+        virtual void SetCurrentTunings(Volts Vdc, const IdAndIqTunings& tunings) = 0;
         virtual PhasePwmDutyCycles Calculate(const PhaseCurrents& currentPhases, Radians& position) = 0;
     };
 
@@ -23,7 +24,6 @@ namespace foc
     {
     public:
         virtual void SetPoint(IdAndIqPoint setPoint) = 0;
-        virtual void SetTunings(Volts Vdc, const IdAndIqTunings& tunings) = 0;
     };
 
     class FieldOrientedControllerSpeedControl
@@ -31,6 +31,6 @@ namespace foc
     {
     public:
         virtual void SetPoint(RadiansPerSecond setPoint) = 0;
-        virtual void SetTunings(Volts Vdc, const SpeedTunings& speedTuning, const IdAndIqTunings& torqueTunings) = 0;
+        virtual void SetSpeedTunings(Volts Vdc, const SpeedTunings& speedTuning) = 0;
     };
 }

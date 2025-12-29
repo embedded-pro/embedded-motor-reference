@@ -65,9 +65,11 @@ namespace
             speed_data.reserve(steps);
 
             foc.SetPolePairs(static_cast<std::size_t>(params.p));
-            foc.SetTunings(
+            foc.SetSpeedTunings(
                 foc::Volts{ motorParameters.Vdc },
-                foc::SpeedTunings{ Kp_speed, Ki_speed, Kd_speed },
+                foc::SpeedTunings{ Kp_speed, Ki_speed, Kd_speed });
+            foc.SetCurrentTunings(
+                foc::Volts{ motorParameters.Vdc },
                 foc::IdAndIqTunings{
                     { Kp_current, Ki_current, Kd_current },
                     { Kp_current, Ki_current, Kd_current } });

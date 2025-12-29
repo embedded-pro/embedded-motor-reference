@@ -7,7 +7,7 @@ namespace application
         , motorFocImpl{ hardwareAdapter, hardwareAdapter, focImpl }
         , focInteractor{ hardware.PowerSupplyVoltage(), motorFocImpl }
         , terminalWithStorage{ hardware.Terminal(), hardware.Tracer() }
-        , terminal{ terminalWithStorage, focInteractor }
+        , terminal{ terminalWithStorage, focInteractor, focInteractor }
         , debugLed{ hardware.Leds().front(), std::chrono::milliseconds(50), std::chrono::milliseconds(1950) }
     {}
 }

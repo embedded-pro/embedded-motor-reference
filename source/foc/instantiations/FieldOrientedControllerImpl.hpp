@@ -17,7 +17,7 @@ namespace foc
 
         void SetPolePairs(std::size_t polePairs) override;
         void SetPoint(IdAndIqPoint setPoint) override;
-        void SetTunings(Volts Vdc, const IdAndIqTunings& tunings) override;
+        void SetCurrentTunings(Volts Vdc, const IdAndIqTunings& tunings) override;
         void Reset() override;
         PhasePwmDutyCycles Calculate(const PhaseCurrents& currentPhases, Radians& position) override;
 
@@ -39,7 +39,8 @@ namespace foc
 
         void SetPolePairs(std::size_t polePairs) override;
         void SetPoint(RadiansPerSecond point) override;
-        void SetTunings(Volts Vdc, const SpeedTunings& speedTuning, const IdAndIqTunings& torqueTunings) override;
+        void SetCurrentTunings(Volts Vdc, const IdAndIqTunings& torqueTunings) override;
+        void SetSpeedTunings(Volts Vdc, const SpeedTunings& speedTuning) override;
         void Reset() override;
         PhasePwmDutyCycles Calculate(const PhaseCurrents& currentPhases, Radians& position) override;
 

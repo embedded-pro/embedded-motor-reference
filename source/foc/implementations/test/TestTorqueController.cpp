@@ -81,8 +81,8 @@ TEST_F(TestTorqueController, set_tunings_updates_pid_controllers)
     controllers::PidTunings<float> dTunings{ 1.0f, 0.5f, 0.1f };
     controllers::PidTunings<float> qTunings{ 2.0f, 1.0f, 0.2f };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::Eq(Vdc), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
-    foc->SetTunings(Vdc, { dTunings, qTunings });
+    EXPECT_CALL(focMock, SetCurrentTunings(::testing::Eq(Vdc), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
+    foc->SetCurrentTunings(Vdc, { dTunings, qTunings });
 }
 
 TEST_F(TestTorqueController, set_point_updates_pid_controllers)
@@ -136,8 +136,8 @@ TEST_F(TestTorqueController, phase_currents_with_modified_pid_values)
     foc::Volts Vdc{ 1.0f };
     controllers::PidTunings<float> dTunings{ 1.0f, 0.5f, 0.1f };
     controllers::PidTunings<float> qTunings{ 2.0f, 1.0f, 0.2f };
-    EXPECT_CALL(focMock, SetTunings(::testing::Eq(Vdc), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
-    foc->SetTunings(Vdc, { dTunings, qTunings });
+    EXPECT_CALL(focMock, SetCurrentTunings(::testing::Eq(Vdc), IdAndIqTuningsEq(std::make_pair(dTunings, qTunings))));
+    foc->SetCurrentTunings(Vdc, { dTunings, qTunings });
 
     foc::Ampere dSetpoint{ 0.5f };
     foc::Ampere qSetpoint{ 0.75f };

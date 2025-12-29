@@ -4,16 +4,15 @@
 #include "infra/util/Function.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
 #include "services/util/Terminal.hpp"
-#include "source/services/cli/TerminalPosition.hpp"
+#include "source/services/cli/TerminalBase.hpp"
 #include "gmock/gmock.h"
-#include <cmath>
 #include <optional>
 
 namespace
 {
-    MATCHER_P(PositionEq, expected, "is position equal")
+    MATCHER_P(OptionalFloatEq, expected, "is an optional with value approximately " + ::testing::PrintToString(expected))
     {
-        return std::abs(arg.Value() - expected.Value()) < 1e-5f;
+        return arg.has_value() && std::abs(arg.value() - expected) < 1e-5f;
     }
 
     MATCHER_P2(PidParamsEq, dParams, qParams, "is FOC PID parameters equal")
@@ -33,16 +32,6 @@ namespace
                    (q.ki.has_value() && qParams.ki.has_value() && std::abs(*q.ki - *qParams.ki) < 1e-5f)) &&
                (!q.kd.has_value() && !qParams.kd.has_value() ||
                    (q.kd.has_value() && qParams.kd.has_value() && std::abs(*q.kd - *qParams.kd) < 1e-5f));
-    }
-
-    MATCHER_P(PidParamEq, expected, "is PID parameters equal")
-    {
-        return (!arg.kp.has_value() && !expected.kp.has_value() ||
-                   (arg.kp.has_value() && expected.kp.has_value() && std::abs(*arg.kp - *expected.kp) < 1e-5f)) &&
-               (!arg.ki.has_value() && !expected.ki.has_value() ||
-                   (arg.ki.has_value() && expected.ki.has_value() && std::abs(*arg.ki - *expected.ki) < 1e-5f)) &&
-               (!arg.kd.has_value() && !expected.kd.has_value() ||
-                   (arg.kd.has_value() && expected.kd.has_value() && std::abs(*arg.kd - *expected.kd) < 1e-5f));
     }
 
     class StreamWriterMock
@@ -70,22 +59,20 @@ namespace
         MOCK_METHOD(void, Stop, (), (override));
     };
 
-    class FocPositionControllerMock
-        : public services::FocPositionInteractor
+    struct TerminalBaseImpl
+        : services::TerminalFocBaseInteractor
     {
-    public:
-        MOCK_METHOD(void, SetSpeedPidParameters, (const services::PidParameters& pidParameters), (override));
-        MOCK_METHOD(void, SetPositionPidParameters, (const services::PidParameters& pidParameters), (override));
-        MOCK_METHOD(void, SetPosition, (const foc::Radians& position), (override));
+        TerminalBaseImpl(services::TerminalWithStorage& terminal, services::FocInteractor& focInteractor)
+            : services::TerminalFocBaseInteractor(terminal, focInteractor)
+        {}
     };
 
-    class TerminalPositionTest
+    class TerminalBaseTest
         : public ::testing::Test
         , public infra::EventDispatcherWithWeakPtrFixture
     {
     public:
         ::testing::StrictMock<FocControllerMock> focControllerMock;
-        ::testing::StrictMock<FocPositionControllerMock> focPositionControllerMock;
         ::testing::StrictMock<StreamWriterMock> streamWriterMock;
         infra::TextOutputStream::WithErrorPolicy stream{ streamWriterMock };
         services::TracerToStream tracer{ stream };
@@ -96,7 +83,7 @@ namespace
             } };
         services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<128, 5> terminalWithCommands{ communication, tracer };
         services::TerminalWithStorage::WithMaxSize<10> terminal{ terminalWithCommands, tracer };
-        services::TerminalFocPositionInteractor terminalInteractor{ terminal, focControllerMock, focPositionControllerMock };
+        TerminalBaseImpl terminalInteractor{ terminal, focControllerMock };
 
         void InvokeCommand(std::string command, const std::function<void()>& onCommandReceived)
         {
@@ -114,25 +101,54 @@ namespace
     };
 }
 
-TEST_F(TerminalPositionTest, set_speed_pid)
+TEST_F(TerminalBaseTest, auto_tune)
 {
-    services::PidParameters pid{
-        std::optional<float>(0.5f),
-        std::optional<float>(0.1f),
-        std::optional<float>(0.01f)
-    };
-
-    InvokeCommand("sspid 0.5 0.1 0.01", [this, &pid]()
+    InvokeCommand("auto_tune", [this]()
         {
-            EXPECT_CALL(focPositionControllerMock, SetSpeedPidParameters(PidParamEq(pid)));
+            EXPECT_CALL(focControllerMock, AutoTune(::testing::_));
         });
 
     ExecuteAllActions();
 }
 
-TEST_F(TerminalPositionTest, set_speed_pid_invalid_argument_count)
+TEST_F(TerminalBaseTest, auto_tune_alias)
 {
-    InvokeCommand("set_speed_pid 0.5 0.1", [this]()
+    InvokeCommand("at", [this]()
+        {
+            EXPECT_CALL(focControllerMock, AutoTune(::testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TerminalBaseTest, set_dq_pid)
+{
+    services::PidParameters dParams{
+        std::optional<float>(1.0f),
+        std::optional<float>(0.765f),
+        std::optional<float>(-0.56f)
+    };
+    services::PidParameters qParams{
+        std::optional<float>(0.5f),
+        std::optional<float>(-0.35f),
+        std::optional<float>(0.75f)
+    };
+
+    std::pair<services::PidParameters,
+        services::PidParameters>
+        expectedParams(dParams, qParams);
+
+    InvokeCommand("sdqpid 1.0 0.765 -0.56 0.5 -0.35 0.75", [this, &expectedParams]()
+        {
+            EXPECT_CALL(focControllerMock, SetDQPidParameters(PidParamsEq(expectedParams.first, expectedParams.second)));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TerminalBaseTest, set_dq_pid_invalid_argument_count)
+{
+    InvokeCommand("set_dq_pid 1.0 0.765", [this]()
         {
             ::testing::InSequence _;
 
@@ -148,9 +164,9 @@ TEST_F(TerminalPositionTest, set_speed_pid_invalid_argument_count)
     ExecuteAllActions();
 }
 
-TEST_F(TerminalPositionTest, set_speed_pid_invalid_kp)
+TEST_F(TerminalBaseTest, set_dq_pid_invalid_d_kp)
 {
-    InvokeCommand("set_speed_pid abc 0.1 0.01", [this]()
+    InvokeCommand("set_dq_pid abc 0.765 -0.56 0.5 -0.35 0.75", [this]()
         {
             ::testing::InSequence _;
 
@@ -166,9 +182,9 @@ TEST_F(TerminalPositionTest, set_speed_pid_invalid_kp)
     ExecuteAllActions();
 }
 
-TEST_F(TerminalPositionTest, set_speed_pid_invalid_ki)
+TEST_F(TerminalBaseTest, set_dq_pid_invalid_d_ki)
 {
-    InvokeCommand("set_speed_pid 0.5 abc 0.01", [this]()
+    InvokeCommand("set_dq_pid 1.0 abc -0.56 0.5 -0.35 0.75", [this]()
         {
             ::testing::InSequence _;
 
@@ -184,9 +200,9 @@ TEST_F(TerminalPositionTest, set_speed_pid_invalid_ki)
     ExecuteAllActions();
 }
 
-TEST_F(TerminalPositionTest, set_speed_pid_invalid_kd)
+TEST_F(TerminalBaseTest, set_dq_pid_invalid_d_kd)
 {
-    InvokeCommand("set_speed_pid 0.5 0.1 abc", [this]()
+    InvokeCommand("set_dq_pid 1.0 0.765 abc 0.5 -0.35 0.75", [this]()
         {
             ::testing::InSequence _;
 
@@ -202,43 +218,9 @@ TEST_F(TerminalPositionTest, set_speed_pid_invalid_kd)
     ExecuteAllActions();
 }
 
-TEST_F(TerminalPositionTest, set_pos_pid)
+TEST_F(TerminalBaseTest, set_dq_pid_invalid_q_kp)
 {
-    services::PidParameters pid{
-        std::optional<float>(0.5f),
-        std::optional<float>(0.1f),
-        std::optional<float>(0.01f)
-    };
-
-    InvokeCommand("sppid 0.5 0.1 0.01", [this, &pid]()
-        {
-            EXPECT_CALL(focPositionControllerMock, SetPositionPidParameters(PidParamEq(pid)));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalPositionTest, set_pos_pid_invalid_argument_count)
-{
-    InvokeCommand("set_pos_pid 0.5 0.1", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid number of arguments" };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalPositionTest, set_pos_pid_invalid_kp)
-{
-    InvokeCommand("set_pos_pid abc 0.1 0.01", [this]()
+    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 abc -0.35 0.75", [this]()
         {
             ::testing::InSequence _;
 
@@ -254,9 +236,9 @@ TEST_F(TerminalPositionTest, set_pos_pid_invalid_kp)
     ExecuteAllActions();
 }
 
-TEST_F(TerminalPositionTest, set_pos_pid_invalid_ki)
+TEST_F(TerminalBaseTest, set_dq_pid_invalid_q_ki)
 {
-    InvokeCommand("set_pos_pid 0.5 abc 0.01", [this]()
+    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 0.5 abc 0.75", [this]()
         {
             ::testing::InSequence _;
 
@@ -272,9 +254,9 @@ TEST_F(TerminalPositionTest, set_pos_pid_invalid_ki)
     ExecuteAllActions();
 }
 
-TEST_F(TerminalPositionTest, set_pos_pid_invalid_kd)
+TEST_F(TerminalBaseTest, set_dq_pid_invalid_q_kd)
 {
-    InvokeCommand("set_pos_pid 0.5 0.1 abc", [this]()
+    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 0.5 -0.35 abc", [this]()
         {
             ::testing::InSequence _;
 
@@ -290,51 +272,41 @@ TEST_F(TerminalPositionTest, set_pos_pid_invalid_kd)
     ExecuteAllActions();
 }
 
-TEST_F(TerminalPositionTest, set_position)
+TEST_F(TerminalBaseTest, start)
 {
-    InvokeCommand("spr 2.5", [this]()
+    InvokeCommand("start", [this]()
         {
-            EXPECT_CALL(focPositionControllerMock, SetPosition(testing::A<const foc::Radians&>()))
-                .WillOnce(testing::Invoke([](const foc::Radians& p)
-                    {
-                        EXPECT_NEAR(p.Value(), 2.5f, 1e-5f);
-                    }));
+            EXPECT_CALL(focControllerMock, Start());
         });
 
     ExecuteAllActions();
 }
 
-TEST_F(TerminalPositionTest, set_position_invalid_argument_count)
+TEST_F(TerminalBaseTest, start_alias)
 {
-    InvokeCommand("set_position 2.5 3.5", [this]()
+    InvokeCommand("sts", [this]()
         {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid number of arguments." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+            EXPECT_CALL(focControllerMock, Start());
         });
 
     ExecuteAllActions();
 }
 
-TEST_F(TerminalPositionTest, set_position_invalid_value)
+TEST_F(TerminalBaseTest, stop)
 {
-    InvokeCommand("set_position abc", [this]()
+    InvokeCommand("stop", [this]()
         {
-            ::testing::InSequence _;
+            EXPECT_CALL(focControllerMock, Stop());
+        });
 
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
+    ExecuteAllActions();
+}
 
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+TEST_F(TerminalBaseTest, stop_alias)
+{
+    InvokeCommand("stp", [this]()
+        {
+            EXPECT_CALL(focControllerMock, Stop());
         });
 
     ExecuteAllActions();

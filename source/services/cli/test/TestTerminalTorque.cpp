@@ -56,14 +56,20 @@ namespace
     };
 
     class FocControllerMock
-        : public services::FocTorqueInteractor
+        : public services::FocInteractor
     {
     public:
         MOCK_METHOD(void, AutoTune, (const infra::Function<void()>& onDone), (override));
-        MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<PidParameters, PidParameters>&)dqPidParams), (override));
-        MOCK_METHOD(void, SetTorque, (const foc::Nm& torque), (override));
+        MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<services::PidParameters, services::PidParameters>&)dqPidParams), (override));
         MOCK_METHOD(void, Start, (), (override));
         MOCK_METHOD(void, Stop, (), (override));
+    };
+
+    class FocTorqueControllerMock
+        : public services::FocTorqueInteractor
+    {
+    public:
+        MOCK_METHOD(void, SetTorque, (const foc::Nm& torque), (override));
     };
 
     class TerminalTorqueTest
@@ -72,6 +78,7 @@ namespace
     {
     public:
         ::testing::StrictMock<FocControllerMock> focControllerMock;
+        ::testing::StrictMock<FocTorqueControllerMock> focTorqueControllerMock;
         ::testing::StrictMock<StreamWriterMock> streamWriterMock;
         infra::TextOutputStream::WithErrorPolicy stream{ streamWriterMock };
         services::TracerToStream tracer{ stream };
@@ -82,7 +89,7 @@ namespace
             } };
         services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<128, 5> terminalWithCommands{ communication, tracer };
         services::TerminalWithStorage::WithMaxSize<10> terminal{ terminalWithCommands, tracer };
-        services::TerminalFocTorqueInteractor terminalInteractor{ terminal, focControllerMock };
+        services::TerminalFocTorqueInteractor terminalInteractor{ terminal, focControllerMock, focTorqueControllerMock };
 
         void InvokeCommand(std::string command, const std::function<void()>& onCommandReceived)
         {
@@ -100,224 +107,13 @@ namespace
     };
 }
 
-TEST_F(TerminalTorqueTest, auto_tune)
-{
-    InvokeCommand("auto_tune", [this]()
-        {
-            EXPECT_CALL(focControllerMock, AutoTune(::testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, auto_tune_alias)
-{
-    InvokeCommand("at", [this]()
-        {
-            EXPECT_CALL(focControllerMock, AutoTune(::testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, set_dq_pid)
-{
-    services::FocInteractor::PidParameters dParams{
-        std::optional<float>(1.0f),
-        std::optional<float>(0.765f),
-        std::optional<float>(-0.56f)
-    };
-    services::FocInteractor::PidParameters qParams{
-        std::optional<float>(0.5f),
-        std::optional<float>(-0.35f),
-        std::optional<float>(0.75f)
-    };
-
-    std::pair<services::FocInteractor::PidParameters,
-        services::FocInteractor::PidParameters>
-        expectedParams(dParams, qParams);
-
-    InvokeCommand("sdqpid 1.0 0.765 -0.56 0.5 -0.35 0.75", [this, &expectedParams]()
-        {
-            EXPECT_CALL(focControllerMock, SetDQPidParameters(PidParamsEq(expectedParams.first, expectedParams.second)));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, set_dq_pid_invalid_argument_count)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid number of arguments" };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, set_dq_pid_invalid_d_kp)
-{
-    InvokeCommand("set_dq_pid abc 0.765 -0.56 0.5 -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, set_dq_pid_invalid_d_ki)
-{
-    InvokeCommand("set_dq_pid 1.0 abc -0.56 0.5 -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, set_dq_pid_invalid_d_kd)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 abc 0.5 -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, set_dq_pid_invalid_q_kp)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 abc -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, set_dq_pid_invalid_q_ki)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 0.5 abc 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, set_dq_pid_invalid_q_kd)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 0.5 -0.35 abc", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, start)
-{
-    InvokeCommand("start", [this]()
-        {
-            EXPECT_CALL(focControllerMock, Start());
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, start_alias)
-{
-    InvokeCommand("sts", [this]()
-        {
-            EXPECT_CALL(focControllerMock, Start());
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, stop)
-{
-    InvokeCommand("stop", [this]()
-        {
-            EXPECT_CALL(focControllerMock, Stop());
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalTorqueTest, stop_alias)
-{
-    InvokeCommand("stp", [this]()
-        {
-            EXPECT_CALL(focControllerMock, Stop());
-        });
-
-    ExecuteAllActions();
-}
-
 TEST_F(TerminalTorqueTest, set_torque)
 {
     foc::Nm torque{ 2.5f };
 
     InvokeCommand("set_torque 2.5", [this, torque]()
         {
-            EXPECT_CALL(focControllerMock, SetTorque(testing::_));
+            EXPECT_CALL(focTorqueControllerMock, SetTorque(testing::_));
         });
 
     ExecuteAllActions();

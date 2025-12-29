@@ -7,9 +7,14 @@ namespace foc
         , foc{ foc }
     {}
 
-    void SpeedControllerImpl::SetTunings(Volts Vcd, const SpeedTunings& speedTuning, const IdAndIqTunings& torqueTunings)
+    void SpeedControllerImpl::SetCurrentTunings(Volts Vcd, IdAndIqTunings tunings)
     {
-        foc.SetTunings(Vcd, speedTuning, torqueTunings);
+        foc.SetCurrentTunings(Vcd, tunings);
+    }
+
+    void SpeedControllerImpl::SetSpeedTunings(Volts Vcd, const SpeedTunings& speedTuning)
+    {
+        foc.SetSpeedTunings(Vcd, speedTuning);
     }
 
     void SpeedControllerImpl::SetPoint(RadiansPerSecond point)

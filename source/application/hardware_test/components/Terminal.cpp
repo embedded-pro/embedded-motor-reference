@@ -220,7 +220,8 @@ namespace application
         speedPidTunings = controllers::PidTunings<float>{ *dKp, *dKi, *dKd };
         dqPidTunings = controllers::PidTunings<float>{ *qKp, *qKi, *qKd };
 
-        foc.SetTunings(Vdc, speedPidTunings, { dqPidTunings, dqPidTunings });
+        foc.SetSpeedTunings(Vdc, speedPidTunings);
+        foc.SetCurrentTunings(Vdc, { dqPidTunings, dqPidTunings });
 
         return { services::TerminalWithStorage::Status::success };
     }

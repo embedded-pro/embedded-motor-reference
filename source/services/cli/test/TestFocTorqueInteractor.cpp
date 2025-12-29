@@ -67,14 +67,14 @@ TEST_F(FocTorqueInteractorTest, SetDQPidParametersWithAllValuesPresent)
         { kpQ, kiQ, kdQ }
     };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
+    EXPECT_CALL(focMock, SetCurrentTunings(::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
 
-    services::FocInteractor::PidParameters dParams;
+    services::PidParameters dParams;
     dParams.kp = kpD;
     dParams.ki = kiD;
     dParams.kd = kdD;
 
-    services::FocInteractor::PidParameters qParams;
+    services::PidParameters qParams;
     qParams.kp = kpQ;
     qParams.ki = kiQ;
     qParams.kd = kdQ;
@@ -92,12 +92,12 @@ TEST_F(FocTorqueInteractorTest, SetDQPidParametersWithPartialValues)
         { 0.0f, kiQ, 0.0f }
     };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
+    EXPECT_CALL(focMock, SetCurrentTunings(::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
 
-    services::FocInteractor::PidParameters dParams;
+    services::PidParameters dParams;
     dParams.kp = kpD;
 
-    services::FocInteractor::PidParameters qParams;
+    services::PidParameters qParams;
     qParams.ki = kiQ;
 
     interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
@@ -119,14 +119,14 @@ TEST_F(FocTorqueInteractorTest, ExecutionOrder_ConfigureThenStartThenStop)
 {
     {
         InSequence seq;
-        EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_)).Times(1);
+        EXPECT_CALL(focMock, SetCurrentTunings(::testing::_, ::testing::_)).Times(1);
         EXPECT_CALL(focMock, Enable()).Times(1);
         EXPECT_CALL(focMock, Disable()).Times(1);
     }
 
-    services::FocInteractor::PidParameters dParams;
+    services::PidParameters dParams;
     dParams.kp = 1.0f;
-    services::FocInteractor::PidParameters qParams;
+    services::PidParameters qParams;
     qParams.kp = 2.0f;
 
     interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
@@ -142,5 +142,5 @@ TEST_F(FocTorqueInteractorTest, AutoTuneDoesNotCallMock)
             callbackCalled = true;
         });
 
-    EXPECT_FALSE(callbackCalled);
+    EXPECT_TRUE(callbackCalled);
 }

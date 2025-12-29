@@ -85,14 +85,14 @@ TEST_F(FocSpeedInteractorTest, SetDQPidParametersWithAllValuesPresent)
         { kpQ, kiQ, kdQ }
     };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
+    EXPECT_CALL(focMock, SetCurrentTunings(::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
 
-    services::FocInteractor::PidParameters dParams;
+    services::PidParameters dParams;
     dParams.kp = kpD;
     dParams.ki = kiD;
     dParams.kd = kdD;
 
-    services::FocInteractor::PidParameters qParams;
+    services::PidParameters qParams;
     qParams.kp = kpQ;
     qParams.ki = kiQ;
     qParams.kd = kdQ;
@@ -110,78 +110,65 @@ TEST_F(FocSpeedInteractorTest, SetDQPidParametersWithPartialValues)
         { 0.0f, kiQ, 0.0f }
     };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
+    EXPECT_CALL(focMock, SetCurrentTunings(::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
 
-    services::FocInteractor::PidParameters dParams;
+    services::PidParameters dParams;
     dParams.kp = kpD;
 
-    services::FocInteractor::PidParameters qParams;
+    services::PidParameters qParams;
     qParams.ki = kiQ;
 
     interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
 }
 
-TEST_F(FocSpeedInteractorTest, SetDQPidParametersPreservesExistingValues)
+TEST_F(FocSpeedInteractorTest, SetDQPidParametersDoesNotPreserveExistingValues)
 {
     {
-        services::FocInteractor::PidParameters dParams1;
+        foc::IdAndIqTunings expectedTunings1{
+            { 1.0f, 0.0f, 0.0f },
+            { 0.0f, 2.0f, 0.0f }
+        };
+        EXPECT_CALL(focMock, SetCurrentTunings(::testing::_, IdAndIqTuningsEq(expectedTunings1))).Times(1);
+        services::PidParameters dParams1;
         dParams1.kp = 1.0f;
-        services::FocInteractor::PidParameters qParams1;
+        services::PidParameters qParams1;
         qParams1.ki = 2.0f;
-        EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, ::testing::_)).Times(1);
         interactor.SetDQPidParameters(std::make_pair(dParams1, qParams1));
     }
 
     {
-        foc::IdAndIqTunings expectedTunings{
-            { 1.0f, 3.0f, 0.0f },
-            { 4.0f, 2.0f, 0.0f }
+        foc::IdAndIqTunings expectedTunings2{
+            { 0.0f, 3.0f, 0.0f },
+            { 4.0f, 0.0f, 0.0f }
         };
-        EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, IdAndIqTuningsEq(expectedTunings))).Times(1);
+        EXPECT_CALL(focMock, SetCurrentTunings(::testing::_, IdAndIqTuningsEq(expectedTunings2))).Times(1);
 
-        services::FocInteractor::PidParameters dParams2;
+        services::PidParameters dParams2;
         dParams2.ki = 3.0f;
-        services::FocInteractor::PidParameters qParams2;
+        services::PidParameters qParams2;
         qParams2.kp = 4.0f;
         interactor.SetDQPidParameters(std::make_pair(dParams2, qParams2));
     }
 }
 
-TEST_F(FocSpeedInteractorTest, SetDQPidParametersAllSixParametersIndividually)
+TEST_F(FocSpeedInteractorTest, SetDQPidParametersAllSixParameters)
 {
-    services::FocInteractor::PidParameters dParams;
+    services::PidParameters dParams;
     dParams.kp = 1.0f;
-    services::FocInteractor::PidParameters qParams;
-    EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, ::testing::_));
-    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
-
-    dParams = {};
     dParams.ki = 2.0f;
-    EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, ::testing::_));
-    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
-
-    dParams = {};
     dParams.kd = 3.0f;
-    EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, ::testing::_));
-    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
 
+    services::PidParameters qParams;
     qParams.kp = 4.0f;
-    dParams = {};
-    EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, ::testing::_));
-    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
-
-    qParams = {};
     qParams.ki = 5.0f;
-    EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, ::testing::_));
-    interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
-
-    qParams = {};
     qParams.kd = 6.0f;
-    foc::IdAndIqTunings expectedFinal{
+
+    foc::IdAndIqTunings expectedTunings{
         { 1.0f, 2.0f, 3.0f },
         { 4.0f, 5.0f, 6.0f }
     };
-    EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, IdAndIqTuningsEq(expectedFinal)));
+
+    EXPECT_CALL(focMock, SetCurrentTunings(::testing::_, IdAndIqTuningsEq(expectedTunings)));
     interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
 }
 
@@ -201,14 +188,14 @@ TEST_F(FocSpeedInteractorTest, ExecutionOrder_ConfigureThenStartThenStop)
 {
     {
         InSequence seq;
-        EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, ::testing::_)).Times(1);
+        EXPECT_CALL(focMock, SetCurrentTunings(::testing::_, ::testing::_)).Times(1);
         EXPECT_CALL(focMock, Enable()).Times(1);
         EXPECT_CALL(focMock, Disable()).Times(1);
     }
 
-    services::FocInteractor::PidParameters dParams;
+    services::PidParameters dParams;
     dParams.kp = 1.0f;
-    services::FocInteractor::PidParameters qParams;
+    services::PidParameters qParams;
     qParams.kp = 2.0f;
 
     interactor.SetDQPidParameters(std::make_pair(dParams, qParams));
@@ -224,9 +211,9 @@ TEST_F(FocSpeedInteractorTest, SetSpeedPidParametersWithAllValues)
 
     foc::SpeedTunings expectedTunings{ kp, ki, kd };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::_, SpeedTuningsEq(expectedTunings), ::testing::_)).Times(1);
+    EXPECT_CALL(focMock, SetSpeedTunings(::testing::_, SpeedTuningsEq(expectedTunings))).Times(1);
 
-    services::FocInteractor::PidParameters params;
+    services::PidParameters params;
     params.kp = kp;
     params.ki = ki;
     params.kd = kd;
@@ -240,9 +227,9 @@ TEST_F(FocSpeedInteractorTest, SetSpeedPidParametersWithPartialValues)
 
     foc::SpeedTunings expectedTunings{ kp, 0.0f, 0.0f };
 
-    EXPECT_CALL(focMock, SetTunings(::testing::_, SpeedTuningsEq(expectedTunings), ::testing::_)).Times(1);
+    EXPECT_CALL(focMock, SetSpeedTunings(::testing::_, SpeedTuningsEq(expectedTunings))).Times(1);
 
-    services::FocInteractor::PidParameters params;
+    services::PidParameters params;
     params.kp = kp;
 
     interactor.SetSpeedPidParameters(params);
@@ -251,17 +238,17 @@ TEST_F(FocSpeedInteractorTest, SetSpeedPidParametersWithPartialValues)
 TEST_F(FocSpeedInteractorTest, SetSpeedPidParametersPreservesExistingValues)
 {
     {
-        services::FocInteractor::PidParameters params1;
+        services::PidParameters params1;
         params1.kp = 1.0f;
-        EXPECT_CALL(focMock, SetTunings(::testing::_, ::testing::_, ::testing::_)).Times(1);
+        EXPECT_CALL(focMock, SetSpeedTunings(::testing::_, ::testing::_)).Times(1);
         interactor.SetSpeedPidParameters(params1);
     }
 
     {
         foc::SpeedTunings expectedTunings{ 1.0f, 0.5f, 0.0f };
-        EXPECT_CALL(focMock, SetTunings(::testing::_, SpeedTuningsEq(expectedTunings), ::testing::_)).Times(1);
+        EXPECT_CALL(focMock, SetSpeedTunings(::testing::_, SpeedTuningsEq(expectedTunings))).Times(1);
 
-        services::FocInteractor::PidParameters params2;
+        services::PidParameters params2;
         params2.ki = 0.5f;
         interactor.SetSpeedPidParameters(params2);
     }
@@ -275,5 +262,5 @@ TEST_F(FocSpeedInteractorTest, AutoTuneDoesNotCallMock)
             callbackCalled = true;
         });
 
-    EXPECT_FALSE(callbackCalled);
+    EXPECT_TRUE(callbackCalled);
 }

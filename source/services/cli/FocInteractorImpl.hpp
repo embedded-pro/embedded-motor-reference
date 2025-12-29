@@ -16,7 +16,6 @@ namespace services
         void Stop() override;
 
         foc::Volts Vdc();
-        foc::IdAndIqTunings& CurrentTunings();
         FocImpl& Foc();
 
     protected:
@@ -25,7 +24,6 @@ namespace services
     private:
         foc::Volts vdc;
         FocImpl& focImpl;
-        foc::IdAndIqTunings tunings{};
     };
 
     // Implementation
@@ -45,6 +43,8 @@ namespace services
     template<typename FocImpl>
     void FocInteractorImpl<FocImpl>::SetDQPidParameters(const std::pair<PidParameters, PidParameters>& pidDAndQParameters)
     {
+        foc::IdAndIqTunings tunings{};
+
         const auto& dParams = pidDAndQParameters.first;
         if (dParams.kp.has_value())
             tunings.first.kp = *dParams.kp;
@@ -61,7 +61,7 @@ namespace services
         if (qParams.kd.has_value())
             tunings.second.kd = *qParams.kd;
 
-        focImpl.SetDQPidParameters(tunings);
+        focImpl.SetCurrentTunings(vdc, tunings);
     };
 
     template<typename FocImpl>
@@ -80,12 +80,6 @@ namespace services
     foc::Volts FocInteractorImpl<FocImpl>::Vdc()
     {
         return vdc;
-    };
-
-    template<typename FocImpl>
-    foc::IdAndIqTunings& FocInteractorImpl<FocImpl>::CurrentTunings()
-    {
-        return tunings;
     };
 
     template<typename FocImpl>

@@ -61,16 +61,22 @@ namespace
     };
 
     class FocControllerMock
-        : public services::FocSpeedInteractor
+        : public services::FocInteractor
     {
     public:
         MOCK_METHOD(void, AutoTune, (const infra::Function<void()>& onDone), (override));
-        MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<PidParameters, PidParameters>&)dqPidParams), (override));
-        MOCK_METHOD(void, SetSpeed, (const foc::RevPerMinute& speed), (override));
-        MOCK_METHOD(void, SetSpeed, (const foc::RadiansPerSecond& speed), (override));
-        MOCK_METHOD(void, SetSpeedPidParameters, (const PidParameters& pidParameters), (override));
+        MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<services::PidParameters, services::PidParameters>&)dqPidParams), (override));
         MOCK_METHOD(void, Start, (), (override));
         MOCK_METHOD(void, Stop, (), (override));
+    };
+
+    class FocSpeedControllerMock
+        : public services::FocSpeedInteractor
+    {
+    public:
+        MOCK_METHOD(void, SetSpeed, (const foc::RevPerMinute& speed), (override));
+        MOCK_METHOD(void, SetSpeed, (const foc::RadiansPerSecond& speed), (override));
+        MOCK_METHOD(void, SetSpeedPidParameters, (const services::PidParameters& pidParameters), (override));
     };
 
     class TerminalSpeedTest
@@ -79,6 +85,7 @@ namespace
     {
     public:
         ::testing::StrictMock<FocControllerMock> focControllerMock;
+        ::testing::StrictMock<FocSpeedControllerMock> focSpeedControllerMock;
         ::testing::StrictMock<StreamWriterMock> streamWriterMock;
         infra::TextOutputStream::WithErrorPolicy stream{ streamWriterMock };
         services::TracerToStream tracer{ stream };
@@ -89,7 +96,7 @@ namespace
             } };
         services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<128, 5> terminalWithCommands{ communication, tracer };
         services::TerminalWithStorage::WithMaxSize<10> terminal{ terminalWithCommands, tracer };
-        services::TerminalFocSpeedInteractor terminalInteractor{ terminal, focControllerMock };
+        services::TerminalFocSpeedInteractor terminalInteractor{ terminal, focControllerMock, focSpeedControllerMock };
 
         void InvokeCommand(std::string command, const std::function<void()>& onCommandReceived)
         {
@@ -107,180 +114,9 @@ namespace
     };
 }
 
-TEST_F(TerminalSpeedTest, auto_tune)
-{
-    InvokeCommand("auto_tune", [this]()
-        {
-            EXPECT_CALL(focControllerMock, AutoTune(::testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, auto_tune_alias)
-{
-    InvokeCommand("at", [this]()
-        {
-            EXPECT_CALL(focControllerMock, AutoTune(::testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, set_dq_pid)
-{
-    services::FocInteractor::PidParameters dParams{
-        std::optional<float>(1.0f),
-        std::optional<float>(0.765f),
-        std::optional<float>(-0.56f)
-    };
-    services::FocInteractor::PidParameters qParams{
-        std::optional<float>(0.5f),
-        std::optional<float>(-0.35f),
-        std::optional<float>(0.75f)
-    };
-
-    std::pair<services::FocInteractor::PidParameters,
-        services::FocInteractor::PidParameters>
-        expectedParams(dParams, qParams);
-
-    InvokeCommand("sdqpid 1.0 0.765 -0.56 0.5 -0.35 0.75", [this, &expectedParams]()
-        {
-            EXPECT_CALL(focControllerMock, SetDQPidParameters(PidParamsEq(expectedParams.first, expectedParams.second)));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, set_dq_pid_invalid_argument_count)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid number of arguments" };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, set_dq_pid_invalid_d_kp)
-{
-    InvokeCommand("set_dq_pid abc 0.765 -0.56 0.5 -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, set_dq_pid_invalid_d_ki)
-{
-    InvokeCommand("set_dq_pid 1.0 abc -0.56 0.5 -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, set_dq_pid_invalid_d_kd)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 abc 0.5 -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, set_dq_pid_invalid_q_kp)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 abc -0.35 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, set_dq_pid_invalid_q_ki)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 0.5 abc 0.75", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, set_dq_pid_invalid_q_kd)
-{
-    InvokeCommand("set_dq_pid 1.0 0.765 -0.56 0.5 -0.35 abc", [this]()
-        {
-            ::testing::InSequence _;
-
-            std::string header{ "ERROR: " };
-            std::string payload{ "invalid value. It should be a float." };
-            std::string newline{ "\r\n" };
-
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
-            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
 TEST_F(TerminalSpeedTest, set_speed_pid)
 {
-    services::FocInteractor::PidParameters pid{
+    services::PidParameters pid{
         std::optional<float>(0.5f),
         std::optional<float>(0.1f),
         std::optional<float>(0.01f)
@@ -288,7 +124,7 @@ TEST_F(TerminalSpeedTest, set_speed_pid)
 
     InvokeCommand("sspid 0.5 0.1 0.01", [this, &pid]()
         {
-            EXPECT_CALL(focControllerMock, SetSpeedPidParameters(PidParamEq(pid)));
+            EXPECT_CALL(focSpeedControllerMock, SetSpeedPidParameters(PidParamEq(pid)));
         });
 
     ExecuteAllActions();
@@ -370,7 +206,7 @@ TEST_F(TerminalSpeedTest, set_speed)
 {
     InvokeCommand("ss 2.5", [this]()
         {
-            EXPECT_CALL(focControllerMock, SetSpeed(testing::A<const foc::RadiansPerSecond&>()))
+            EXPECT_CALL(focSpeedControllerMock, SetSpeed(testing::A<const foc::RadiansPerSecond&>()))
                 .WillOnce(testing::Invoke([](const foc::RadiansPerSecond& s)
                     {
                         EXPECT_NEAR(s.Value(), 2.5f, 1e-5f);
@@ -411,46 +247,6 @@ TEST_F(TerminalSpeedTest, set_speed_invalid_value)
             EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
             EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
             EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, start)
-{
-    InvokeCommand("start", [this]()
-        {
-            EXPECT_CALL(focControllerMock, Start());
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, start_alias)
-{
-    InvokeCommand("sts", [this]()
-        {
-            EXPECT_CALL(focControllerMock, Start());
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, stop)
-{
-    InvokeCommand("stop", [this]()
-        {
-            EXPECT_CALL(focControllerMock, Stop());
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalSpeedTest, stop_alias)
-{
-    InvokeCommand("stp", [this]()
-        {
-            EXPECT_CALL(focControllerMock, Stop());
         });
 
     ExecuteAllActions();

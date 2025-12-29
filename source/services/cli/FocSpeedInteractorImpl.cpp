@@ -31,6 +31,6 @@ namespace services
         speedTunings.ki = pidParameters.ki.has_value() ? *pidParameters.ki : speedTunings.ki;
         speedTunings.kp = pidParameters.kp.has_value() ? *pidParameters.kp : speedTunings.kp;
 
-        Foc().SetTunings(Vdc(), speedTunings, CurrentTunings());
+        Foc().SetSpeedTunings(Vdc(), speedTunings);
     }
 }
