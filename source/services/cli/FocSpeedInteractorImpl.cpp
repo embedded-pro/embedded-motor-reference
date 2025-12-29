@@ -4,7 +4,7 @@ namespace
 {
     float ToRadiansPerSecond(const foc::RevPerMinute& rpm)
     {
-        return rpm.Value() * (M_PI / 30.0f);
+        return rpm.Value() * (static_cast<float>(M_PI) / 30.0f);
     }
 }
 

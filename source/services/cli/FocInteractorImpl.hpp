@@ -15,7 +15,7 @@ namespace services
         void Start() override;
         void Stop() override;
 
-        foc::Volts Vdc();
+        foc::Volts Vdc() const;
         FocImpl& Foc();
 
     protected:
@@ -77,7 +77,7 @@ namespace services
     };
 
     template<typename FocImpl>
-    foc::Volts FocInteractorImpl<FocImpl>::Vdc()
+    foc::Volts FocInteractorImpl<FocImpl>::Vdc() const
     {
         return vdc;
     };
