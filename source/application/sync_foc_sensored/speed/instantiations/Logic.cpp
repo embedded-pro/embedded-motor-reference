@@ -4,7 +4,8 @@ namespace
 {
     std::chrono::system_clock::duration TimeStepFromFrequency(hal::Hertz frequency)
     {
-        return std::chrono::nanoseconds(static_cast<int64_t>(1'000'000'000LL / frequency.Value()));
+        return std::chrono::duration_cast<std::chrono::system_clock::duration>(
+            std::chrono::nanoseconds(static_cast<int64_t>(1'000'000'000LL / frequency.Value())));
     }
 }
 
