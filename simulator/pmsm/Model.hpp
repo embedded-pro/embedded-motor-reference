@@ -12,19 +12,19 @@ namespace simulator
         struct Parameters
         {
             // Motor electrical parameters (based on typical small PMSM, similar to Maxon EC 45)
-            float R = 0.5f;     // Phase resistance [Ohm]
-            float Ld = 0.001f;  // d-axis inductance [H]
-            float Lq = 0.001f;  // q-axis inductance [H] (SPM: Ld ≈ Lq)
-            float psi_f = 0.1f; // Permanent magnet flux linkage [Wb]
-            float p = 4.0f;     // Pole pairs
+            float R;     // Phase resistance [Ohm]
+            float Ld;    // d-axis inductance [H]
+            float Lq;    // q-axis inductance [H] (SPM: Ld ≈ Lq)
+            float psi_f; // Permanent magnet flux linkage [Wb]
+            float p;     // Pole pairs
 
             // Mechanical parameters
-            float J = 0.001;  // Rotor inertia [kg·m²]
-            float B = 0.0001; // Viscous friction coefficient [N·m·s/rad]
+            float J; // Rotor inertia [kg·m²]
+            float B; // Viscous friction coefficient [N·m·s/rad]
 
             // Operating conditions
-            float Vdc = 72.0f;   // DC bus voltage [V]
-            float T_load = 0.1f; // Load torque [N·m]
+            float Vdc;    // DC bus voltage [V]
+            float T_load; // Load torque [N·m]
         };
 
         PmsmModel(const Parameters& params, float timeStep);

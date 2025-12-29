@@ -20,7 +20,7 @@ namespace graphics
         plot1.xlabel("Time [s]");
         plot1.ylabel("Phase Currents [A]");
         plot1.xrange(0.0, time.back());
-        plot1.yrange(-15.0, 10.0);
+        plot1.yrange(*std::min_element(i_a_d.begin(), i_a_d.end()) * 1.1, *std::max_element(i_a_d.begin(), i_a_d.end()));
         plot1.legend()
             .atOutsideRight()
             .displayHorizontal()
@@ -34,7 +34,7 @@ namespace graphics
         plot2.xlabel("Time [s]");
         plot2.ylabel("Electrical Angle [rad]");
         plot2.xrange(0.0, time.back());
-        plot2.yrange(0.0, 7.0);
+        plot2.yrange(0.0, 2.0 * M_PI * 1.1);
 
         plot2.drawCurve(time_d, theta_d).label("theta").lineWidth(2).lineColor("blue");
 
@@ -44,8 +44,22 @@ namespace graphics
 
         double zoom_end = static_cast<double>(time.back());
         double zoom_start = std::max(zoom_end - 0.2, 0.0);
+
+        auto start_it = std::lower_bound(time_d.begin(), time_d.end(), zoom_start);
+        auto start_idx = std::distance(time_d.begin(), start_it);
+
+        auto i_a_zoom_min = *std::min_element(i_a_d.begin() + start_idx, i_a_d.end());
+        auto i_a_zoom_max = *std::max_element(i_a_d.begin() + start_idx, i_a_d.end());
+        auto i_b_zoom_min = *std::min_element(i_b_d.begin() + start_idx, i_b_d.end());
+        auto i_b_zoom_max = *std::max_element(i_b_d.begin() + start_idx, i_b_d.end());
+        auto i_c_zoom_min = *std::min_element(i_c_d.begin() + start_idx, i_c_d.end());
+        auto i_c_zoom_max = *std::max_element(i_c_d.begin() + start_idx, i_c_d.end());
+
+        double zoom_current_min = std::min({ i_a_zoom_min, i_b_zoom_min, i_c_zoom_min });
+        double zoom_current_max = std::max({ i_a_zoom_max, i_b_zoom_max, i_c_zoom_max });
+
         plot3.xrange(zoom_start, zoom_end);
-        plot3.yrange(-0.3, 0.3);
+        plot3.yrange(zoom_current_min * 1.1, zoom_current_max * 1.1);
         plot3.legend()
             .atOutsideRight()
             .displayHorizontal()
