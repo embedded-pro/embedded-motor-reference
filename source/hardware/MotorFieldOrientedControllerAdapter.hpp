@@ -20,6 +20,7 @@ namespace application
         void ThreePhasePwmOutput(const foc::PhasePwmDutyCycles& dutyPhases) override;
         void Start() override;
         void Stop() override;
+        hal::Hertz BaseFrequency() const override;
 
         // Implementation of Encoder
         OPTIMIZE_FOR_SPEED
@@ -28,10 +29,12 @@ namespace application
         void SetZero() override;
 
     private:
+        foc::Radians encoderOffset{ 0.0f };
+        hal::Hertz pwmBaseFrequency{ 10000 };
+        std::chrono::nanoseconds pwmDeadTime{ 500 };
         infra::ProxyCreator<AdcMultiChannelDecorator, void(HardwareFactory::SampleAndHold)> adcMultiChannelCreator;
         infra::ProxyCreator<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)> synchronousThreeChannelsPwmCreator;
         infra::ProxyCreator<QuadratureEncoderDecorator, void()> synchronousQuadratureEncoderCreator;
         infra::Function<void(foc::PhaseCurrents currentPhases)> onPhaseCurrentsReady;
-        foc::Radians encoderOffset{ 0.0f };
     };
 }

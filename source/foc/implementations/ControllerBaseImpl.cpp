@@ -31,4 +31,9 @@ namespace foc
     {
         return isRunning;
     }
+
+    hal::Hertz ControllerBaseImpl::BaseFrequency() const
+    {
+        return interface.BaseFrequency();
+    }
 }

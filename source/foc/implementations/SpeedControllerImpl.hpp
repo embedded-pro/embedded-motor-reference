@@ -19,6 +19,7 @@ namespace foc
         void Enable() override;
         void Disable() override;
         bool IsRunning() const override;
+        hal::Hertz BaseFrequency() const override;
 
     private:
         FieldOrientedControllerSpeedControl& foc;

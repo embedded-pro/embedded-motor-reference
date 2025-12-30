@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "infra/util/Function.hpp"
 #include "source/foc/interfaces/Units.hpp"
 #include <optional>
@@ -16,6 +17,7 @@ namespace services
     class FocInteractor
     {
     public:
+        virtual hal::Hertz BaseFrequency() const = 0;
         virtual void AutoTune(const infra::Function<void()>& onDone) = 0;
         virtual void SetDQPidParameters(const std::pair<PidParameters, PidParameters>& pidDAndQParameters) = 0;
         virtual void Start() = 0;
