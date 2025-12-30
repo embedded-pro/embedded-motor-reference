@@ -12,6 +12,7 @@ namespace foc
         MOCK_METHOD(void, Enable, (), (override));
         MOCK_METHOD(void, Disable, (), (override));
         MOCK_METHOD(bool, IsRunning, (), (const, override));
+        MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
         MOCK_METHOD(void, SetCurrentTunings, (Volts Vcd, IdAndIqTunings tunings), (override));
         MOCK_METHOD(void, SetPoint, (const IdAndIqPoint& point), (override));
     };
@@ -23,6 +24,7 @@ namespace foc
         MOCK_METHOD(void, Enable, (), (override));
         MOCK_METHOD(void, Disable, (), (override));
         MOCK_METHOD(bool, IsRunning, (), (const, override));
+        MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
         MOCK_METHOD(void, SetSpeedTunings, (Volts Vcd, const SpeedTunings& speedTuning), (override));
         MOCK_METHOD(void, SetCurrentTunings, (Volts Vcd, IdAndIqTunings tunings), (override));
         MOCK_METHOD(void, SetPoint, (RadiansPerSecond point), (override));
@@ -35,6 +37,7 @@ namespace foc
         MOCK_METHOD(void, Enable, (), (override));
         MOCK_METHOD(void, Disable, (), (override));
         MOCK_METHOD(bool, IsRunning, (), (const, override));
+        MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
         MOCK_METHOD(void, SetSpeedTunings, (Volts Vcd, const SpeedTunings& speedTuning), (override));
         MOCK_METHOD(void, SetPositionTunings, (Volts Vcd, const PositionTunings& positionTuning), (override));
         MOCK_METHOD(void, SetCurrentTunings, (Volts Vcd, IdAndIqTunings tunings), (override));

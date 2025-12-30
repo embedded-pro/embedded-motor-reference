@@ -5,7 +5,7 @@ namespace application
 {
     HardwareAdapter::HardwareAdapter(HardwareFactory& hardware)
         : adcMultiChannelCreator{ hardware.AdcMultiChannelCreator(), HardwareFactory::SampleAndHold::shorter }
-        , synchronousThreeChannelsPwmCreator{ hardware.SynchronousThreeChannelsPwmCreator(), std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 } }
+        , synchronousThreeChannelsPwmCreator{ hardware.SynchronousThreeChannelsPwmCreator(), pwmDeadTime, pwmBaseFrequency }
         , synchronousQuadratureEncoderCreator(hardware.SynchronousQuadratureEncoderCreator())
     {
     }
@@ -33,6 +33,11 @@ namespace application
     void HardwareAdapter::Stop()
     {
         synchronousThreeChannelsPwmCreator->Stop();
+    }
+
+    hal::Hertz HardwareAdapter::BaseFrequency() const
+    {
+        return pwmBaseFrequency;
     }
 
     foc::Radians HardwareAdapter::Read()

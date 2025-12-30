@@ -20,18 +20,24 @@ namespace
         const auto& d = arg.first;
         const auto& q = arg.second;
 
-        return (!d.kp.has_value() && !dParams.kp.has_value() ||
-                   (d.kp.has_value() && dParams.kp.has_value() && std::abs(*d.kp - *dParams.kp) < 1e-5f)) &&
-               (!d.ki.has_value() && !dParams.ki.has_value() ||
-                   (d.ki.has_value() && dParams.ki.has_value() && std::abs(*d.ki - *dParams.ki) < 1e-5f)) &&
-               (!d.kd.has_value() && !dParams.kd.has_value() ||
-                   (d.kd.has_value() && dParams.kd.has_value() && std::abs(*d.kd - *dParams.kd) < 1e-5f)) &&
-               (!q.kp.has_value() && !qParams.kp.has_value() ||
-                   (q.kp.has_value() && qParams.kp.has_value() && std::abs(*q.kp - *qParams.kp) < 1e-5f)) &&
-               (!q.ki.has_value() && !qParams.ki.has_value() ||
-                   (q.ki.has_value() && qParams.ki.has_value() && std::abs(*q.ki - *qParams.ki) < 1e-5f)) &&
-               (!q.kd.has_value() && !qParams.kd.has_value() ||
-                   (q.kd.has_value() && qParams.kd.has_value() && std::abs(*q.kd - *qParams.kd) < 1e-5f));
+        auto approxEqual = [](const std::optional<float>& a, const std::optional<float>& b)
+        {
+            if (!a.has_value() && !b.has_value())
+                return true;
+            if (!a.has_value() || !b.has_value())
+                return false;
+            // Use relative tolerance for large values, absolute for small ones
+            float diff = std::abs(*a - *b);
+            float maxVal = std::max(std::abs(*a), std::abs(*b));
+            return diff < 1e-5f || (maxVal > 0 && diff / maxVal < 1e-4f);
+        };
+
+        return approxEqual(d.kp, dParams.kp) &&
+               approxEqual(d.ki, dParams.ki) &&
+               approxEqual(d.kd, dParams.kd) &&
+               approxEqual(q.kp, qParams.kp) &&
+               approxEqual(q.ki, qParams.ki) &&
+               approxEqual(q.kd, qParams.kd);
     }
 
     class StreamWriterMock
@@ -53,6 +59,7 @@ namespace
         : public services::FocInteractor
     {
     public:
+        MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
         MOCK_METHOD(void, AutoTune, (const infra::Function<void()>& onDone), (override));
         MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<services::PidParameters, services::PidParameters>&)dqPidParams), (override));
         MOCK_METHOD(void, Start, (), (override));
@@ -307,6 +314,171 @@ TEST_F(TerminalBaseTest, stop_alias)
     InvokeCommand("stp", [this]()
         {
             EXPECT_CALL(focControllerMock, Stop());
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TerminalBaseTest, set_r_l)
+{
+    // Given: resistance = 0.5 ohm, inductance = 0.001 H, nyquist_factor = 15.0%
+    // And: base_frequency = 10000 Hz
+    // When: wc = (10000 / 15.0) * 2 * pi ≈ 4188.79 rad/s
+    // Then: kp = L * wc = 0.001 * 4188.79 ≈ 4.18879
+    //       ki = R * wc = 0.5 * 4188.79 ≈ 2094.395
+    services::PidParameters dParams{
+        std::optional<float>(4.18879f),
+        std::optional<float>(2094.395f),
+        std::optional<float>(0.0f)
+    };
+    services::PidParameters qParams{
+        std::optional<float>(4.18879f),
+        std::optional<float>(2094.395f),
+        std::optional<float>(0.0f)
+    };
+
+    std::pair<services::PidParameters,
+        services::PidParameters>
+        expectedParams(dParams, qParams);
+
+    InvokeCommand("srl 0.5 0.001 15.0", [this, &expectedParams]()
+        {
+            EXPECT_CALL(focControllerMock, BaseFrequency()).WillOnce(::testing::Return(hal::Hertz{ 10000 }));
+            EXPECT_CALL(focControllerMock, SetDQPidParameters(PidParamsEq(expectedParams.first, expectedParams.second)));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TerminalBaseTest, set_r_l_full_command)
+{
+    services::PidParameters dParams{
+        std::optional<float>(4.18879f),
+        std::optional<float>(2094.395f),
+        std::optional<float>(0.0f)
+    };
+    services::PidParameters qParams{
+        std::optional<float>(4.18879f),
+        std::optional<float>(2094.395f),
+        std::optional<float>(0.0f)
+    };
+
+    std::pair<services::PidParameters,
+        services::PidParameters>
+        expectedParams(dParams, qParams);
+
+    InvokeCommand("set_r_l 0.5 0.001 15.0", [this, &expectedParams]()
+        {
+            EXPECT_CALL(focControllerMock, BaseFrequency()).WillOnce(::testing::Return(hal::Hertz{ 10000 }));
+            EXPECT_CALL(focControllerMock, SetDQPidParameters(PidParamsEq(expectedParams.first, expectedParams.second)));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TerminalBaseTest, set_r_l_invalid_argument_count)
+{
+    InvokeCommand("set_r_l 0.5 0.001", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid number of arguments" };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TerminalBaseTest, set_r_l_invalid_resistance)
+{
+    InvokeCommand("srl abc 0.001 15.0", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float." };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TerminalBaseTest, set_r_l_invalid_inductance)
+{
+    InvokeCommand("srl 0.5 abc 15.0", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float." };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TerminalBaseTest, set_r_l_invalid_nyquist_factor)
+{
+    InvokeCommand("srl 0.5 0.001 abc", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float between 10.0 and 20.0" };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TerminalBaseTest, set_r_l_nyquist_factor_too_low)
+{
+    InvokeCommand("srl 0.5 0.001 9.0", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float between 10.0 and 20.0" };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
+        });
+
+    ExecuteAllActions();
+}
+
+TEST_F(TerminalBaseTest, set_r_l_nyquist_factor_too_high)
+{
+    InvokeCommand("srl 0.5 0.001 21.0", [this]()
+        {
+            ::testing::InSequence _;
+
+            std::string header{ "ERROR: " };
+            std::string payload{ "invalid value. It should be a float between 10.0 and 20.0" };
+            std::string newline{ "\r\n" };
+
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(header.begin(), header.end())), testing::_));
+            EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(payload.begin(), payload.end())), testing::_));
         });
 
     ExecuteAllActions();

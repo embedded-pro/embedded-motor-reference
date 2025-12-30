@@ -59,6 +59,7 @@ namespace
         : public services::FocInteractor
     {
     public:
+        MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
         MOCK_METHOD(void, AutoTune, (const infra::Function<void()>& onDone), (override));
         MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<services::PidParameters, services::PidParameters>&)dqPidParams), (override));
         MOCK_METHOD(void, Start, (), (override));

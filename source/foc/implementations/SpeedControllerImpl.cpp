@@ -36,4 +36,9 @@ namespace foc
     {
         return ControllerBaseImpl::IsRunning();
     }
+
+    hal::Hertz SpeedControllerImpl::BaseFrequency() const
+    {
+        return ControllerBaseImpl::BaseFrequency();
+    }
 }

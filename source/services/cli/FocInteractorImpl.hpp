@@ -1,7 +1,9 @@
 #pragma once
 
+#include "source/foc/interfaces/Controller.hpp"
 #include "source/foc/interfaces/FieldOrientedController.hpp"
 #include "source/services/cli/FocInteractor.hpp"
+#include <type_traits>
 
 namespace services
 {
@@ -10,6 +12,7 @@ namespace services
         : public FocInteractor
     {
     public:
+        hal::Hertz BaseFrequency() const override;
         void AutoTune(const infra::Function<void()>& onDone) override;
         void SetDQPidParameters(const std::pair<PidParameters, PidParameters>& pidDAndQParameters) override;
         void Start() override;
@@ -32,12 +35,21 @@ namespace services
     FocInteractorImpl<FocImpl>::FocInteractorImpl(foc::Volts vdc, FocImpl& focImpl)
         : vdc(vdc)
         , focImpl(focImpl)
-    {}
+    {
+        static_assert(std::is_base_of<foc::ControllerBase, FocImpl>::value,
+            "FocImpl must be derived from foc::ControllerBase");
+    }
 
     template<typename FocImpl>
     void FocInteractorImpl<FocImpl>::AutoTune(const infra::Function<void()>& onDone)
     {
         onDone();
+    };
+
+    template<typename FocImpl>
+    hal::Hertz FocInteractorImpl<FocImpl>::BaseFrequency() const
+    {
+        return focImpl.BaseFrequency();
     };
 
     template<typename FocImpl>
