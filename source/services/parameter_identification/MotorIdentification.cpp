@@ -1,6 +1,21 @@
 #include "source/services/parameter_identification/MotorIdentification.hpp"
 #include <cmath>
-#include <optional>
+#include <numbers>
+
+namespace
+{
+    constexpr static float twoPi = 2.0f * std::numbers::pi_v<float>;
+    constexpr static std::size_t stepsPerRevolution = 12;
+
+    foc::PhasePwmDutyCycles NormalizedDutyCycles(foc::ThreePhase voltages)
+    {
+        float offset = 50.0f;
+        uint8_t dutyA = static_cast<uint8_t>(std::clamp(offset + voltages.a * 50.0f, 0.0f, 100.0f));
+        uint8_t dutyB = static_cast<uint8_t>(std::clamp(offset + voltages.b * 50.0f, 0.0f, 100.0f));
+        uint8_t dutyC = static_cast<uint8_t>(std::clamp(offset + voltages.c * 50.0f, 0.0f, 100.0f));
+        return foc::PhasePwmDutyCycles{ hal::Percent{ dutyA }, hal::Percent{ dutyB }, hal::Percent{ dutyC } };
+    }
+}
 
 namespace services
 {
@@ -104,9 +119,59 @@ namespace services
         }
     }
 
-    void MotorIdentificationWithAlignment::GetNumberOfPolePairs(const infra::Function<void(std::optional<std::size_t>)>& onDone)
+    void MotorIdentificationWithAlignment::GetNumberOfPolePairs(const PolePairsConfig& config, const infra::Function<void(std::optional<std::size_t>)>& onDone)
     {
+        polePairsConfig = config;
         onPolePairsDone = onDone;
+        currentSampleIndex = 0;
+
+        initialPosition = encoder.Read();
+
+        ApplyNextElectricalAngle();
+    }
+
+    void MotorIdentificationWithAlignment::ApplyNextElectricalAngle()
+    {
+        const std::size_t totalSteps = polePairsConfig.electricalRevolutions * stepsPerRevolution;
+
+        if (currentSampleIndex < totalSteps)
+        {
+            auto anglePerStep = twoPi / static_cast<float>(stepsPerRevolution);
+            auto electricalAngle = static_cast<float>(currentSampleIndex) * anglePerStep;
+            auto voltage = static_cast<float>(polePairsConfig.testVoltagePercent.Value()) / 100.0f;
+
+            driver.Stop();
+            driver.ThreePhasePwmOutput(NormalizedDutyCycles(transforms.Inverse(foc::RotatingFrame{ voltage, 0.0f }, std::cos(electricalAngle), std::sin(electricalAngle))));
+            driver.PhaseCurrentsReady(hal::Hertz{ 100 }, [this](auto)
+                {
+                    currentSampleIndex++;
+                    ApplyNextElectricalAngle();
+                });
+        }
+        else
+            CalculatePolePairs();
+    }
+
+    void MotorIdentificationWithAlignment::CalculatePolePairs()
+    {
+        driver.Stop();
+        finalPosition = encoder.Read();
+
+        auto mechanicalRotation = std::abs((finalPosition - initialPosition).Value());
+
+        if (onPolePairsDone)
+        {
+            if (mechanicalRotation > polePairsConfig.minMechanicalRotation.Value())
+            {
+                auto electricalRevolutions = static_cast<float>(polePairsConfig.electricalRevolutions);
+                auto mechanicalRevolutions = mechanicalRotation / twoPi;
+
+                auto polePairs = static_cast<std::size_t>(std::round(electricalRevolutions / mechanicalRevolutions));
+                onPolePairsDone(std::make_optional<std::size_t>(polePairs));
+            }
+            else
+                onPolePairsDone(std::nullopt);
+        }
     }
 
     void MotorIdentificationWithAlignment::AlignMotor(std::size_t polePairs, const infra::Function<void(std::optional<foc::Radians>)>& onDone)
