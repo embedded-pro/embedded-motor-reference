@@ -52,9 +52,56 @@ namespace services
         }
     }
 
-    void MotorIdentificationWithAlignment::GetInductance(const infra::Function<void(std::optional<foc::Henry>)>& onDone)
+    void MotorIdentificationWithAlignment::GetInductance(const InductanceConfig& config, const infra::Function<void(std::optional<foc::Henry>)>& onDone)
     {
+        inductanceConfig = config;
         onInductanceDone = onDone;
+        currentSampleIndex = 0;
+        firstCurrent = 0.0f;
+        secondCurrent = 0.0f;
+
+        constexpr uint8_t neutralDuty = 50;
+        auto voltageOffset = static_cast<uint8_t>(inductanceConfig.testVoltagePercent.Value() * 50 / 100);
+
+        driver.ThreePhasePwmOutput(foc::PhasePwmDutyCycles{
+            hal::Percent{ static_cast<uint8_t>(neutralDuty + voltageOffset) },
+            hal::Percent{ static_cast<uint8_t>(neutralDuty - voltageOffset) },
+            hal::Percent{ neutralDuty } });
+
+        driver.PhaseCurrentsReady(inductanceConfig.samplingFrequency, [this](auto currentPhases)
+            {
+                if (currentSampleIndex == 0)
+                    firstCurrent = currentPhases.a.Value();
+                else if (currentSampleIndex == 1)
+                {
+                    secondCurrent = currentPhases.a.Value();
+                    CalculateInductance(currentPhases);
+                }
+                currentSampleIndex++;
+            });
+    }
+
+    void MotorIdentificationWithAlignment::CalculateInductance(foc::PhaseCurrents currentPhases)
+    {
+        driver.Stop();
+
+        float di = secondCurrent - firstCurrent;
+        float dt = 1.0f / inductanceConfig.samplingFrequency.Value();
+        float diDt = di / dt;
+
+        if (onInductanceDone)
+        {
+            if (std::abs(di) > inductanceConfig.minCurrentChange.Value())
+            {
+                auto appliedVoltage = vdc * static_cast<float>(inductanceConfig.testVoltagePercent.Value()) / 100.0f;
+                float averageCurrent = (firstCurrent + secondCurrent) / 2.0f;
+                float voltageAcrossInductor = appliedVoltage.Value() - (averageCurrent * inductanceConfig.resistance.Value());
+
+                onInductanceDone(std::make_optional<foc::Henry>(voltageAcrossInductor / diDt));
+            }
+            else
+                onInductanceDone(std::nullopt);
+        }
     }
 
     void MotorIdentificationWithAlignment::GetNumberOfPolePairs(const infra::Function<void(std::optional<std::size_t>)>& onDone)
