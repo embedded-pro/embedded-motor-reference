@@ -9,6 +9,8 @@ namespace foc
         using Revolution = infra::BaseUnit<8>;
         using NewtonMeter = infra::BaseUnit<9>;
         using Angle = infra::BaseUnit<10>;
+        using Henry = infra::BaseUnit<11>;
+        using Ohm = infra::BaseUnit<12>;
 
         using Radians = Angle::Scale<infra::StaticRational<10, 0>>;
         using RevPerSecond = Revolution::Div<infra::Second>::Inverse;
@@ -23,4 +25,6 @@ namespace foc
     using Nm = infra::Quantity<unit::NewtonMeter, float>;
     using NewtonMeter = Nm;
     using RevPerMinute = infra::Quantity<unit::RevPerMinute, float>;
+    using Henry = infra::Quantity<unit::Henry, float>;
+    using Ohm = infra::Quantity<unit::Ohm, float>;
 }
