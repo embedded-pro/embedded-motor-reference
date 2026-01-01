@@ -4,36 +4,35 @@
 
 namespace
 {
-    constexpr static float twoPi = 2.0f * std::numbers::pi_v<float>;
-    constexpr static std::size_t stepsPerRevolution = 12;
+    constexpr float twoPi = 2.0f * std::numbers::pi_v<float>;
+    constexpr std::size_t stepsPerRevolution = 12;
 
     foc::PhasePwmDutyCycles NormalizedDutyCycles(foc::ThreePhase voltages)
     {
-        float offset = 50.0f;
-        uint8_t dutyA = static_cast<uint8_t>(std::clamp(offset + voltages.a * 50.0f, 0.0f, 100.0f));
-        uint8_t dutyB = static_cast<uint8_t>(std::clamp(offset + voltages.b * 50.0f, 0.0f, 100.0f));
-        uint8_t dutyC = static_cast<uint8_t>(std::clamp(offset + voltages.c * 50.0f, 0.0f, 100.0f));
+        auto offset = 50.0f;
+        auto dutyA = static_cast<uint8_t>(std::clamp(offset + voltages.a * 50.0f, 0.0f, 100.0f));
+        auto dutyB = static_cast<uint8_t>(std::clamp(offset + voltages.b * 50.0f, 0.0f, 100.0f));
+        auto dutyC = static_cast<uint8_t>(std::clamp(offset + voltages.c * 50.0f, 0.0f, 100.0f));
         return foc::PhasePwmDutyCycles{ hal::Percent{ dutyA }, hal::Percent{ dutyB }, hal::Percent{ dutyC } };
     }
 }
 
 namespace services
 {
-    MotorIdentificationWithAlignment::MotorIdentificationWithAlignment(foc::MotorDriver& driver, foc::Encoder& encoder, foc::Volts vdc)
+    MotorIdentification::MotorIdentification(foc::MotorDriver& driver, foc::Encoder& encoder, foc::Volts vdc)
         : driver(driver)
         , encoder(encoder)
         , vdc(vdc)
     {
     }
 
-    void MotorIdentificationWithAlignment::GetResistance(const ResistanceConfig& config, const infra::Function<void(std::optional<foc::Ohm>)>& onDone)
+    void MotorIdentification::GetResistance(const ResistanceConfig& config, const infra::Function<void(std::optional<foc::Ohm>)>& onDone)
     {
         resistanceConfig = config;
         onResistanceDone = onDone;
         currentSampleIndex = 0;
         accumulatedCurrent = 0.0f;
 
-        constexpr uint8_t neutralDuty = 50;
         auto voltageOffset = static_cast<uint8_t>(resistanceConfig.testVoltagePercent.Value() * 50 / 100);
 
         driver.ThreePhasePwmOutput(foc::PhasePwmDutyCycles{
@@ -47,11 +46,11 @@ namespace services
                 currentSampleIndex++;
 
                 if (currentSampleIndex >= resistanceConfig.sampleCount)
-                    CalculateResistance(currentPhases);
+                    CalculateResistance();
             });
     }
 
-    void MotorIdentificationWithAlignment::CalculateResistance(foc::PhaseCurrents currentPhases)
+    void MotorIdentification::CalculateResistance()
     {
         driver.Stop();
 
@@ -67,7 +66,7 @@ namespace services
         }
     }
 
-    void MotorIdentificationWithAlignment::GetInductance(const InductanceConfig& config, const infra::Function<void(std::optional<foc::Henry>)>& onDone)
+    void MotorIdentification::GetInductance(const InductanceConfig& config, const infra::Function<void(std::optional<foc::Henry>)>& onDone)
     {
         inductanceConfig = config;
         onInductanceDone = onDone;
@@ -75,7 +74,6 @@ namespace services
         firstCurrent = 0.0f;
         secondCurrent = 0.0f;
 
-        constexpr uint8_t neutralDuty = 50;
         auto voltageOffset = static_cast<uint8_t>(inductanceConfig.testVoltagePercent.Value() * 50 / 100);
 
         driver.ThreePhasePwmOutput(foc::PhasePwmDutyCycles{
@@ -90,18 +88,18 @@ namespace services
                 else if (currentSampleIndex == 1)
                 {
                     secondCurrent = currentPhases.a.Value();
-                    CalculateInductance(currentPhases);
+                    CalculateInductance();
                 }
                 currentSampleIndex++;
             });
     }
 
-    void MotorIdentificationWithAlignment::CalculateInductance(foc::PhaseCurrents currentPhases)
+    void MotorIdentification::CalculateInductance()
     {
         driver.Stop();
 
         float di = secondCurrent - firstCurrent;
-        float dt = 1.0f / inductanceConfig.samplingFrequency.Value();
+        float dt = 1.0f / static_cast<float>(inductanceConfig.samplingFrequency.Value());
         float diDt = di / dt;
 
         if (onInductanceDone)
@@ -119,7 +117,7 @@ namespace services
         }
     }
 
-    void MotorIdentificationWithAlignment::GetNumberOfPolePairs(const PolePairsConfig& config, const infra::Function<void(std::optional<std::size_t>)>& onDone)
+    void MotorIdentification::GetNumberOfPolePairs(const PolePairsConfig& config, const infra::Function<void(std::optional<std::size_t>)>& onDone)
     {
         polePairsConfig = config;
         onPolePairsDone = onDone;
@@ -130,7 +128,7 @@ namespace services
         ApplyNextElectricalAngle();
     }
 
-    void MotorIdentificationWithAlignment::ApplyNextElectricalAngle()
+    void MotorIdentification::ApplyNextElectricalAngle()
     {
         const std::size_t totalSteps = polePairsConfig.electricalRevolutions * stepsPerRevolution;
 
@@ -152,7 +150,7 @@ namespace services
             CalculatePolePairs();
     }
 
-    void MotorIdentificationWithAlignment::CalculatePolePairs()
+    void MotorIdentification::CalculatePolePairs()
     {
         driver.Stop();
         finalPosition = encoder.Read();
@@ -172,10 +170,5 @@ namespace services
             else
                 onPolePairsDone(std::nullopt);
         }
-    }
-
-    void MotorIdentificationWithAlignment::AlignMotor(std::size_t polePairs, const infra::Function<void(std::optional<foc::Radians>)>& onDone)
-    {
-        onAlignmentDone = onDone;
     }
 }

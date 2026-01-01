@@ -9,7 +9,7 @@
 
 namespace services
 {
-    class MotorIdentificationWithAlignment
+    class MotorIdentification
     {
     public:
         struct ResistanceConfig
@@ -34,17 +34,15 @@ namespace services
             foc::Radians minMechanicalRotation{ 0.1f };
         };
 
-        MotorIdentificationWithAlignment(foc::MotorDriver& driver, foc::Encoder& encoder, foc::Volts vdc);
+        MotorIdentification(foc::MotorDriver& driver, foc::Encoder& encoder, foc::Volts vdc);
 
         void GetResistance(const ResistanceConfig& config, const infra::Function<void(std::optional<foc::Ohm>)>& onDone);
         void GetInductance(const InductanceConfig& config, const infra::Function<void(std::optional<foc::Henry>)>& onDone);
         void GetNumberOfPolePairs(const PolePairsConfig& config, const infra::Function<void(std::optional<std::size_t>)>& onDone);
 
-        void AlignMotor(std::size_t polePairs, const infra::Function<void(std::optional<foc::Radians>)>& onDone);
-
     private:
-        void CalculateResistance(foc::PhaseCurrents currentPhases);
-        void CalculateInductance(foc::PhaseCurrents currentPhases);
+        void CalculateResistance();
+        void CalculateInductance();
         void CalculatePolePairs();
         void ApplyNextElectricalAngle();
 
@@ -53,7 +51,7 @@ namespace services
         foc::MotorDriver& driver;
         foc::Encoder& encoder;
         foc::Volts vdc;
-        foc::ClarkePark transforms;
+        [[no_unique_address]] foc::ClarkePark transforms;
         ResistanceConfig resistanceConfig;
         InductanceConfig inductanceConfig;
         PolePairsConfig polePairsConfig;
@@ -66,6 +64,5 @@ namespace services
         infra::AutoResetFunction<void(std::optional<foc::Ohm>)> onResistanceDone;
         infra::AutoResetFunction<void(std::optional<foc::Henry>)> onInductanceDone;
         infra::AutoResetFunction<void(std::optional<std::size_t>)> onPolePairsDone;
-        infra::AutoResetFunction<void(std::optional<foc::Radians>)> onAlignmentDone;
     };
 }
