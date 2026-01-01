@@ -1,7 +1,7 @@
 #pragma once
 
 #include "services/util/TerminalWithStorage.hpp"
-#include "source/services/cli/FocInteractor.hpp"
+#include "source/foc/interfaces/Controller.hpp"
 
 namespace services
 {
@@ -10,18 +10,18 @@ namespace services
     protected:
         using StatusWithMessage = services::TerminalWithStorage::StatusWithMessage;
 
-        TerminalFocBaseInteractor(services::TerminalWithStorage& terminal, FocInteractor& focInteractor);
+        TerminalFocBaseInteractor(services::TerminalWithStorage& terminal, foc::Volts vdc, foc::ControllerBase& foc);
 
         services::TerminalWithStorage& Terminal();
 
     private:
-        StatusWithMessage AutoTune();
         StatusWithMessage SetFocPid(const infra::BoundedConstString& param);
         StatusWithMessage Start();
         StatusWithMessage Stop();
 
     private:
         services::TerminalWithStorage& terminal;
-        FocInteractor& foc;
+        foc::Volts vdc;
+        foc::ControllerBase& foc;
     };
 }

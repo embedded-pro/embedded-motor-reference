@@ -4,36 +4,13 @@
 #include "infra/util/Function.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
 #include "services/util/Terminal.hpp"
+#include "source/foc/implementations/test_doubles/ControllerMock.hpp"
 #include "source/services/cli/TerminalBase.hpp"
 #include "gmock/gmock.h"
 #include <optional>
 
 namespace
 {
-    MATCHER_P(OptionalFloatEq, expected, "is an optional with value approximately " + ::testing::PrintToString(expected))
-    {
-        return arg.has_value() && std::abs(arg.value() - expected) < 1e-5f;
-    }
-
-    MATCHER_P2(PidParamsEq, dParams, qParams, "is FOC PID parameters equal")
-    {
-        const auto& d = arg.first;
-        const auto& q = arg.second;
-
-        return (!d.kp.has_value() && !dParams.kp.has_value() ||
-                   (d.kp.has_value() && dParams.kp.has_value() && std::abs(*d.kp - *dParams.kp) < 1e-5f)) &&
-               (!d.ki.has_value() && !dParams.ki.has_value() ||
-                   (d.ki.has_value() && dParams.ki.has_value() && std::abs(*d.ki - *dParams.ki) < 1e-5f)) &&
-               (!d.kd.has_value() && !dParams.kd.has_value() ||
-                   (d.kd.has_value() && dParams.kd.has_value() && std::abs(*d.kd - *dParams.kd) < 1e-5f)) &&
-               (!q.kp.has_value() && !qParams.kp.has_value() ||
-                   (q.kp.has_value() && qParams.kp.has_value() && std::abs(*q.kp - *qParams.kp) < 1e-5f)) &&
-               (!q.ki.has_value() && !qParams.ki.has_value() ||
-                   (q.ki.has_value() && qParams.ki.has_value() && std::abs(*q.ki - *qParams.ki) < 1e-5f)) &&
-               (!q.kd.has_value() && !qParams.kd.has_value() ||
-                   (q.kd.has_value() && qParams.kd.has_value() && std::abs(*q.kd - *qParams.kd) < 1e-5f));
-    }
-
     class StreamWriterMock
         : public infra::StreamWriter
     {
@@ -49,21 +26,11 @@ namespace
         MOCK_METHOD1(Overwrite, infra::ByteRange(std::size_t marker));
     };
 
-    class FocControllerMock
-        : public services::FocInteractor
-    {
-    public:
-        MOCK_METHOD(void, AutoTune, (const infra::Function<void()>& onDone), (override));
-        MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<services::PidParameters, services::PidParameters>&)dqPidParams), (override));
-        MOCK_METHOD(void, Start, (), (override));
-        MOCK_METHOD(void, Stop, (), (override));
-    };
-
     struct TerminalBaseImpl
         : services::TerminalFocBaseInteractor
     {
-        TerminalBaseImpl(services::TerminalWithStorage& terminal, services::FocInteractor& focInteractor)
-            : services::TerminalFocBaseInteractor(terminal, focInteractor)
+        TerminalBaseImpl(services::TerminalWithStorage& terminal, foc::Volts vdc, foc::ControllerBase& controller)
+            : services::TerminalFocBaseInteractor(terminal, vdc, controller)
         {}
     };
 
@@ -72,7 +39,7 @@ namespace
         , public infra::EventDispatcherWithWeakPtrFixture
     {
     public:
-        ::testing::StrictMock<FocControllerMock> focControllerMock;
+        ::testing::StrictMock<foc::ControllerBaseMock> controllerBaseMock;
         ::testing::StrictMock<StreamWriterMock> streamWriterMock;
         infra::TextOutputStream::WithErrorPolicy stream{ streamWriterMock };
         services::TracerToStream tracer{ stream };
@@ -83,7 +50,7 @@ namespace
             } };
         services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<128, 5> terminalWithCommands{ communication, tracer };
         services::TerminalWithStorage::WithMaxSize<10> terminal{ terminalWithCommands, tracer };
-        TerminalBaseImpl terminalInteractor{ terminal, focControllerMock };
+        TerminalBaseImpl terminalInteractor{ terminal, foc::Volts{ 12.0f }, controllerBaseMock };
 
         void InvokeCommand(std::string command, const std::function<void()>& onCommandReceived)
         {
@@ -101,46 +68,15 @@ namespace
     };
 }
 
-TEST_F(TerminalBaseTest, auto_tune)
-{
-    InvokeCommand("auto_tune", [this]()
-        {
-            EXPECT_CALL(focControllerMock, AutoTune(::testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalBaseTest, auto_tune_alias)
-{
-    InvokeCommand("at", [this]()
-        {
-            EXPECT_CALL(focControllerMock, AutoTune(::testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
 TEST_F(TerminalBaseTest, set_dq_pid)
 {
-    services::PidParameters dParams{
-        std::optional<float>(1.0f),
-        std::optional<float>(0.765f),
-        std::optional<float>(-0.56f)
-    };
-    services::PidParameters qParams{
-        std::optional<float>(0.5f),
-        std::optional<float>(-0.35f),
-        std::optional<float>(0.75f)
-    };
+    controllers::PidTunings<float> idTunings{ .kp = 1.0f, .ki = 0.765f, .kd = -0.56f };
+    controllers::PidTunings<float> iqTunings{ .kp = 0.5f, .ki = -0.35f, .kd = 0.75f };
+    foc::IdAndIqTunings tunings{ idTunings, iqTunings };
 
-    std::pair<services::PidParameters,
-        services::PidParameters>
-        expectedParams(dParams, qParams);
-
-    InvokeCommand("sdqpid 1.0 0.765 -0.56 0.5 -0.35 0.75", [this, &expectedParams]()
+    InvokeCommand("sdqpid 1.0 0.765 -0.56 0.5 -0.35 0.75", [this, &tunings]()
         {
-            EXPECT_CALL(focControllerMock, SetDQPidParameters(PidParamsEq(expectedParams.first, expectedParams.second)));
+            EXPECT_CALL(controllerBaseMock, SetCurrentTunings(testing::_, testing::_));
         });
 
     ExecuteAllActions();
@@ -276,7 +212,7 @@ TEST_F(TerminalBaseTest, start)
 {
     InvokeCommand("start", [this]()
         {
-            EXPECT_CALL(focControllerMock, Start());
+            EXPECT_CALL(controllerBaseMock, Enable());
         });
 
     ExecuteAllActions();
@@ -286,7 +222,7 @@ TEST_F(TerminalBaseTest, start_alias)
 {
     InvokeCommand("sts", [this]()
         {
-            EXPECT_CALL(focControllerMock, Start());
+            EXPECT_CALL(controllerBaseMock, Enable());
         });
 
     ExecuteAllActions();
@@ -296,7 +232,7 @@ TEST_F(TerminalBaseTest, stop)
 {
     InvokeCommand("stop", [this]()
         {
-            EXPECT_CALL(focControllerMock, Stop());
+            EXPECT_CALL(controllerBaseMock, Disable());
         });
 
     ExecuteAllActions();
@@ -306,7 +242,7 @@ TEST_F(TerminalBaseTest, stop_alias)
 {
     InvokeCommand("stp", [this]()
         {
-            EXPECT_CALL(focControllerMock, Stop());
+            EXPECT_CALL(controllerBaseMock, Disable());
         });
 
     ExecuteAllActions();

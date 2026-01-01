@@ -1,14 +1,13 @@
 #include "source/services/cli/TerminalPosition.hpp"
-#include "infra/util/Function.hpp"
 #include "infra/util/Tokenizer.hpp"
-#include "services/util/TerminalWithStorage.hpp"
 #include "source/services/cli/TerminalHelper.hpp"
 
 namespace services
 {
-    TerminalFocPositionInteractor::TerminalFocPositionInteractor(services::TerminalWithStorage& terminal, FocInteractor& foc, FocPositionInteractor& focInteractor)
-        : TerminalFocBaseInteractor(terminal, foc)
-        , foc(focInteractor)
+    TerminalFocPositionInteractor::TerminalFocPositionInteractor(services::TerminalWithStorage& terminal, foc::Volts vdc, foc::ControllerBase& foc, foc::PositionController& position)
+        : TerminalFocBaseInteractor(terminal, vdc, foc)
+        , vdc(vdc)
+        , foc(position)
     {
         terminal.AddCommand({ { "set_speed_pid", "sspid", "Set speed PID parameters. set_speed_pid <kp> <ki> <kd>. Ex: sspid 1.0 0.765 -0.56" },
             [this](const auto& params)
@@ -46,13 +45,9 @@ namespace services
         if (!kd.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        auto pid = PidParameters{
-            std::optional<float>(*kp),
-            std::optional<float>(*ki),
-            std::optional<float>(*kd)
-        };
+        auto pid = controllers::PidTunings<float>{ (*kp), (*ki), (*kd) };
 
-        foc.SetSpeedPidParameters(pid);
+        foc.SetSpeedTunings(vdc, pid);
         return TerminalFocPositionInteractor::StatusWithMessage();
     }
 
@@ -73,13 +68,9 @@ namespace services
         if (!kd.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        auto pid = PidParameters{
-            std::optional<float>(*kp),
-            std::optional<float>(*ki),
-            std::optional<float>(*kd)
-        };
+        auto pid = controllers::PidTunings<float>{ (*kp), (*ki), (*kd) };
 
-        foc.SetPositionPidParameters(pid);
+        foc.SetPositionTunings(vdc, pid);
         return TerminalFocPositionInteractor::StatusWithMessage();
     }
 
@@ -96,7 +87,7 @@ namespace services
 
         foc::Radians position(*t);
 
-        foc.SetPosition(position);
+        foc.SetPoint(position);
         return TerminalFocPositionInteractor::StatusWithMessage();
     }
 }

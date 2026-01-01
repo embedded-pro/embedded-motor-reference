@@ -1,7 +1,6 @@
 #pragma once
 
 #include "services/util/TerminalWithStorage.hpp"
-#include "source/services/cli/FocInteractor.hpp"
 #include "source/services/cli/TerminalBase.hpp"
 
 namespace services
@@ -10,12 +9,12 @@ namespace services
         : public TerminalFocBaseInteractor
     {
     public:
-        TerminalFocTorqueInteractor(services::TerminalWithStorage& terminal, FocInteractor& foc, FocTorqueInteractor& focInteractor);
+        TerminalFocTorqueInteractor(services::TerminalWithStorage& terminal, foc::Volts vdc, foc::ControllerBase& foc, foc::TorqueController& torque);
 
     private:
         StatusWithMessage SetTorque(const infra::BoundedConstString& param);
 
     private:
-        FocTorqueInteractor& foc;
+        foc::TorqueController& foc;
     };
 }

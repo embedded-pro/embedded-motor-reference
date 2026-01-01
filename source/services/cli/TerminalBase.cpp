@@ -1,21 +1,17 @@
 #include "source/services/cli/TerminalBase.hpp"
 #include "infra/util/Function.hpp"
 #include "infra/util/Tokenizer.hpp"
+#include "numerical/controllers/interfaces/PidController.hpp"
 #include "services/util/TerminalWithStorage.hpp"
 #include "source/services/cli/TerminalHelper.hpp"
 
 namespace services
 {
-    TerminalFocBaseInteractor::TerminalFocBaseInteractor(services::TerminalWithStorage& terminal, FocInteractor& foc)
+    TerminalFocBaseInteractor::TerminalFocBaseInteractor(services::TerminalWithStorage& terminal, foc::Volts vdc, foc::ControllerBase& foc)
         : terminal(terminal)
+        , vdc(vdc)
         , foc(foc)
     {
-        terminal.AddCommand({ { "auto_tune", "at", "Run auto tune" },
-            [this](const auto&)
-            {
-                this->terminal.ProcessResult(AutoTune());
-            } });
-
         terminal.AddCommand({ { "set_dq_pid", "sdqpid", "Set D and Q PID parameters. set_dq_pid <kp> <ki> <kd> <kp> <ki> <kd>. Ex: sdqpid 1.0 0.765 -0.56 0.5 -0.35 0.75" },
             [this](const auto& params)
             {
@@ -38,12 +34,6 @@ namespace services
     services::TerminalWithStorage& TerminalFocBaseInteractor::Terminal()
     {
         return terminal;
-    }
-
-    TerminalFocBaseInteractor::StatusWithMessage TerminalFocBaseInteractor::AutoTune()
-    {
-        foc.AutoTune(infra::emptyFunction);
-        return TerminalFocBaseInteractor::StatusWithMessage();
     }
 
     TerminalFocBaseInteractor::StatusWithMessage TerminalFocBaseInteractor::SetFocPid(const infra::BoundedConstString& input)
@@ -77,30 +67,22 @@ namespace services
         if (!qkd.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        auto dPid = PidParameters{
-            std::optional<float>(*dkp),
-            std::optional<float>(*dki),
-            std::optional<float>(*dkd)
-        };
-        auto qPid = PidParameters{
-            std::optional<float>(*qkp),
-            std::optional<float>(*qki),
-            std::optional<float>(*qkd)
-        };
+        auto dPid = controllers::PidTunings<float>{ (*dkp), (*dki), (*dkd) };
+        auto qPid = controllers::PidTunings<float>{ (*qkp), (*qki), (*qkd) };
 
-        foc.SetDQPidParameters(std::make_pair(dPid, qPid));
+        foc.SetCurrentTunings(vdc, foc::IdAndIqTunings{ dPid, qPid });
         return TerminalFocBaseInteractor::StatusWithMessage();
     }
 
     TerminalFocBaseInteractor::StatusWithMessage TerminalFocBaseInteractor::Start()
     {
-        foc.Start();
+        foc.Enable();
         return TerminalFocBaseInteractor::StatusWithMessage();
     }
 
     TerminalFocBaseInteractor::StatusWithMessage TerminalFocBaseInteractor::Stop()
     {
-        foc.Stop();
+        foc.Disable();
         return TerminalFocBaseInteractor::StatusWithMessage();
     }
 }

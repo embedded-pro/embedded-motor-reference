@@ -1,14 +1,13 @@
 #include "source/services/cli/TerminalSpeed.hpp"
-#include "infra/util/Function.hpp"
 #include "infra/util/Tokenizer.hpp"
-#include "services/util/TerminalWithStorage.hpp"
 #include "source/services/cli/TerminalHelper.hpp"
 
 namespace services
 {
-    TerminalFocSpeedInteractor::TerminalFocSpeedInteractor(services::TerminalWithStorage& terminal, FocInteractor& foc, FocSpeedInteractor& focInteractor)
-        : TerminalFocBaseInteractor(terminal, foc)
-        , foc(focInteractor)
+    TerminalFocSpeedInteractor::TerminalFocSpeedInteractor(services::TerminalWithStorage& terminal, foc::Volts vdc, foc::ControllerBase& foc, foc::SpeedController& speed)
+        : TerminalFocBaseInteractor(terminal, vdc, foc)
+        , vdc(vdc)
+        , foc(speed)
     {
         terminal.AddCommand({ { "set_speed_pid", "sspid", "Set speed PID parameters. set_speed_pid <kp> <ki> <kd>. Ex: sspid 1.0 0.2 0.01" },
             [this](const auto& params)
@@ -40,13 +39,9 @@ namespace services
         if (!kd.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        auto pid = PidParameters{
-            std::optional<float>(*kp),
-            std::optional<float>(*ki),
-            std::optional<float>(*kd)
-        };
+        auto pid = controllers::PidTunings<float>{ (*kp), (*ki), (*kd) };
 
-        foc.SetSpeedPidParameters(pid);
+        foc.SetSpeedTunings(vdc, pid);
         return TerminalFocSpeedInteractor::StatusWithMessage();
     }
 
@@ -61,7 +56,7 @@ namespace services
         if (!speedValue.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be a float." };
 
-        foc.SetSpeed(foc::RadiansPerSecond(*speedValue));
+        foc.SetPoint(foc::RadiansPerSecond(*speedValue));
         return TerminalFocSpeedInteractor::StatusWithMessage();
     }
 }
