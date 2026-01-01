@@ -13,10 +13,11 @@ namespace application
 {
     Logic::Logic(application::HardwareFactory& hardware)
         : hardwareAdapter{ hardware }
-        , focImpl{ trigonometricFunctions, hardware.MaxCurrentSupported(), TimeStepFromFrequency(hardware.BaseFrequency()) }
-        , motorFocImpl{ hardwareAdapter, hardwareAdapter, focImpl }
-        , terminalWithStorage{ hardware.Terminal(), hardware.Tracer() }
-        , terminal{ terminalWithStorage, hardware.PowerSupplyVoltage(), motorFocImpl, motorFocImpl }
         , debugLed{ hardware.Leds().front(), std::chrono::milliseconds(50), std::chrono::milliseconds(1950) }
+        , terminalWithStorage{ hardware.Terminal(), hardware.Tracer() }
+        , motorStateMachine(
+              TerminalAndTracer{ terminalWithStorage, hardware.Tracer() },
+              MotorDriverAndEncoder{ hardwareAdapter, hardwareAdapter },
+              hardware.PowerSupplyVoltage(), hardware.MaxCurrentSupported(), TimeStepFromFrequency(hardware.BaseFrequency()))
     {}
 }

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "application/sync_foc_sensored/instantiations/MotorStateMachine.hpp"
 #include "services/util/DebugLed.hpp"
 #include "source/foc/implementations/TorqueControllerImpl.hpp"
 #include "source/foc/instantiations/FieldOrientedControllerImpl.hpp"
@@ -17,11 +18,12 @@ namespace application
 
     private:
         HardwareAdapter hardwareAdapter;
-        foc::TrigonometricFunctions trigonometricFunctions;
-        foc::FieldOrientedControllerTorqueImpl focImpl{ trigonometricFunctions };
-        services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;
-        foc::TorqueControllerImpl motorFocImpl;
-        services::TerminalFocTorqueInteractor terminal;
         services::DebugLed debugLed;
+        services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;
+        MotorStateMachine<
+            foc::FieldOrientedControllerTorqueImpl,
+            foc::TorqueControllerImpl,
+            services::TerminalFocTorqueInteractor>
+            motorStateMachine;
     };
 }

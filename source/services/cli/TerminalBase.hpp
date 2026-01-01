@@ -7,12 +7,13 @@ namespace services
 {
     class TerminalFocBaseInteractor
     {
+    public:
+        services::TerminalWithStorage& Terminal();
+
     protected:
         using StatusWithMessage = services::TerminalWithStorage::StatusWithMessage;
 
         TerminalFocBaseInteractor(services::TerminalWithStorage& terminal, foc::Volts vdc, foc::ControllerBase& foc);
-
-        services::TerminalWithStorage& Terminal();
 
     private:
         StatusWithMessage SetFocPid(const infra::BoundedConstString& param);
