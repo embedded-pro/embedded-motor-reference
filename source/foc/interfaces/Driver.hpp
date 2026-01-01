@@ -47,5 +47,6 @@ namespace foc
         virtual void ThreePhasePwmOutput(const PhasePwmDutyCycles& dutyPhases) = 0;
         virtual void Start() = 0;
         virtual void Stop() = 0;
+        virtual hal::Hertz BaseFrequency() const = 0;
     };
 }

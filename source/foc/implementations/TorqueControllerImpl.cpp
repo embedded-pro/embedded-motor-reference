@@ -32,4 +32,9 @@ namespace foc
     {
         return ControllerBaseImpl::IsRunning();
     }
+
+    hal::Hertz TorqueControllerImpl::BaseFrequency() const
+    {
+        return ControllerBaseImpl::BaseFrequency();
+    }
 }

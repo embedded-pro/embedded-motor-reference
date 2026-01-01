@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "source/foc/interfaces/Driver.hpp"
 #include "source/foc/interfaces/FieldOrientedController.hpp"
 
@@ -13,6 +14,7 @@ namespace foc
         void Enable();
         void Disable();
         bool IsRunning() const;
+        hal::Hertz BaseFrequency() const;
 
     private:
         MotorDriver& interface;

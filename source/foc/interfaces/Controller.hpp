@@ -1,5 +1,6 @@
 #pragma once
 
+#include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "source/foc/interfaces/FieldOrientedController.hpp"
 
 namespace foc
@@ -11,6 +12,7 @@ namespace foc
         virtual void Disable() = 0;
         virtual bool IsRunning() const = 0;
         virtual void SetCurrentTunings(Volts Vcd, IdAndIqTunings tunings) = 0;
+        virtual hal::Hertz BaseFrequency() const = 0;
     };
 
     class TorqueController
