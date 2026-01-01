@@ -6,7 +6,6 @@
 #include "source/foc/instantiations/TrigonometricImpl.hpp"
 #include "source/hardware/HardwareFactory.hpp"
 #include "source/hardware/MotorFieldOrientedControllerAdapter.hpp"
-#include "source/services/cli/FocTorqueInteractorImpl.hpp"
 #include "source/services/cli/TerminalTorque.hpp"
 
 namespace application
@@ -20,9 +19,8 @@ namespace application
         HardwareAdapter hardwareAdapter;
         foc::TrigonometricFunctions trigonometricFunctions;
         foc::FieldOrientedControllerTorqueImpl focImpl{ trigonometricFunctions };
-        foc::TorqueControllerImpl motorFocImpl;
-        services::FocTorqueInteractorImpl focInteractor;
         services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;
+        foc::TorqueControllerImpl motorFocImpl;
         services::TerminalFocTorqueInteractor terminal;
         services::DebugLed debugLed;
     };

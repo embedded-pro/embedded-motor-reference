@@ -6,7 +6,6 @@
 #include "source/foc/instantiations/TrigonometricImpl.hpp"
 #include "source/hardware/HardwareFactory.hpp"
 #include "source/hardware/MotorFieldOrientedControllerAdapter.hpp"
-#include "source/services/cli/FocSpeedInteractorImpl.hpp"
 #include "source/services/cli/TerminalSpeed.hpp"
 
 namespace application
@@ -21,7 +20,6 @@ namespace application
         foc::TrigonometricFunctions trigonometricFunctions;
         foc::FieldOrientedControllerSpeedImpl focImpl;
         foc::SpeedControllerImpl motorFocImpl;
-        services::FocSpeedInteractorImpl focInteractor;
         services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;
         services::TerminalFocSpeedInteractor terminal;
         services::DebugLed debugLed;

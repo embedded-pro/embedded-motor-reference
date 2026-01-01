@@ -15,9 +15,8 @@ namespace application
         : hardwareAdapter{ hardware }
         , focImpl{ trigonometricFunctions, hardware.MaxCurrentSupported(), TimeStepFromFrequency(hardware.BaseFrequency()) }
         , motorFocImpl{ hardwareAdapter, hardwareAdapter, focImpl }
-        , focInteractor{ hardware.PowerSupplyVoltage(), motorFocImpl }
         , terminalWithStorage{ hardware.Terminal(), hardware.Tracer() }
-        , terminal{ terminalWithStorage, focInteractor, focInteractor }
+        , terminal{ terminalWithStorage, hardware.PowerSupplyVoltage(), motorFocImpl, motorFocImpl }
         , debugLed{ hardware.Leds().front(), std::chrono::milliseconds(50), std::chrono::milliseconds(1950) }
     {}
 }
