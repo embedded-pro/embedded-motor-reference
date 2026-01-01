@@ -250,30 +250,14 @@ TEST_F(TerminalBaseTest, stop_alias)
 
 TEST_F(TerminalBaseTest, set_r_l)
 {
-    // Given: resistance = 0.5 ohm, inductance = 0.001 H, nyquist_factor = 15.0%
-    // And: base_frequency = 10000 Hz
-    // When: wc = (10000 / 15.0) * 2 * pi ≈ 4188.79 rad/s
-    // Then: kp = L * wc = 0.001 * 4188.79 ≈ 4.18879
-    //       ki = R * wc = 0.5 * 4188.79 ≈ 2094.395
-    services::PidParameters dParams{
-        std::optional<float>(4.18879f),
-        std::optional<float>(2094.395f),
-        std::optional<float>(0.0f)
-    };
-    services::PidParameters qParams{
-        std::optional<float>(4.18879f),
-        std::optional<float>(2094.395f),
-        std::optional<float>(0.0f)
-    };
+    controllers::PidTunings<float> idTunings{ .kp = 4.18879f, .ki = 2094.395f, .kd = 0.0f };
+    controllers::PidTunings<float> iqTunings{ .kp = 4.18879f, .ki = 2094.395f, .kd = 0.0f };
+    foc::IdAndIqTunings tunings{ idTunings, iqTunings };
 
-    std::pair<services::PidParameters,
-        services::PidParameters>
-        expectedParams(dParams, qParams);
-
-    InvokeCommand("srl 0.5 0.001 15.0", [this, &expectedParams]()
+    InvokeCommand("srl 0.5 0.001 15.0", [this, &tunings]()
         {
-            EXPECT_CALL(focControllerMock, BaseFrequency()).WillOnce(::testing::Return(hal::Hertz{ 10000 }));
-            EXPECT_CALL(focControllerMock, SetDQPidParameters(PidParamsEq(expectedParams.first, expectedParams.second)));
+            EXPECT_CALL(controllerBaseMock, BaseFrequency()).WillOnce(::testing::Return(hal::Hertz{ 10000 }));
+            EXPECT_CALL(controllerBaseMock, SetCurrentTunings(foc::Volts{ 12.0f }, testing::_));
         });
 
     ExecuteAllActions();
@@ -281,25 +265,14 @@ TEST_F(TerminalBaseTest, set_r_l)
 
 TEST_F(TerminalBaseTest, set_r_l_full_command)
 {
-    services::PidParameters dParams{
-        std::optional<float>(4.18879f),
-        std::optional<float>(2094.395f),
-        std::optional<float>(0.0f)
-    };
-    services::PidParameters qParams{
-        std::optional<float>(4.18879f),
-        std::optional<float>(2094.395f),
-        std::optional<float>(0.0f)
-    };
+    controllers::PidTunings<float> idTunings{ .kp = 4.18879f, .ki = 2094.395f, .kd = 0.0f };
+    controllers::PidTunings<float> iqTunings{ .kp = 4.18879f, .ki = 2094.395f, .kd = 0.0f };
+    foc::IdAndIqTunings tunings{ idTunings, iqTunings };
 
-    std::pair<services::PidParameters,
-        services::PidParameters>
-        expectedParams(dParams, qParams);
-
-    InvokeCommand("set_r_l 0.5 0.001 15.0", [this, &expectedParams]()
+    InvokeCommand("set_r_l 0.5 0.001 15.0", [this, &tunings]()
         {
-            EXPECT_CALL(focControllerMock, BaseFrequency()).WillOnce(::testing::Return(hal::Hertz{ 10000 }));
-            EXPECT_CALL(focControllerMock, SetDQPidParameters(PidParamsEq(expectedParams.first, expectedParams.second)));
+            EXPECT_CALL(controllerBaseMock, BaseFrequency()).WillOnce(::testing::Return(hal::Hertz{ 10000 }));
+            EXPECT_CALL(controllerBaseMock, SetCurrentTunings(foc::Volts{ 12.0f }, testing::_));
         });
 
     ExecuteAllActions();

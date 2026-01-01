@@ -112,18 +112,10 @@ namespace services
         auto kp = *inductance * wc;
         auto ki = *resistance * wc;
 
-        auto dPid = PidParameters{
-            std::optional<float>(kp),
-            std::optional<float>(ki),
-            std::optional<float>(0.0f)
-        };
-        auto qPid = PidParameters{
-            std::optional<float>(kp),
-            std::optional<float>(ki),
-            std::optional<float>(0.0f)
-        };
+        auto dPid = controllers::PidTunings<float>{ kp, ki, 0.0f };
+        auto qPid = controllers::PidTunings<float>{ kp, ki, 0.0f };
 
-        foc.SetDQPidParameters(std::make_pair(dPid, qPid));
+        foc.SetCurrentTunings(vdc, foc::IdAndIqTunings{ dPid, qPid });
         return TerminalFocBaseInteractor::StatusWithMessage();
     }
 

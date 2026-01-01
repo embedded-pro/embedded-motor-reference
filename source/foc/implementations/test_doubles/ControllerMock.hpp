@@ -13,6 +13,7 @@ namespace foc
         MOCK_METHOD(void, Disable, (), (override));
         MOCK_METHOD(bool, IsRunning, (), (const, override));
         MOCK_METHOD(void, SetCurrentTunings, (Volts Vcd, IdAndIqTunings tunings), (override));
+        MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
     };
 
     class TorqueControllerMock
