@@ -1,5 +1,5 @@
 #include "source/foc/implementations/test_doubles/DriversMock.hpp"
-#include "source/services/parameter_identification/MotorIdentification.hpp"
+#include "source/services/parameter_identification/MotorIdentificationImpl.hpp"
 #include <gmock/gmock.h>
 
 namespace
@@ -20,13 +20,13 @@ namespace
         StrictMock<foc::FieldOrientedControllerInterfaceMock> driverMock;
         StrictMock<foc::EncoderMock> encoderMock;
         foc::Volts vdc{ 24.0f };
-        services::MotorIdentification identification{ driverMock, encoderMock, vdc };
+        services::MotorIdentificationImpl identification{ driverMock, encoderMock, vdc };
     };
 }
 
 TEST_F(MotorIdentificationTest, GetResistance_ConfiguresCorrectPwmDutyCycles)
 {
-    services::MotorIdentification::ResistanceConfig config;
+    services::MotorIdentificationImpl::ResistanceConfig config;
     config.testVoltagePercent = hal::Percent{ 5 };
 
     foc::PhasePwmDutyCycles expectedPwm{
@@ -53,7 +53,7 @@ TEST_F(MotorIdentificationTest, GetResistance_ConfiguresCorrectPwmDutyCycles)
 
 TEST_F(MotorIdentificationTest, GetResistance_CalculatesCorrectResistanceAfterSampling)
 {
-    services::MotorIdentification::ResistanceConfig config;
+    services::MotorIdentificationImpl::ResistanceConfig config;
     config.testVoltagePercent = hal::Percent{ 5 };
     config.sampleCount = 4;
     config.minCurrent = foc::Ampere{ 0.1f };
@@ -90,7 +90,7 @@ TEST_F(MotorIdentificationTest, GetResistance_CalculatesCorrectResistanceAfterSa
 
 TEST_F(MotorIdentificationTest, GetResistance_Returns_Zero_When_Current_Below_Minimum)
 {
-    services::MotorIdentification::ResistanceConfig config;
+    services::MotorIdentificationImpl::ResistanceConfig config;
     config.testVoltagePercent = hal::Percent{ 5 };
     config.sampleCount = 2;
     config.minCurrent = foc::Ampere{ 0.5f };
@@ -117,7 +117,7 @@ TEST_F(MotorIdentificationTest, GetResistance_Returns_Zero_When_Current_Below_Mi
 
 TEST_F(MotorIdentificationTest, GetResistance_Handles_Negative_Current)
 {
-    services::MotorIdentification::ResistanceConfig config;
+    services::MotorIdentificationImpl::ResistanceConfig config;
     config.testVoltagePercent = hal::Percent{ 5 };
     config.sampleCount = 2;
     config.minCurrent = foc::Ampere{ 0.1f };
@@ -145,7 +145,7 @@ TEST_F(MotorIdentificationTest, GetResistance_Handles_Negative_Current)
 
 TEST_F(MotorIdentificationTest, GetResistance_WithCustomVoltagePercent)
 {
-    services::MotorIdentification::ResistanceConfig config;
+    services::MotorIdentificationImpl::ResistanceConfig config;
     config.testVoltagePercent = hal::Percent{ 10 };
     config.sampleCount = 1;
     config.minCurrent = foc::Ampere{ 0.1f };
@@ -178,7 +178,7 @@ TEST_F(MotorIdentificationTest, GetResistance_WithCustomVoltagePercent)
 
 TEST_F(MotorIdentificationTest, GetResistance_WithManySamples)
 {
-    services::MotorIdentification::ResistanceConfig config;
+    services::MotorIdentificationImpl::ResistanceConfig config;
     config.testVoltagePercent = hal::Percent{ 5 };
     config.sampleCount = 16;
     config.minCurrent = foc::Ampere{ 0.1f };
@@ -206,7 +206,7 @@ TEST_F(MotorIdentificationTest, GetResistance_WithManySamples)
 
 TEST_F(MotorIdentificationTest, GetResistance_DoesNotCallbackBeforeAllSamplesCollected)
 {
-    services::MotorIdentification::ResistanceConfig config;
+    services::MotorIdentificationImpl::ResistanceConfig config;
     config.sampleCount = 4;
 
     EXPECT_CALL(driverMock, ThreePhasePwmOutput(_)).Times(1);
@@ -238,7 +238,7 @@ TEST_F(MotorIdentificationTest, GetResistance_DoesNotCallbackBeforeAllSamplesCol
 
 TEST_F(MotorIdentificationTest, GetResistance_StopsDriverBeforeCallback)
 {
-    services::MotorIdentification::ResistanceConfig config;
+    services::MotorIdentificationImpl::ResistanceConfig config;
     config.sampleCount = 1;
 
     InSequence seq;
@@ -262,7 +262,7 @@ TEST_F(MotorIdentificationTest, GetResistance_StopsDriverBeforeCallback)
 
 TEST_F(MotorIdentificationTest, GetNumberOfPolePairs_StoresCallback)
 {
-    services::MotorIdentification::PolePairsConfig config;
+    services::MotorIdentificationImpl::PolePairsConfig config;
     bool callbackCalled = false;
 
     EXPECT_CALL(encoderMock, Read()).Times(1);
@@ -285,9 +285,9 @@ TEST_F(MotorIdentificationTest, GetNumberOfPolePairs_StoresCallback)
 TEST_F(MotorIdentificationTest, GetResistance_WithDifferentVdc)
 {
     foc::Volts customVdc{ 48.0f };
-    services::MotorIdentification customIdentification{ driverMock, encoderMock, customVdc };
+    services::MotorIdentificationImpl customIdentification{ driverMock, encoderMock, customVdc };
 
-    services::MotorIdentification::ResistanceConfig config;
+    services::MotorIdentificationImpl::ResistanceConfig config;
     config.testVoltagePercent = hal::Percent{ 5 };
     config.sampleCount = 1;
     config.minCurrent = foc::Ampere{ 0.1f };
@@ -314,7 +314,7 @@ TEST_F(MotorIdentificationTest, GetResistance_WithDifferentVdc)
 
 TEST_F(MotorIdentificationTest, GetInductance_ConfiguresCorrectPwmDutyCycles)
 {
-    services::MotorIdentification::InductanceConfig config;
+    services::MotorIdentificationImpl::InductanceConfig config;
     config.testVoltagePercent = hal::Percent{ 10 };
     config.resistance = foc::Ohm{ 1.0f };
     config.samplingFrequency = hal::Hertz{ 10000 };
@@ -343,7 +343,7 @@ TEST_F(MotorIdentificationTest, GetInductance_ConfiguresCorrectPwmDutyCycles)
 
 TEST_F(MotorIdentificationTest, GetInductance_CalculatesCorrectInductance)
 {
-    services::MotorIdentification::InductanceConfig config;
+    services::MotorIdentificationImpl::InductanceConfig config;
     config.testVoltagePercent = hal::Percent{ 10 };
     config.resistance = foc::Ohm{ 1.0f };
     config.samplingFrequency = hal::Hertz{ 10000 };
@@ -372,7 +372,7 @@ TEST_F(MotorIdentificationTest, GetInductance_CalculatesCorrectInductance)
 
 TEST_F(MotorIdentificationTest, GetInductance_ReturnsNulloptWhenCurrentChangeIsInsufficient)
 {
-    services::MotorIdentification::InductanceConfig config;
+    services::MotorIdentificationImpl::InductanceConfig config;
     config.testVoltagePercent = hal::Percent{ 10 };
     config.resistance = foc::Ohm{ 1.0f };
     config.samplingFrequency = hal::Hertz{ 10000 };
@@ -400,7 +400,7 @@ TEST_F(MotorIdentificationTest, GetInductance_ReturnsNulloptWhenCurrentChangeIsI
 
 TEST_F(MotorIdentificationTest, GetInductance_WithHigherSamplingFrequency)
 {
-    services::MotorIdentification::InductanceConfig config;
+    services::MotorIdentificationImpl::InductanceConfig config;
     config.testVoltagePercent = hal::Percent{ 10 };
     config.resistance = foc::Ohm{ 0.5f };
     config.samplingFrequency = hal::Hertz{ 20000 };
@@ -429,7 +429,7 @@ TEST_F(MotorIdentificationTest, GetInductance_WithHigherSamplingFrequency)
 
 TEST_F(MotorIdentificationTest, GetInductance_DoesNotCallbackAfterFirstSample)
 {
-    services::MotorIdentification::InductanceConfig config;
+    services::MotorIdentificationImpl::InductanceConfig config;
     config.resistance = foc::Ohm{ 1.0f };
 
     EXPECT_CALL(driverMock, ThreePhasePwmOutput(_)).Times(1);
@@ -455,7 +455,7 @@ TEST_F(MotorIdentificationTest, GetInductance_DoesNotCallbackAfterFirstSample)
 
 TEST_F(MotorIdentificationTest, GetInductance_StopsDriverBeforeCallback)
 {
-    services::MotorIdentification::InductanceConfig config;
+    services::MotorIdentificationImpl::InductanceConfig config;
     config.resistance = foc::Ohm{ 1.0f };
 
     InSequence seq;
@@ -481,7 +481,7 @@ TEST_F(MotorIdentificationTest, GetInductance_StopsDriverBeforeCallback)
 
 TEST_F(MotorIdentificationTest, GetNumberOfPolePairs_CalculatesCorrectPolePairs)
 {
-    services::MotorIdentification::PolePairsConfig config;
+    services::MotorIdentificationImpl::PolePairsConfig config;
     config.testVoltagePercent = hal::Percent{ 20 };
     config.electricalRevolutions = 1;
     config.minMechanicalRotation = foc::Radians{ 0.1f };
@@ -514,7 +514,7 @@ TEST_F(MotorIdentificationTest, GetNumberOfPolePairs_CalculatesCorrectPolePairs)
 
 TEST_F(MotorIdentificationTest, GetNumberOfPolePairs_ReturnsNulloptWhenRotationInsufficient)
 {
-    services::MotorIdentification::PolePairsConfig config;
+    services::MotorIdentificationImpl::PolePairsConfig config;
     config.testVoltagePercent = hal::Percent{ 20 };
     config.electricalRevolutions = 1;
     config.minMechanicalRotation = foc::Radians{ 1.0f };
@@ -546,7 +546,7 @@ TEST_F(MotorIdentificationTest, GetNumberOfPolePairs_ReturnsNulloptWhenRotationI
 
 TEST_F(MotorIdentificationTest, GetNumberOfPolePairs_WithMoreElectricalSteps)
 {
-    services::MotorIdentification::PolePairsConfig config;
+    services::MotorIdentificationImpl::PolePairsConfig config;
     config.testVoltagePercent = hal::Percent{ 20 };
     config.electricalRevolutions = 2;
     config.minMechanicalRotation = foc::Radians{ 0.1f };
@@ -581,7 +581,7 @@ TEST_F(MotorIdentificationTest, GetNumberOfPolePairs_WithMoreElectricalSteps)
 
 TEST_F(MotorIdentificationTest, GetNumberOfPolePairs_StopsDriverAfterCompletion)
 {
-    services::MotorIdentification::PolePairsConfig config;
+    services::MotorIdentificationImpl::PolePairsConfig config;
     config.electricalRevolutions = 1;
 
     EXPECT_CALL(encoderMock, Read())

@@ -1,4 +1,4 @@
-#include "source/services/parameter_identification/MotorIdentification.hpp"
+#include "source/services/parameter_identification/MotorIdentificationImpl.hpp"
 #include <cmath>
 #include <numbers>
 
@@ -19,14 +19,14 @@ namespace
 
 namespace services
 {
-    MotorIdentification::MotorIdentification(foc::MotorDriver& driver, foc::Encoder& encoder, foc::Volts vdc)
+    MotorIdentificationImpl::MotorIdentificationImpl(foc::MotorDriver& driver, foc::Encoder& encoder, foc::Volts vdc)
         : driver(driver)
         , encoder(encoder)
         , vdc(vdc)
     {
     }
 
-    void MotorIdentification::GetResistance(const ResistanceConfig& config, const infra::Function<void(std::optional<foc::Ohm>)>& onDone)
+    void MotorIdentificationImpl::GetResistance(const ResistanceConfig& config, const infra::Function<void(std::optional<foc::Ohm>)>& onDone)
     {
         resistanceConfig = config;
         onResistanceDone = onDone;
@@ -50,7 +50,7 @@ namespace services
             });
     }
 
-    void MotorIdentification::CalculateResistance()
+    void MotorIdentificationImpl::CalculateResistance()
     {
         driver.Stop();
 
@@ -66,7 +66,7 @@ namespace services
         }
     }
 
-    void MotorIdentification::GetInductance(const InductanceConfig& config, const infra::Function<void(std::optional<foc::Henry>)>& onDone)
+    void MotorIdentificationImpl::GetInductance(const InductanceConfig& config, const infra::Function<void(std::optional<foc::Henry>)>& onDone)
     {
         inductanceConfig = config;
         onInductanceDone = onDone;
@@ -94,7 +94,7 @@ namespace services
             });
     }
 
-    void MotorIdentification::CalculateInductance()
+    void MotorIdentificationImpl::CalculateInductance()
     {
         driver.Stop();
 
@@ -117,7 +117,7 @@ namespace services
         }
     }
 
-    void MotorIdentification::GetNumberOfPolePairs(const PolePairsConfig& config, const infra::Function<void(std::optional<std::size_t>)>& onDone)
+    void MotorIdentificationImpl::GetNumberOfPolePairs(const PolePairsConfig& config, const infra::Function<void(std::optional<std::size_t>)>& onDone)
     {
         polePairsConfig = config;
         onPolePairsDone = onDone;
@@ -128,7 +128,7 @@ namespace services
         ApplyNextElectricalAngle();
     }
 
-    void MotorIdentification::ApplyNextElectricalAngle()
+    void MotorIdentificationImpl::ApplyNextElectricalAngle()
     {
         const std::size_t totalSteps = polePairsConfig.electricalRevolutions * stepsPerRevolution;
 
@@ -150,7 +150,7 @@ namespace services
             CalculatePolePairs();
     }
 
-    void MotorIdentification::CalculatePolePairs()
+    void MotorIdentificationImpl::CalculatePolePairs()
     {
         driver.Stop();
         finalPosition = encoder.Read();

@@ -12,7 +12,8 @@ target_link_libraries(e_foc.services.parameter_identification PUBLIC
 )
 
 target_sources(e_foc.services.parameter_identification PRIVATE
-    MotorIdentification.cpp
+    MotorIdentificationImpl.cpp
+    MotorIdentificationImpl.hpp
     MotorIdentification.hpp
 )
 
