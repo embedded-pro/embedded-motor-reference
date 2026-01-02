@@ -1,6 +1,8 @@
 #pragma once
 
 #include "foc/instantiations/TrigonometricImpl.hpp"
+#include "services/alignment/TerminalMotorAlignment.hpp"
+#include "services/parameter_identification/TerminalMotorIdentification.hpp"
 #include "source/foc/implementations/ControllerBaseImpl.hpp"
 #include "source/foc/interfaces/FieldOrientedController.hpp"
 #include "source/services/alignment/MotorAlignmentImpl.hpp"
@@ -45,7 +47,7 @@ namespace application
         foc::TrigonometricFunctions trigonometricFunctions;
         FocImpl focImpl;
         std::variant<std::monostate, services::MotorAlignmentImpl, services::MotorIdentificationImpl, ControllerImpl> motorStates;
-        std::variant<std::monostate, TerminalImpl> terminalStates;
+        std::variant<std::monostate, services::TerminalMotorAlignment, services::TerminalMotorIdentification, TerminalImpl> terminalStates;
     };
 
     // Implementation
@@ -64,12 +66,14 @@ namespace application
             [this](const auto&)
             {
                 motorStates.template emplace<services::MotorAlignmentImpl>(this->driver, this->encoder, this->vdc);
+                terminalStates.template emplace<services::TerminalMotorAlignment>(this->terminal, this->tracer, std::get<services::MotorAlignmentImpl>(this->motorStates));
             } });
 
         terminal.AddCommand({ { "align_motor", "am", "Align Motor." },
             [this](const auto&)
             {
                 motorStates.template emplace<services::MotorIdentificationImpl>(this->driver, this->encoder, this->vdc);
+                terminalStates.template emplace<services::TerminalMotorIdentification>(this->terminal, this->tracer, std::get<services::MotorIdentificationImpl>(this->motorStates));
             } });
 
         terminal.AddCommand({ { "foc", "foc", "Start FOC controller." },

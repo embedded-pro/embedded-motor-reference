@@ -40,7 +40,7 @@ namespace services
         if (tokenizer.Size() != 1)
             return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
 
-        auto polePair = ParseInput<std::size_t>(tokenizer.Token(0));
+        auto polePair = ParseInput<uint32_t>(tokenizer.Token(0));
         if (!polePair.has_value())
             return { services::TerminalWithStorage::Status::error, "invalid value. It should be an integer." };
 
