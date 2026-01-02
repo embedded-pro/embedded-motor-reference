@@ -61,19 +61,19 @@ namespace application
         , focImpl{ trigonometricFunctions, std::forward<FocArgs>(focArgs)... }
     {
         terminal.AddCommand({ { "ident_par", "ip", "Identify Parameters, which are resistance, inductance and number of pole pairs." },
-            [this](const auto& params)
+            [this](const auto&)
             {
                 motorStates.template emplace<services::MotorAlignmentImpl>(this->driver, this->encoder, this->vdc);
             } });
 
         terminal.AddCommand({ { "align_motor", "am", "Align Motor." },
-            [this](const auto& params)
+            [this](const auto&)
             {
                 motorStates.template emplace<services::MotorIdentificationImpl>(this->driver, this->encoder, this->vdc);
             } });
 
         terminal.AddCommand({ { "foc", "foc", "Start FOC controller." },
-            [this](const auto& params)
+            [this](const auto&)
             {
                 this->focImpl.Reset();
 
