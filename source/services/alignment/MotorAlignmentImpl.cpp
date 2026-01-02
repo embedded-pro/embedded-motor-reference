@@ -1,4 +1,4 @@
-#include "source/services/alignment/MotorAlignment.hpp"
+#include "source/services/alignment/MotorAlignmentImpl.hpp"
 #include <cmath>
 
 namespace
@@ -15,14 +15,14 @@ namespace
 
 namespace services
 {
-    MotorAlignment::MotorAlignment(foc::MotorDriver& driver, foc::Encoder& encoder, foc::Volts vdc)
+    MotorAlignmentImpl::MotorAlignmentImpl(foc::MotorDriver& driver, foc::Encoder& encoder, foc::Volts vdc)
         : driver(driver)
         , encoder(encoder)
         , vdc(vdc)
     {
     }
 
-    void MotorAlignment::ForceAlignment(std::size_t polePairs, const AlignmentConfig& config, const infra::Function<void(std::optional<foc::Radians>)>& onDone)
+    void MotorAlignmentImpl::ForceAlignment(std::size_t polePairs, const AlignmentConfig& config, const infra::Function<void(std::optional<foc::Radians>)>& onDone)
     {
         this->polePairs = polePairs;
         alignmentConfig = config;
@@ -34,7 +34,7 @@ namespace services
         ApplyAlignmentVoltage();
     }
 
-    void MotorAlignment::ApplyAlignmentVoltage()
+    void MotorAlignmentImpl::ApplyAlignmentVoltage()
     {
         auto voltage = static_cast<float>(alignmentConfig.testVoltagePercent.Value()) / 100.0f;
         auto electricalAngle = alignmentAngle;
@@ -54,7 +54,7 @@ namespace services
             });
     }
 
-    void MotorAlignment::ProcessPosition()
+    void MotorAlignmentImpl::ProcessPosition()
     {
         auto currentPosition = encoder.Read();
         auto positionChange = std::abs((currentPosition - previousPosition).Value());
@@ -71,7 +71,7 @@ namespace services
         previousPosition = currentPosition;
     }
 
-    void MotorAlignment::CalculateAlignmentOffset()
+    void MotorAlignmentImpl::CalculateAlignmentOffset()
     {
         driver.Stop();
         alignedPosition = encoder.Read();
@@ -83,7 +83,7 @@ namespace services
         }
     }
 
-    void MotorAlignment::FailToConverge()
+    void MotorAlignmentImpl::FailToConverge()
     {
         driver.Stop();
 

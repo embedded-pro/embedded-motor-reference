@@ -1,5 +1,5 @@
 #include "source/foc/implementations/test_doubles/DriversMock.hpp"
-#include "source/services/alignment/MotorAlignment.hpp"
+#include "source/services/alignment/MotorAlignmentImpl.hpp"
 #include <gmock/gmock.h>
 
 namespace
@@ -20,13 +20,13 @@ namespace
         StrictMock<foc::FieldOrientedControllerInterfaceMock> driverMock;
         StrictMock<foc::EncoderMock> encoderMock;
         foc::Volts vdc{ 24.0f };
-        services::MotorAlignment alignment{ driverMock, encoderMock, vdc };
+        services::MotorAlignmentImpl alignment{ driverMock, encoderMock, vdc };
     };
 }
 
 TEST_F(MotorAlignmentTest, ForceAlignment_ConfiguresCorrectPwmDutyCycles)
 {
-    services::MotorAlignment::AlignmentConfig config;
+    services::MotorAlignmentImpl::AlignmentConfig config;
     config.testVoltagePercent = hal::Percent{ 20 };
     std::size_t polePairs = 7;
 
@@ -56,7 +56,7 @@ TEST_F(MotorAlignmentTest, ForceAlignment_ConfiguresCorrectPwmDutyCycles)
 
 TEST_F(MotorAlignmentTest, ForceAlignment_ReturnsNulloptWhenTimeoutOccurs)
 {
-    services::MotorAlignment::AlignmentConfig config;
+    services::MotorAlignmentImpl::AlignmentConfig config;
     config.testVoltagePercent = hal::Percent{ 20 };
     config.maxSamples = 10;
     config.settledThreshold = foc::Radians{ 0.001f };
@@ -93,7 +93,7 @@ TEST_F(MotorAlignmentTest, ForceAlignment_ReturnsNulloptWhenTimeoutOccurs)
 
 TEST_F(MotorAlignmentTest, ForceAlignment_ConvergesWhenPositionStable)
 {
-    services::MotorAlignment::AlignmentConfig config;
+    services::MotorAlignmentImpl::AlignmentConfig config;
     config.testVoltagePercent = hal::Percent{ 20 };
     config.maxSamples = 100;
     config.settledThreshold = foc::Radians{ 0.001f };
@@ -135,7 +135,7 @@ TEST_F(MotorAlignmentTest, ForceAlignment_ConvergesWhenPositionStable)
 
 TEST_F(MotorAlignmentTest, ForceAlignment_CalculatesCorrectOffsetForDifferentPolePairs)
 {
-    services::MotorAlignment::AlignmentConfig config;
+    services::MotorAlignmentImpl::AlignmentConfig config;
     config.testVoltagePercent = hal::Percent{ 20 };
     config.settledThreshold = foc::Radians{ 0.001f };
     config.settledCount = 3;
@@ -170,7 +170,7 @@ TEST_F(MotorAlignmentTest, ForceAlignment_CalculatesCorrectOffsetForDifferentPol
 
 TEST_F(MotorAlignmentTest, ForceAlignment_ResetsCounterWhenPositionChanges)
 {
-    services::MotorAlignment::AlignmentConfig config;
+    services::MotorAlignmentImpl::AlignmentConfig config;
     config.testVoltagePercent = hal::Percent{ 20 };
     config.maxSamples = 100;
     config.settledThreshold = foc::Radians{ 0.001f };
@@ -210,7 +210,7 @@ TEST_F(MotorAlignmentTest, ForceAlignment_ResetsCounterWhenPositionChanges)
 
 TEST_F(MotorAlignmentTest, ForceAlignment_WithCustomVoltagePercent)
 {
-    services::MotorAlignment::AlignmentConfig config;
+    services::MotorAlignmentImpl::AlignmentConfig config;
     config.testVoltagePercent = hal::Percent{ 30 };
     std::size_t polePairs = 7;
 
@@ -240,7 +240,7 @@ TEST_F(MotorAlignmentTest, ForceAlignment_WithCustomVoltagePercent)
 
 TEST_F(MotorAlignmentTest, ForceAlignment_WithCustomSamplingFrequency)
 {
-    services::MotorAlignment::AlignmentConfig config;
+    services::MotorAlignmentImpl::AlignmentConfig config;
     config.testVoltagePercent = hal::Percent{ 20 };
     config.samplingFrequency = hal::Hertz{ 2000 };
     std::size_t polePairs = 7;
@@ -265,7 +265,7 @@ TEST_F(MotorAlignmentTest, ForceAlignment_WithCustomSamplingFrequency)
 
 TEST_F(MotorAlignmentTest, ForceAlignment_StopsDriverBeforeCallback)
 {
-    services::MotorAlignment::AlignmentConfig config;
+    services::MotorAlignmentImpl::AlignmentConfig config;
     config.settledCount = 2;
     std::size_t polePairs = 7;
 
@@ -309,9 +309,9 @@ TEST_F(MotorAlignmentTest, ForceAlignment_StopsDriverBeforeCallback)
 TEST_F(MotorAlignmentTest, ForceAlignment_WithDifferentVdc)
 {
     foc::Volts customVdc{ 48.0f };
-    services::MotorAlignment customAlignment{ driverMock, encoderMock, customVdc };
+    services::MotorAlignmentImpl customAlignment{ driverMock, encoderMock, customVdc };
 
-    services::MotorAlignment::AlignmentConfig config;
+    services::MotorAlignmentImpl::AlignmentConfig config;
     config.testVoltagePercent = hal::Percent{ 20 };
     config.settledCount = 2;
     std::size_t polePairs = 7;
@@ -342,7 +342,7 @@ TEST_F(MotorAlignmentTest, ForceAlignment_WithDifferentVdc)
 
 TEST_F(MotorAlignmentTest, ForceAlignment_WithZeroPosition)
 {
-    services::MotorAlignment::AlignmentConfig config;
+    services::MotorAlignmentImpl::AlignmentConfig config;
     config.settledCount = 2;
     std::size_t polePairs = 7;
 

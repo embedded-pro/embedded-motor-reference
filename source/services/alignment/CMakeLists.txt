@@ -12,7 +12,8 @@ target_link_libraries(e_foc.services.alignment PUBLIC
 )
 
 target_sources(e_foc.services.alignment PRIVATE
-    MotorAlignment.cpp
+    MotorAlignmentImpl.cpp
+    MotorAlignmentImpl.hpp
     MotorAlignment.hpp
 )
 

@@ -3,7 +3,7 @@
 #include "foc/instantiations/TrigonometricImpl.hpp"
 #include "source/foc/implementations/ControllerBaseImpl.hpp"
 #include "source/foc/interfaces/FieldOrientedController.hpp"
-#include "source/services/alignment/MotorAlignment.hpp"
+#include "source/services/alignment/MotorAlignmentImpl.hpp"
 #include "source/services/cli/TerminalBase.hpp"
 #include "source/services/parameter_identification/MotorIdentificationImpl.hpp"
 #include <type_traits>
@@ -44,7 +44,7 @@ namespace application
         foc::Volts vdc;
         foc::TrigonometricFunctions trigonometricFunctions;
         FocImpl focImpl;
-        std::variant<std::monostate, services::MotorAlignment, services::MotorIdentificationImpl, ControllerImpl> motorStates;
+        std::variant<std::monostate, services::MotorAlignmentImpl, services::MotorIdentificationImpl, ControllerImpl> motorStates;
         std::variant<std::monostate, TerminalImpl> terminalStates;
     };
 
@@ -63,7 +63,7 @@ namespace application
         terminal.AddCommand({ { "ident_par", "ip", "Identify Parameters, which are resistance, inductance and number of pole pairs." },
             [this](const auto& params)
             {
-                motorStates.template emplace<services::MotorAlignment>(this->driver, this->encoder, this->vdc);
+                motorStates.template emplace<services::MotorAlignmentImpl>(this->driver, this->encoder, this->vdc);
             } });
 
         terminal.AddCommand({ { "align_motor", "am", "Align Motor." },
