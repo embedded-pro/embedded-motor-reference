@@ -14,4 +14,5 @@ target_link_libraries(e_foc.services.parameter_identification_test PUBLIC
 
 target_sources(e_foc.services.parameter_identification_test PRIVATE
     TestMotorIdentification.cpp
+    TestTerminalMotorIdentification.cpp
 )

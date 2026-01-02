@@ -15,6 +15,8 @@ target_sources(e_foc.services.parameter_identification PRIVATE
     MotorIdentificationImpl.cpp
     MotorIdentificationImpl.hpp
     MotorIdentification.hpp
+    TerminalMotorIdentification.cpp
+    TerminalMotorIdentification.hpp
 )
 
 add_subdirectory(test)

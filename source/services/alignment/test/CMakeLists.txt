@@ -14,4 +14,5 @@ target_link_libraries(e_foc.services.alignment_test PUBLIC
 
 target_sources(e_foc.services.alignment_test PRIVATE
     TestMotorAlignment.cpp
+    TestTerminalMotorAlignment.cpp
 )
