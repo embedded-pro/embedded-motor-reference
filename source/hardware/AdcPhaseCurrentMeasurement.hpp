@@ -7,7 +7,7 @@
 
 namespace application
 {
-    class AdcMultiChannelDecorator
+    class AdcPhaseCurrentMeasurement
     {
     public:
         virtual void Measure(const infra::Function<void(foc::Ampere phaseA, foc::Ampere phaseB, foc::Ampere phaseC)>& onDone) = 0;
@@ -15,12 +15,12 @@ namespace application
     };
 
     template<typename Impl, typename = std::enable_if_t<std::is_base_of_v<hal::AdcMultiChannel, Impl>>>
-    class AdcMultiChannelDecoratorImpl
-        : public AdcMultiChannelDecorator
+    class AdcPhaseCurrentMeasurementImpl
+        : public AdcPhaseCurrentMeasurement
     {
     public:
         template<typename... Args>
-        explicit AdcMultiChannelDecoratorImpl(float adcToAmpereFactor, Args&&... args);
+        explicit AdcPhaseCurrentMeasurementImpl(float adcToAmpereFactor, Args&&... args);
 
         void Measure(const infra::Function<void(foc::Ampere phaseA, foc::Ampere phaseB, foc::Ampere phaseC)>& onDone) override;
         void Stop() override;
@@ -35,14 +35,14 @@ namespace application
 
     template<typename Impl, typename Enable>
     template<typename... Args>
-    AdcMultiChannelDecoratorImpl<Impl, Enable>::AdcMultiChannelDecoratorImpl(float adcToAmpereFactor, Args&&... args)
+    AdcPhaseCurrentMeasurementImpl<Impl, Enable>::AdcPhaseCurrentMeasurementImpl(float adcToAmpereFactor, Args&&... args)
         : adc(std::forward<Args>(args)...)
         , adcToAmpereFactor(adcToAmpereFactor)
     {
     }
 
     template<typename Impl, typename Enable>
-    void AdcMultiChannelDecoratorImpl<Impl, Enable>::Measure(const infra::Function<void(foc::Ampere phaseA, foc::Ampere phaseB, foc::Ampere phaseC)>& onDone)
+    void AdcPhaseCurrentMeasurementImpl<Impl, Enable>::Measure(const infra::Function<void(foc::Ampere phaseA, foc::Ampere phaseB, foc::Ampere phaseC)>& onDone)
     {
         onMeasurementDone = onDone;
         adc.Measure([this](auto samples)
@@ -52,7 +52,7 @@ namespace application
     }
 
     template<typename Impl, typename Enable>
-    void AdcMultiChannelDecoratorImpl<Impl, Enable>::Stop()
+    void AdcPhaseCurrentMeasurementImpl<Impl, Enable>::Stop()
     {
         adc.Stop();
     }

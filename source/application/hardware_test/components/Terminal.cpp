@@ -74,7 +74,8 @@ namespace application
         , encoderCreator{ hardware.SynchronousQuadratureEncoderCreator() }
         , performanceTimer{ hardware.PerformanceTimer() }
         , Vdc{ hardware.PowerSupplyVoltage() }
-        , foc{ trigFunctions, hardware.MaxCurrentSupported(), std::chrono::microseconds(static_cast<std::size_t>(1e6f / static_cast<float>(hardware.BaseFrequency().Value()))) }
+        , systemClock{ hardware.SystemClock() }
+        , foc{ trigFunctions, hardware.MaxCurrentSupported(), std::chrono::microseconds(static_cast<std::size_t>(1e6f / 1000.0f)) }
     {
         terminal.AddCommand({ { "enc", "e", "Read encoder. stop. Ex: enc" },
             [this](const auto&)
@@ -145,6 +146,8 @@ namespace application
         tracer.Trace() << "Compiler: Unknown";
 #endif
         tracer.Trace() << "Target: " << E_FOC_TARGET_BOARD;
+        tracer.Trace() << "System Clock: " << systemClock.Value() << " Hz";
+        tracer.Trace() << "Power Supply Voltage: " << Vdc.Value() << " V";
         tracer.Trace() << "================================================";
         tracer.Trace() << "Ready to accept commands. Type 'help' for available commands.";
     }

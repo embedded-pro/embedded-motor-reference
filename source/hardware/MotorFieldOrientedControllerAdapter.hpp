@@ -32,7 +32,7 @@ namespace application
         foc::Radians encoderOffset{ 0.0f };
         hal::Hertz pwmBaseFrequency{ 10000 };
         std::chrono::nanoseconds pwmDeadTime{ 500 };
-        infra::ProxyCreator<AdcMultiChannelDecorator, void(HardwareFactory::SampleAndHold)> adcMultiChannelCreator;
+        infra::ProxyCreator<AdcPhaseCurrentMeasurement, void(HardwareFactory::SampleAndHold)> adcMultiChannelCreator;
         infra::ProxyCreator<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)> synchronousThreeChannelsPwmCreator;
         infra::ProxyCreator<QuadratureEncoderDecorator, void()> synchronousQuadratureEncoderCreator;
         infra::Function<void(foc::PhaseCurrents currentPhases)> onPhaseCurrentsReady;

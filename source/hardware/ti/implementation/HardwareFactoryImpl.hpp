@@ -1,8 +1,5 @@
 #pragma once
 
-#include "hal/interfaces/AdcMultiChannel.hpp"
-#include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
-#include "source/foc/interfaces/Driver.hpp"
 #include HARDWARE_PINS_AND_PERIPHERALS_HEADER
 #include "hal/interfaces/Gpio.hpp"
 #include "hal/ti/hal_tiva/cortex/DataWatchpointAndTrace.hpp"
@@ -11,6 +8,7 @@
 #include "hal/ti/hal_tiva/synchronous_tiva/SynchronousQuadratureEncoder.hpp"
 #include "hal/ti/hal_tiva/tiva/Adc.hpp"
 #include "hal/ti/hal_tiva/tiva/Uart.hpp"
+#include "hal_tiva/synchronous_tiva/SynchronousAdc.hpp"
 #include "hal_tiva/tiva/Gpio.hpp"
 #include "infra/event/EventDispatcherWithWeakPtr.hpp"
 #include "services/tracer/SerialCommunicationOnSeggerRtt.hpp"
@@ -35,11 +33,11 @@ namespace application
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
         hal::PerformanceTracker& PerformanceTimer() override;
-        hal::Hertz BaseFrequency() const override;
+        hal::Hertz SystemClock() const override;
         foc::Volts PowerSupplyVoltage() override;
         foc::Ampere MaxCurrentSupported() override;
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
-        infra::CreatorBase<AdcMultiChannelDecorator, void(SampleAndHold)>& AdcMultiChannelCreator() override;
+        infra::CreatorBase<AdcPhaseCurrentMeasurement, void(SampleAndHold)>& AdcMultiChannelCreator() override;
         infra::CreatorBase<QuadratureEncoderDecorator, void()>& SynchronousQuadratureEncoderCreator() override;
 
         // Implementation of hal::PerformanceTracker
@@ -75,10 +73,12 @@ namespace application
             static constexpr float voltageToCurrent = 0.2f;
             static constexpr float adcReferenceVoltage = 3.3f;
             static constexpr float adcResolution = 4096.0f;
-            static constexpr float adcToAmpereFactor = adcReferenceVoltage / adcResolution * voltageToCurrent;
+            static constexpr float voltageToVolts = 18.433f;
+            static constexpr float adcToAmpereFactor = (adcReferenceVoltage / adcResolution) * voltageToCurrent;
+            static constexpr float adcToVoltsFactor = (adcReferenceVoltage / adcResolution) * voltageToVolts;
             hal::tiva::Adc::Config adcConfig{ false, 0, Peripheral::adcTrigger, hal::tiva::Adc::SampleAndHold::sampleAndHold4 };
             std::array<hal::tiva::AnalogPin, 3> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB }, hal::tiva::AnalogPin{ Pins::currentPhaseC } } };
-            infra::Creator<AdcMultiChannelDecorator, AdcMultiChannelDecoratorImpl<hal::tiva::Adc>, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
+            infra::Creator<AdcPhaseCurrentMeasurement, AdcPhaseCurrentMeasurementImpl<hal::tiva::Adc>, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
                 {
                     adcConfig.sampleAndHold = toSampleAndHold.at(static_cast<std::size_t>(sampleAndHold));
 
@@ -98,8 +98,11 @@ namespace application
                     object.Emplace(Peripheral::PwmIndex, Peripheral::pwmPhases, pwmConfig);
                     object->SetBaseFrequency(frequency);
                 } };
-            infra::Function<void(std::tuple<infra::Ampere, infra::Ampere, infra::Ampere> voltagePhases)>
-                phaseCurrentsReady;
+            infra::Function<void(std::tuple<infra::Ampere, infra::Ampere, infra::Ampere> voltagePhases)> phaseCurrentsReady;
+            std::array<hal::tiva::AnalogPin, 1> powerSupplyAnalogPins{ { hal::tiva::AnalogPin{ Pins::powerSupplyVoltage } } };
+            constexpr static auto powerSupplyOversampling = hal::tiva::SynchronousAdc::Oversampling::oversampling8;
+            hal::tiva::SynchronousAdc::Config powerSupplyAdcConfig{ false, hal::tiva::SynchronousAdc::SampleAndHold::sampleAndHold256, hal::tiva::SynchronousAdc::Priority::priority3, std::make_optional(powerSupplyOversampling) };
+            hal::tiva::SynchronousAdc powerSupplyAdc{ 1, 0, powerSupplyAnalogPins, powerSupplyAdcConfig };
         };
 
         struct EncoderImpl

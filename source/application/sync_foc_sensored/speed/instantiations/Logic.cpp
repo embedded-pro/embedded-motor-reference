@@ -18,6 +18,6 @@ namespace application
         , motorStateMachine(
               TerminalAndTracer{ terminalWithStorage, hardware.Tracer() },
               MotorDriverAndEncoder{ hardwareAdapter, hardwareAdapter },
-              hardware.PowerSupplyVoltage(), hardware.MaxCurrentSupported(), TimeStepFromFrequency(hardware.BaseFrequency()))
+              hardware.PowerSupplyVoltage(), hardware.MaxCurrentSupported(), TimeStepFromFrequency(hardwareAdapter.BaseFrequency()))
     {}
 }

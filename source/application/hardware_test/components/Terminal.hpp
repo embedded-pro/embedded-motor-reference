@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hal/interfaces/AdcMultiChannel.hpp"
+#include "hal/synchronous_interfaces/SynchronousPwm.hpp"
 #include "infra/util/BoundedDeque.hpp"
 #include "services/tracer/Tracer.hpp"
 #include "services/util/TerminalWithStorage.hpp"
@@ -44,11 +45,12 @@ namespace application
         services::TerminalWithStorage& terminal;
         services::Tracer& tracer;
         infra::DelayedProxyCreator<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)> pwmCreator;
-        infra::DelayedProxyCreator<AdcMultiChannelDecorator, void(HardwareFactory::SampleAndHold)> adcCreator;
+        infra::DelayedProxyCreator<AdcPhaseCurrentMeasurement, void(HardwareFactory::SampleAndHold)> adcCreator;
         infra::DelayedProxyCreator<QuadratureEncoderDecorator, void()> encoderCreator;
         QueueOfPhaseCurrents queueOfPhaseCurrents;
         hal::PerformanceTracker& performanceTimer;
         foc::Volts Vdc;
+        hal::Hertz systemClock;
         controllers::PidTunings<float> speedPidTunings;
         controllers::PidTunings<float> dqPidTunings;
         std::optional<std::size_t> polePairs = 0;

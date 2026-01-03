@@ -36,7 +36,7 @@ namespace application
         return *this;
     }
 
-    hal::Hertz HardwareFactoryImpl::BaseFrequency() const
+    hal::Hertz HardwareFactoryImpl::SystemClock() const
     {
         return hal::Hertz(SystemCoreClock);
     }
@@ -65,7 +65,7 @@ namespace application
         return pwmBrushless;
     }
 
-    infra::CreatorBase<AdcMultiChannelDecorator, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
+    infra::CreatorBase<AdcPhaseCurrentMeasurement, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
     {
         return adcCurrentPhases;
     }
