@@ -65,15 +65,15 @@ namespace application
         terminal.AddCommand({ { "ident_par", "ip", "Identify Parameters, which are resistance, inductance and number of pole pairs." },
             [this](const auto&)
             {
-                motorStates.template emplace<services::MotorAlignmentImpl>(this->driver, this->encoder, this->vdc);
-                terminalStates.template emplace<services::TerminalMotorAlignment>(this->terminal, this->tracer, std::get<services::MotorAlignmentImpl>(this->motorStates));
+                motorStates.template emplace<services::MotorIdentificationImpl>(this->driver, this->encoder, this->vdc);
+                terminalStates.template emplace<services::TerminalMotorIdentification>(this->terminal, this->tracer, std::get<services::MotorIdentificationImpl>(this->motorStates));
             } });
 
         terminal.AddCommand({ { "align_motor", "am", "Align Motor." },
             [this](const auto&)
             {
-                motorStates.template emplace<services::MotorIdentificationImpl>(this->driver, this->encoder, this->vdc);
-                terminalStates.template emplace<services::TerminalMotorIdentification>(this->terminal, this->tracer, std::get<services::MotorIdentificationImpl>(this->motorStates));
+                motorStates.template emplace<services::MotorAlignmentImpl>(this->driver, this->encoder, this->vdc);
+                terminalStates.template emplace<services::TerminalMotorAlignment>(this->terminal, this->tracer, std::get<services::MotorAlignmentImpl>(this->motorStates));
             } });
 
         terminal.AddCommand({ { "foc", "foc", "Start FOC controller." },
@@ -82,7 +82,7 @@ namespace application
                 this->focImpl.Reset();
 
                 motorStates.template emplace<ControllerImpl>(this->driver, this->encoder, this->focImpl);
-                auto focController = std::get<ControllerImpl>(this->motorStates);
+                auto& focController = std::get<ControllerImpl>(this->motorStates);
                 terminalStates.template emplace<TerminalImpl>(this->terminal, this->vdc, focController, focController);
             } });
     }

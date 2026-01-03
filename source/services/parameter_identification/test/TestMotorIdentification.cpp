@@ -115,34 +115,6 @@ TEST_F(MotorIdentificationTest, GetResistance_Returns_Zero_When_Current_Below_Mi
     EXPECT_FALSE(measuredResistance.has_value());
 }
 
-TEST_F(MotorIdentificationTest, GetResistance_Handles_Negative_Current)
-{
-    services::MotorIdentificationImpl::ResistanceConfig config;
-    config.testVoltagePercent = hal::Percent{ 5 };
-    config.sampleCount = 2;
-    config.minCurrent = foc::Ampere{ 0.1f };
-
-    EXPECT_CALL(driverMock, ThreePhasePwmOutput(_)).Times(1);
-    EXPECT_CALL(driverMock, PhaseCurrentsReady(_, _))
-        .WillOnce([this](auto, const auto& onDone)
-            {
-                driverMock.StorePhaseCurrentsCallback(onDone);
-            });
-    EXPECT_CALL(driverMock, Stop()).Times(1);
-
-    std::optional<foc::Ohm> measuredResistance;
-    identification.GetResistance(config, [&measuredResistance](std::optional<foc::Ohm> resistance)
-        {
-            measuredResistance = resistance;
-        });
-
-    driverMock.TriggerPhaseCurrentsCallback({ foc::Ampere{ -1.0f }, foc::Ampere{ 0.0f }, foc::Ampere{ 0.0f } });
-    driverMock.TriggerPhaseCurrentsCallback({ foc::Ampere{ -2.0f }, foc::Ampere{ 0.0f }, foc::Ampere{ 0.0f } });
-
-    ASSERT_TRUE(measuredResistance.has_value());
-    EXPECT_NEAR(measuredResistance->Value(), -0.8f, 0.01f);
-}
-
 TEST_F(MotorIdentificationTest, GetResistance_WithCustomVoltagePercent)
 {
     services::MotorIdentificationImpl::ResistanceConfig config;

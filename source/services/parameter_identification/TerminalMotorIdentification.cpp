@@ -1,5 +1,4 @@
 #include "source/services/parameter_identification/TerminalMotorIdentification.hpp"
-#include "infra/util/Tokenizer.hpp"
 
 namespace services
 {
@@ -29,7 +28,6 @@ namespace services
 
     TerminalMotorIdentification::StatusWithMessage TerminalMotorIdentification::EstimateResistance(const infra::BoundedConstString& param)
     {
-        infra::Tokenizer tokenizer(param, ' ');
         MotorIdentification::ResistanceConfig config;
 
         identification.GetResistance(config, [this](auto resistance)
@@ -44,7 +42,6 @@ namespace services
 
     TerminalMotorIdentification::StatusWithMessage TerminalMotorIdentification::EstimateInductance(const infra::BoundedConstString& param)
     {
-        infra::Tokenizer tokenizer(param, ' ');
         MotorIdentification::InductanceConfig config;
 
         identification.GetInductance(config, [this](auto inductance)
@@ -60,7 +57,6 @@ namespace services
 
     TerminalMotorIdentification::StatusWithMessage TerminalMotorIdentification::EstimateNumberOfPolePairs(const infra::BoundedConstString& param)
     {
-        infra::Tokenizer tokenizer(param, ' ');
         MotorIdentification::PolePairsConfig config;
 
         identification.GetNumberOfPolePairs(config, [this](auto polePairs)
