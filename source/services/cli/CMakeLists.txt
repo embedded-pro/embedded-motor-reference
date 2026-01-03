@@ -14,14 +14,6 @@ target_link_libraries(e_foc.services.cli PUBLIC
 )
 
 target_sources(e_foc.services.cli PRIVATE
-    FocInteractor.hpp
-    FocInteractorImpl.hpp
-    FocPositionInteractorImpl.cpp
-    FocPositionInteractorImpl.hpp
-    FocSpeedInteractorImpl.cpp
-    FocSpeedInteractorImpl.hpp
-    FocTorqueInteractorImpl.cpp
-    FocTorqueInteractorImpl.hpp
     TerminalBase.cpp
     TerminalBase.hpp
     TerminalHelper.hpp

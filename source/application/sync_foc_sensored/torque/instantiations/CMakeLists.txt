@@ -9,7 +9,7 @@ target_include_directories(e_foc.sync_foc_sensored.torque.inst PUBLIC
 target_link_libraries(e_foc.sync_foc_sensored.torque.inst PUBLIC
     e_foc.hardware
     e_foc.services.cli
-    e_foc.foc.instantiations
+    e_foc.sync_foc_sensored.instantiations
     numerical.controllers.implementations
 )
 

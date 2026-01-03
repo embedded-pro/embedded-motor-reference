@@ -22,11 +22,11 @@ namespace application
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
         hal::PerformanceTracker& PerformanceTimer() override;
-        hal::Hertz BaseFrequency() const override;
+        hal::Hertz SystemClock() const override;
         foc::Volts PowerSupplyVoltage() override;
         foc::Ampere MaxCurrentSupported() override;
         infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() override;
-        infra::CreatorBase<AdcMultiChannelDecorator, void(SampleAndHold)>& AdcMultiChannelCreator() override;
+        infra::CreatorBase<AdcPhaseCurrentMeasurement, void(SampleAndHold)>& AdcMultiChannelCreator() override;
         infra::CreatorBase<QuadratureEncoderDecorator, void()>& SynchronousQuadratureEncoderCreator() override;
 
         // Implementation of hal::PerformanceTracker
@@ -108,7 +108,7 @@ namespace application
         GpioPinStub pin;
         SerialCommunicationStub serial;
         TerminalAndTracer terminalAndTracer{ serial };
-        infra::Creator<AdcMultiChannelDecorator, AdcMultiChannelDecoratorImpl<AdcMultiChannelStub>, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
+        infra::Creator<AdcPhaseCurrentMeasurement, AdcPhaseCurrentMeasurementImpl<AdcMultiChannelStub>, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
             {
                 object.Emplace(0.0f);
             } };

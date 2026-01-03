@@ -1,6 +1,6 @@
 #include "foc/interfaces/Driver.hpp"
 #include "hal/interfaces/test_doubles/SerialCommunicationMock.hpp"
-#include "hardware/AdcMultiChannelDecorator.hpp"
+#include "hardware/AdcPhaseCurrentMeasurement.hpp"
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
 #include "infra/util/test_helper/ProxyCreatorMock.hpp"
@@ -33,11 +33,11 @@ namespace
         MOCK_METHOD(services::TerminalWithCommands&, Terminal, (), (override));
         MOCK_METHOD(infra::MemoryRange<hal::GpioPin>, Leds, (), (override));
         MOCK_METHOD(hal::PerformanceTracker&, PerformanceTimer, (), (override));
-        MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
+        MOCK_METHOD(hal::Hertz, SystemClock, (), (const, override));
         MOCK_METHOD(foc::Volts, PowerSupplyVoltage, (), (override));
         MOCK_METHOD(foc::Ampere, MaxCurrentSupported, (), (override));
         MOCK_METHOD((infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)>&), SynchronousThreeChannelsPwmCreator, (), (override));
-        MOCK_METHOD((infra::CreatorBase<application::AdcMultiChannelDecorator, void(SampleAndHold)>&), AdcMultiChannelCreator, (), (override));
+        MOCK_METHOD((infra::CreatorBase<application::AdcPhaseCurrentMeasurement, void(SampleAndHold)>&), AdcMultiChannelCreator, (), (override));
         MOCK_METHOD((infra::CreatorBase<application::QuadratureEncoderDecorator, void()>&), SynchronousQuadratureEncoderCreator, (), (override));
     };
 
@@ -68,8 +68,8 @@ namespace
         MOCK_METHOD(uint32_t, Speed, (), (override));
     };
 
-    class AdcMultiChannelDecoratorMock
-        : public application::AdcMultiChannelDecorator
+    class AdcPhaseCurrentMeasurementMock
+        : public application::AdcPhaseCurrentMeasurement
     {
     public:
         MOCK_METHOD(void, Measure, ((const infra::Function<void(foc::Ampere phaseA, foc::Ampere phaseB, foc::Ampere phaseC)>& onDone)), (override));
@@ -106,7 +106,7 @@ namespace
             EXPECT_CALL(hardwareFactoryMock, PerformanceTimer()).WillRepeatedly(testing::ReturnRef(performanceTrackerMock));
             EXPECT_CALL(hardwareFactoryMock, PowerSupplyVoltage()).WillRepeatedly(testing::Return(foc::Volts{ 24.0f }));
             EXPECT_CALL(hardwareFactoryMock, MaxCurrentSupported()).WillRepeatedly(testing::Return(foc::Ampere{ 5.0f }));
-            EXPECT_CALL(hardwareFactoryMock, BaseFrequency()).WillRepeatedly(testing::Return(hal::Hertz{ 10000 }));
+            EXPECT_CALL(hardwareFactoryMock, SystemClock()).WillRepeatedly(testing::Return(hal::Hertz{ 10000 }));
 
             EXPECT_CALL(encoderCreator, Constructed());
             EXPECT_CALL(pwmCreator, Constructed(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 }));
@@ -140,11 +140,11 @@ namespace
         testing::StrictMock<AdcMock> adcMock;
         testing::StrictMock<EncoderMock> encoderMock;
         testing::NiceMock<PerformanceTrackerMock> performanceTrackerMock;
-        testing::StrictMock<AdcMultiChannelDecoratorMock> adcDecoratorMock;
+        testing::StrictMock<AdcPhaseCurrentMeasurementMock> adcDecoratorMock;
         testing::StrictMock<QuadratureEncoderDecoratorMock> encoderDecoratorMock;
 
         infra::CreatorMock<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)> pwmCreator{ pwmMock };
-        infra::CreatorMock<application::AdcMultiChannelDecorator, void(application::HardwareFactory::SampleAndHold)> adcCreator{ adcDecoratorMock };
+        infra::CreatorMock<application::AdcPhaseCurrentMeasurement, void(application::HardwareFactory::SampleAndHold)> adcCreator{ adcDecoratorMock };
         infra::CreatorMock<application::QuadratureEncoderDecorator, void()> encoderCreator{ encoderDecoratorMock };
 
         std::optional<application::TerminalInteractor> terminalInteractor;

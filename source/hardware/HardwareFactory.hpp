@@ -8,7 +8,7 @@
 #include "services/tracer/Tracer.hpp"
 #include "services/util/Terminal.hpp"
 #include "source/foc/interfaces/Driver.hpp"
-#include "source/hardware/AdcMultiChannelDecorator.hpp"
+#include "source/hardware/AdcPhaseCurrentMeasurement.hpp"
 #include "source/hardware/QuadratureEncoderDecorator.hpp"
 #include <chrono>
 
@@ -41,11 +41,11 @@ namespace application
         virtual services::TerminalWithCommands& Terminal() = 0;
         virtual infra::MemoryRange<hal::GpioPin> Leds() = 0;
         virtual hal::PerformanceTracker& PerformanceTimer() = 0;
-        virtual hal::Hertz BaseFrequency() const = 0;
+        virtual hal::Hertz SystemClock() const = 0;
         virtual foc::Volts PowerSupplyVoltage() = 0;
         virtual foc::Ampere MaxCurrentSupported() = 0;
         virtual infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)>& SynchronousThreeChannelsPwmCreator() = 0;
-        virtual infra::CreatorBase<AdcMultiChannelDecorator, void(SampleAndHold)>& AdcMultiChannelCreator() = 0;
+        virtual infra::CreatorBase<AdcPhaseCurrentMeasurement, void(SampleAndHold)>& AdcMultiChannelCreator() = 0;
         virtual infra::CreatorBase<QuadratureEncoderDecorator, void()>& SynchronousQuadratureEncoderCreator() = 0;
     };
 }

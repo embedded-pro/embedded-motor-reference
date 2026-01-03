@@ -4,6 +4,7 @@
 #include "infra/util/Function.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
 #include "services/util/Terminal.hpp"
+#include "source/foc/implementations/test_doubles/ControllerMock.hpp"
 #include "source/services/cli/TerminalPosition.hpp"
 #include "gmock/gmock.h"
 #include <cmath>
@@ -11,40 +12,6 @@
 
 namespace
 {
-    MATCHER_P(PositionEq, expected, "is position equal")
-    {
-        return std::abs(arg.Value() - expected.Value()) < 1e-5f;
-    }
-
-    MATCHER_P2(PidParamsEq, dParams, qParams, "is FOC PID parameters equal")
-    {
-        const auto& d = arg.first;
-        const auto& q = arg.second;
-
-        return (!d.kp.has_value() && !dParams.kp.has_value() ||
-                   (d.kp.has_value() && dParams.kp.has_value() && std::abs(*d.kp - *dParams.kp) < 1e-5f)) &&
-               (!d.ki.has_value() && !dParams.ki.has_value() ||
-                   (d.ki.has_value() && dParams.ki.has_value() && std::abs(*d.ki - *dParams.ki) < 1e-5f)) &&
-               (!d.kd.has_value() && !dParams.kd.has_value() ||
-                   (d.kd.has_value() && dParams.kd.has_value() && std::abs(*d.kd - *dParams.kd) < 1e-5f)) &&
-               (!q.kp.has_value() && !qParams.kp.has_value() ||
-                   (q.kp.has_value() && qParams.kp.has_value() && std::abs(*q.kp - *qParams.kp) < 1e-5f)) &&
-               (!q.ki.has_value() && !qParams.ki.has_value() ||
-                   (q.ki.has_value() && qParams.ki.has_value() && std::abs(*q.ki - *qParams.ki) < 1e-5f)) &&
-               (!q.kd.has_value() && !qParams.kd.has_value() ||
-                   (q.kd.has_value() && qParams.kd.has_value() && std::abs(*q.kd - *qParams.kd) < 1e-5f));
-    }
-
-    MATCHER_P(PidParamEq, expected, "is PID parameters equal")
-    {
-        return (!arg.kp.has_value() && !expected.kp.has_value() ||
-                   (arg.kp.has_value() && expected.kp.has_value() && std::abs(*arg.kp - *expected.kp) < 1e-5f)) &&
-               (!arg.ki.has_value() && !expected.ki.has_value() ||
-                   (arg.ki.has_value() && expected.ki.has_value() && std::abs(*arg.ki - *expected.ki) < 1e-5f)) &&
-               (!arg.kd.has_value() && !expected.kd.has_value() ||
-                   (arg.kd.has_value() && expected.kd.has_value() && std::abs(*arg.kd - *expected.kd) < 1e-5f));
-    }
-
     class StreamWriterMock
         : public infra::StreamWriter
     {
@@ -60,33 +27,13 @@ namespace
         MOCK_METHOD1(Overwrite, infra::ByteRange(std::size_t marker));
     };
 
-    class FocControllerMock
-        : public services::FocInteractor
-    {
-    public:
-        MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
-        MOCK_METHOD(void, AutoTune, (const infra::Function<void()>& onDone), (override));
-        MOCK_METHOD(void, SetDQPidParameters, ((const std::pair<services::PidParameters, services::PidParameters>&)dqPidParams), (override));
-        MOCK_METHOD(void, Start, (), (override));
-        MOCK_METHOD(void, Stop, (), (override));
-    };
-
-    class FocPositionControllerMock
-        : public services::FocPositionInteractor
-    {
-    public:
-        MOCK_METHOD(void, SetSpeedPidParameters, (const services::PidParameters& pidParameters), (override));
-        MOCK_METHOD(void, SetPositionPidParameters, (const services::PidParameters& pidParameters), (override));
-        MOCK_METHOD(void, SetPosition, (const foc::Radians& position), (override));
-    };
-
     class TerminalPositionTest
         : public ::testing::Test
         , public infra::EventDispatcherWithWeakPtrFixture
     {
     public:
-        ::testing::StrictMock<FocControllerMock> focControllerMock;
-        ::testing::StrictMock<FocPositionControllerMock> focPositionControllerMock;
+        ::testing::StrictMock<foc::ControllerBaseMock> controllerBaseMock;
+        ::testing::StrictMock<foc::PositionControllerMock> positionControllerMock;
         ::testing::StrictMock<StreamWriterMock> streamWriterMock;
         infra::TextOutputStream::WithErrorPolicy stream{ streamWriterMock };
         services::TracerToStream tracer{ stream };
@@ -97,7 +44,7 @@ namespace
             } };
         services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<128, 5> terminalWithCommands{ communication, tracer };
         services::TerminalWithStorage::WithMaxSize<10> terminal{ terminalWithCommands, tracer };
-        services::TerminalFocPositionInteractor terminalInteractor{ terminal, focControllerMock, focPositionControllerMock };
+        services::TerminalFocPositionInteractor terminalInteractor{ terminal, foc::Volts{ 12.0f }, controllerBaseMock, positionControllerMock };
 
         void InvokeCommand(std::string command, const std::function<void()>& onCommandReceived)
         {
@@ -117,15 +64,15 @@ namespace
 
 TEST_F(TerminalPositionTest, set_speed_pid)
 {
-    services::PidParameters pid{
-        std::optional<float>(0.5f),
-        std::optional<float>(0.1f),
-        std::optional<float>(0.01f)
+    foc::SpeedTunings tunings{
+        .kp = 0.5f,
+        .ki = 0.1f,
+        .kd = 0.01f
     };
 
-    InvokeCommand("sspid 0.5 0.1 0.01", [this, &pid]()
+    InvokeCommand("sspid 0.5 0.1 0.01", [this, &tunings]()
         {
-            EXPECT_CALL(focPositionControllerMock, SetSpeedPidParameters(PidParamEq(pid)));
+            EXPECT_CALL(positionControllerMock, SetSpeedTunings(testing::_, testing::_));
         });
 
     ExecuteAllActions();
@@ -205,15 +152,15 @@ TEST_F(TerminalPositionTest, set_speed_pid_invalid_kd)
 
 TEST_F(TerminalPositionTest, set_pos_pid)
 {
-    services::PidParameters pid{
-        std::optional<float>(0.5f),
-        std::optional<float>(0.1f),
-        std::optional<float>(0.01f)
+    foc::PositionTunings tunings{
+        .kp = 0.5f,
+        .ki = 0.1f,
+        .kd = 0.01f
     };
 
-    InvokeCommand("sppid 0.5 0.1 0.01", [this, &pid]()
+    InvokeCommand("sppid 0.5 0.1 0.01", [this, &tunings]()
         {
-            EXPECT_CALL(focPositionControllerMock, SetPositionPidParameters(PidParamEq(pid)));
+            EXPECT_CALL(positionControllerMock, SetPositionTunings(testing::_, testing::_));
         });
 
     ExecuteAllActions();
@@ -295,8 +242,8 @@ TEST_F(TerminalPositionTest, set_position)
 {
     InvokeCommand("spr 2.5", [this]()
         {
-            EXPECT_CALL(focPositionControllerMock, SetPosition(testing::A<const foc::Radians&>()))
-                .WillOnce(testing::Invoke([](const foc::Radians& p)
+            EXPECT_CALL(positionControllerMock, SetPoint(testing::_))
+                .WillOnce(testing::Invoke([](foc::Radians p)
                     {
                         EXPECT_NEAR(p.Value(), 2.5f, 1e-5f);
                     }));

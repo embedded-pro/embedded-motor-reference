@@ -13,7 +13,8 @@ namespace application
         static hal::tiva::GpioPin currentPhaseA{ hal::tiva::Port::E, 3 };
         static hal::tiva::GpioPin currentPhaseB{ hal::tiva::Port::E, 2 };
         static hal::tiva::GpioPin currentPhaseC{ hal::tiva::Port::E, 1 };
-        static hal::tiva::GpioPin powerSupplyVoltage{ hal::tiva::Port::E, 0 };
+        static hal::tiva::GpioPin powerSupplyVoltage{ hal::tiva::Port::B, 5 };
+        static hal::tiva::GpioPin currentTotal{ hal::tiva::Port::B, 4 };
 
         static hal::tiva::GpioPin hallSensorA{ hal::tiva::Port::E, 4 };
         static hal::tiva::GpioPin hallSensorB{ hal::tiva::Port::E, 5 };

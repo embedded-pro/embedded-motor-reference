@@ -4,10 +4,11 @@ namespace application
 {
     Logic::Logic(application::HardwareFactory& hardware)
         : hardwareAdapter{ hardware }
-        , motorFocImpl{ hardwareAdapter, hardwareAdapter, focImpl }
-        , focInteractor{ hardware.PowerSupplyVoltage(), motorFocImpl }
-        , terminalWithStorage{ hardware.Terminal(), hardware.Tracer() }
-        , terminal{ terminalWithStorage, focInteractor, focInteractor }
         , debugLed{ hardware.Leds().front(), std::chrono::milliseconds(50), std::chrono::milliseconds(1950) }
+        , terminalWithStorage{ hardware.Terminal(), hardware.Tracer() }
+        , motorStateMachine(
+              TerminalAndTracer{ terminalWithStorage, hardware.Tracer() },
+              MotorDriverAndEncoder{ hardwareAdapter, hardwareAdapter },
+              hardware.PowerSupplyVoltage())
     {}
 }

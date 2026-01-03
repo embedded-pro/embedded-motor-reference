@@ -1,21 +1,21 @@
 #pragma once
 
 #include "services/util/TerminalWithStorage.hpp"
-#include "source/services/cli/FocInteractor.hpp"
+#include "source/foc/interfaces/Controller.hpp"
 
 namespace services
 {
     class TerminalFocBaseInteractor
     {
+    public:
+        services::TerminalWithStorage& Terminal();
+
     protected:
         using StatusWithMessage = services::TerminalWithStorage::StatusWithMessage;
 
-        TerminalFocBaseInteractor(services::TerminalWithStorage& terminal, FocInteractor& focInteractor);
-
-        services::TerminalWithStorage& Terminal();
+        TerminalFocBaseInteractor(services::TerminalWithStorage& terminal, foc::Volts vdc, foc::ControllerBase& foc);
 
     private:
-        StatusWithMessage AutoTune();
         StatusWithMessage SetFocPid(const infra::BoundedConstString& param);
         StatusWithMessage SetResistanceAndInductance(const infra::BoundedConstString& param);
         StatusWithMessage Start();
@@ -23,6 +23,7 @@ namespace services
 
     private:
         services::TerminalWithStorage& terminal;
-        FocInteractor& foc;
+        foc::Volts vdc;
+        foc::ControllerBase& foc;
     };
 }

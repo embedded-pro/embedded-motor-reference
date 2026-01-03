@@ -39,14 +39,16 @@ namespace application
         return *this;
     }
 
-    hal::Hertz HardwareFactoryImpl::BaseFrequency() const
+    hal::Hertz HardwareFactoryImpl::SystemClock() const
     {
         return hal::Hertz(SystemCoreClock);
     }
 
     foc::Volts HardwareFactoryImpl::PowerSupplyVoltage()
     {
-        return foc::Volts(24.0f);
+        auto samples = peripherals->motorFieldOrientedController.powerSupplyAdc.Measure(1);
+
+        return foc::Volts{ static_cast<float>(samples.front()) * MotorFieldOrientedControllerInterfaceImpl::adcToVoltsFactor };
     }
 
     foc::Ampere HardwareFactoryImpl::MaxCurrentSupported()
@@ -71,7 +73,7 @@ namespace application
         return peripherals->motorFieldOrientedController.pwmBrushless;
     }
 
-    infra::CreatorBase<AdcMultiChannelDecorator, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
+    infra::CreatorBase<AdcPhaseCurrentMeasurement, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
     {
         return peripherals->motorFieldOrientedController.adcCurrentPhases;
     }

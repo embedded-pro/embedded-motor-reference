@@ -1,6 +1,6 @@
 #include "source/hardware/Host/implementation/HardwareFactoryImpl.hpp"
 #include "infra/util/MemoryRange.hpp"
-#include "source/hardware/AdcMultiChannelDecorator.hpp"
+#include "source/hardware/AdcPhaseCurrentMeasurement.hpp"
 
 namespace application
 {
@@ -32,7 +32,7 @@ namespace application
         return *this;
     }
 
-    hal::Hertz HardwareFactoryImpl::BaseFrequency() const
+    hal::Hertz HardwareFactoryImpl::SystemClock() const
     {
         return hal::Hertz(0);
     }
@@ -61,7 +61,7 @@ namespace application
         return pwmBrushless;
     }
 
-    infra::CreatorBase<AdcMultiChannelDecorator, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
+    infra::CreatorBase<AdcPhaseCurrentMeasurement, void(HardwareFactory::SampleAndHold)>& HardwareFactoryImpl::AdcMultiChannelCreator()
     {
         return adcCurrentPhases;
     }
