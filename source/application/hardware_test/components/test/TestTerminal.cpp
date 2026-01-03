@@ -33,7 +33,7 @@ namespace
         MOCK_METHOD(services::TerminalWithCommands&, Terminal, (), (override));
         MOCK_METHOD(infra::MemoryRange<hal::GpioPin>, Leds, (), (override));
         MOCK_METHOD(hal::PerformanceTracker&, PerformanceTimer, (), (override));
-        MOCK_METHOD(hal::Hertz, BaseFrequency, (), (const, override));
+        MOCK_METHOD(hal::Hertz, SystemClock, (), (const, override));
         MOCK_METHOD(foc::Volts, PowerSupplyVoltage, (), (override));
         MOCK_METHOD(foc::Ampere, MaxCurrentSupported, (), (override));
         MOCK_METHOD((infra::CreatorBase<hal::SynchronousThreeChannelsPwm, void(std::chrono::nanoseconds, hal::Hertz)>&), SynchronousThreeChannelsPwmCreator, (), (override));
@@ -106,7 +106,7 @@ namespace
             EXPECT_CALL(hardwareFactoryMock, PerformanceTimer()).WillRepeatedly(testing::ReturnRef(performanceTrackerMock));
             EXPECT_CALL(hardwareFactoryMock, PowerSupplyVoltage()).WillRepeatedly(testing::Return(foc::Volts{ 24.0f }));
             EXPECT_CALL(hardwareFactoryMock, MaxCurrentSupported()).WillRepeatedly(testing::Return(foc::Ampere{ 5.0f }));
-            EXPECT_CALL(hardwareFactoryMock, BaseFrequency()).WillRepeatedly(testing::Return(hal::Hertz{ 10000 }));
+            EXPECT_CALL(hardwareFactoryMock, SystemClock()).WillRepeatedly(testing::Return(hal::Hertz{ 10000 }));
 
             EXPECT_CALL(encoderCreator, Constructed());
             EXPECT_CALL(pwmCreator, Constructed(std::chrono::nanoseconds{ 500 }, hal::Hertz{ 10000 }));

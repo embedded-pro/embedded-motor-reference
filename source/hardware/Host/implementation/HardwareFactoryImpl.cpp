@@ -32,7 +32,7 @@ namespace application
         return *this;
     }
 
-    hal::Hertz HardwareFactoryImpl::BaseFrequency() const
+    hal::Hertz HardwareFactoryImpl::SystemClock() const
     {
         return hal::Hertz(0);
     }

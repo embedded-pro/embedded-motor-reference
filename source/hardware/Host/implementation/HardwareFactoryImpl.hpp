@@ -23,7 +23,7 @@ namespace application
         services::TerminalWithCommands& Terminal() override;
         infra::MemoryRange<hal::GpioPin> Leds() override;
         hal::PerformanceTracker& PerformanceTimer() override;
-        hal::Hertz BaseFrequency() const override;
+        hal::Hertz SystemClock() const override;
         foc::Volts PowerSupplyVoltage() override;
         foc::Ampere MaxCurrentSupported() override;
 
