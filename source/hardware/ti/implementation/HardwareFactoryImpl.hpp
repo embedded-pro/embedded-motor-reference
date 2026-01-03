@@ -101,7 +101,7 @@ namespace application
             infra::Function<void(std::tuple<infra::Ampere, infra::Ampere, infra::Ampere> voltagePhases)> phaseCurrentsReady;
             std::array<hal::tiva::AnalogPin, 1> powerSupplyAnalogPins{ { hal::tiva::AnalogPin{ Pins::powerSupplyVoltage } } };
             constexpr static auto powerSupplyOversampling = hal::tiva::SynchronousAdc::Oversampling::oversampling8;
-            hal::tiva::SynchronousAdc::Config powerSupplyAdcConfig{ false, hal::tiva::SynchronousAdc::SampleAndHold::sampleAndHold256, hal::tiva::SynchronousAdc::Priority::priority3, std::make_optional(powerSupplyOversampling) };
+            hal::tiva::SynchronousAdc::Config powerSupplyAdcConfig{ hal::tiva::SynchronousAdc::SampleAndHold::sampleAndHold256, hal::tiva::SynchronousAdc::Priority::priority3, std::make_optional(powerSupplyOversampling) };
             hal::tiva::SynchronousAdc powerSupplyAdc{ 1, 0, powerSupplyAnalogPins, powerSupplyAdcConfig };
         };
 
