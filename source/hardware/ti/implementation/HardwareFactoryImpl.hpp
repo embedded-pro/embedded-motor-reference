@@ -70,24 +70,26 @@ namespace application
                 hal::tiva::Adc::SampleAndHold::sampleAndHold32,
                 hal::tiva::Adc::SampleAndHold::sampleAndHold64,
                 hal::tiva::Adc::SampleAndHold::sampleAndHold256 } };
-            static constexpr float voltageToCurrent = 0.2f;
+            static constexpr float voltageToCurrent = 5.0f;
             static constexpr float adcReferenceVoltage = 3.3f;
             static constexpr float adcResolution = 4096.0f;
             static constexpr float voltageToVolts = 18.433f;
-            static constexpr float adcToAmpereFactor = (adcReferenceVoltage / adcResolution) * voltageToCurrent;
+            static constexpr float adcToAmpereSlope = (adcReferenceVoltage / adcResolution) * voltageToCurrent;
+            static constexpr float adcToAmpereOffset = -1.65f * voltageToCurrent; // adc midpoint reference
             static constexpr float adcToVoltsFactor = (adcReferenceVoltage / adcResolution) * voltageToVolts;
-            hal::tiva::Adc::Config adcConfig{ false, 0, Peripheral::adcTrigger, hal::tiva::Adc::SampleAndHold::sampleAndHold4 };
-            std::array<hal::tiva::AnalogPin, 3> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB }, hal::tiva::AnalogPin{ Pins::currentPhaseC } } };
+            static constexpr hal::tiva::Adc::SamplingDelay phaseDelay{ 15 };
+            hal::tiva::Adc::Config adcConfig{ false, 0, Peripheral::adcTrigger, hal::tiva::Adc::SampleAndHold::sampleAndHold4, std::nullopt, phaseDelay };
+            std::array<hal::tiva::AnalogPin, 3> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseC }, hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB } } };
             infra::Creator<AdcPhaseCurrentMeasurement, AdcPhaseCurrentMeasurementImpl<hal::tiva::Adc>, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
                 {
                     adcConfig.sampleAndHold = toSampleAndHold.at(static_cast<std::size_t>(sampleAndHold));
 
-                    object.Emplace(adcToAmpereFactor, Peripheral::AdcIndex, Peripheral::AdcSequencerIndex, currentPhaseAnalogPins, adcConfig);
+                    object.Emplace(adcToAmpereSlope, adcToAmpereOffset, Peripheral::AdcIndex, Peripheral::AdcSequencerIndex, currentPhaseAnalogPins, adcConfig);
                 } };
             hal::tiva::SynchronousPwm::Config::ClockDivisor clockDivisor{ hal::tiva::SynchronousPwm::Config::ClockDivisor::divisor8 };
             hal::tiva::SynchronousPwm::Config::Control controlConfig{ hal::tiva::SynchronousPwm::Config::Control::Mode::centerAligned, hal::tiva::SynchronousPwm::Config::Control::UpdateMode::globally, false };
             hal::tiva::SynchronousPwm::Config::DeadTime deadTimeConfig{ hal::tiva::SynchronousPwm::CalculateDeadTimeCycles(1000ns, clockDivisor), hal::tiva::SynchronousPwm::CalculateDeadTimeCycles(1000ns, clockDivisor) };
-            hal::tiva::SynchronousPwm::Config pwmConfig{ false, true, controlConfig, clockDivisor, std::make_optional(deadTimeConfig) };
+            hal::tiva::SynchronousPwm::Config pwmConfig{ false, false, controlConfig, clockDivisor, std::make_optional(deadTimeConfig) };
             infra::Creator<hal::SynchronousThreeChannelsPwm, hal::tiva::SynchronousPwm, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)> pwmBrushless{ [this](auto& object, auto deadTime, auto frequency)
                 {
                     deadTimeConfig.fallInClockCycles = hal::tiva::SynchronousPwm::CalculateDeadTimeCycles(deadTime, clockDivisor);

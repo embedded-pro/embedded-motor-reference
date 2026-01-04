@@ -1,5 +1,6 @@
 #include "source/hardware/ti/implementation/HardwareFactoryImpl.hpp"
 #include "infra/util/MemoryRange.hpp"
+#include "services/tracer/GlobalTracer.hpp"
 #include "source/hardware/HardwareFactory.hpp"
 
 namespace application
@@ -11,6 +12,7 @@ namespace application
     {
         application::Clocks::Initialize();
         peripherals.emplace();
+        services::SetGlobalTracerInstance(peripherals->terminalAndTracer.tracer);
         this->onInitialized();
     }
 
