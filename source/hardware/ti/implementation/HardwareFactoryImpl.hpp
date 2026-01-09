@@ -1,5 +1,6 @@
 #pragma once
 
+#include <optional>
 #include HARDWARE_PINS_AND_PERIPHERALS_HEADER
 #include "hal/interfaces/Gpio.hpp"
 #include "hal/ti/hal_tiva/cortex/DataWatchpointAndTrace.hpp"
@@ -77,9 +78,9 @@ namespace application
             static constexpr float adcToAmpereSlope = (adcReferenceVoltage / adcResolution) * voltageToCurrent;
             static constexpr float adcToAmpereOffset = -(adcReferenceVoltage / 2.0f) * voltageToCurrent; // adc midpoint reference
             static constexpr float adcToVoltsFactor = (adcReferenceVoltage / adcResolution) * voltageToVolts;
-            // ADC sampling delay (in ADC clock cycles) chosen to align current sampling with the intended PWM phase; tuned for this hardware.
-            static constexpr hal::tiva::Adc::SamplingDelay phaseDelay{ 15 };
-            hal::tiva::Adc::Config adcConfig{ false, 0, Peripheral::adcTrigger, hal::tiva::Adc::SampleAndHold::sampleAndHold4, std::nullopt, phaseDelay };
+            static constexpr hal::tiva::Adc::SamplingDelay phaseDelay{ 4 };
+            static constexpr auto currentSensingOversampling = hal::tiva::Adc::Oversampling::oversampling2;
+            hal::tiva::Adc::Config adcConfig{ false, 0, Peripheral::adcTrigger, hal::tiva::Adc::SampleAndHold::sampleAndHold8, std::make_optional(currentSensingOversampling), phaseDelay };
             // Note: The physical phase pins are wired in the order C, A, B, while the FOC code
             // expects the ADC samples by logical phase index (phaseA, phaseB, phaseC).
             // Therefore, the array below is intentionally ordered {C, A, B} so that:

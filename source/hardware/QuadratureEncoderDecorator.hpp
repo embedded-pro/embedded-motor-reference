@@ -2,6 +2,7 @@
 
 #include "hal/synchronous_interfaces/SynchronousQuadratureEncoder.hpp"
 #include "source/foc/interfaces/Units.hpp"
+#include <cmath>
 #include <numbers>
 
 namespace application
@@ -39,8 +40,11 @@ namespace application
     foc::Radians QuadratureEncoderDecoratorImpl<Impl, Enable>::Read()
     {
         static constexpr float twoPi = 2.0f * std::numbers::pi_v<float>;
+        static constexpr float pi = std::numbers::pi_v<float>;
 
         auto count = static_cast<float>(encoder.Position());
-        return foc::Radians{ count * twoPi / static_cast<float>(encoder.Resolution()) };
+        auto angle = count * twoPi / static_cast<float>(encoder.Resolution());
+
+        return foc::Radians{ angle - twoPi * std::floor((angle + pi) / twoPi) };
     }
 }
