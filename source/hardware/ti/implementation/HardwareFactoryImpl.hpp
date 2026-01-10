@@ -81,15 +81,7 @@ namespace application
             static constexpr hal::tiva::Adc::SamplingDelay phaseDelay{ 4 };
             static constexpr auto currentSensingOversampling = hal::tiva::Adc::Oversampling::oversampling2;
             hal::tiva::Adc::Config adcConfig{ false, 0, Peripheral::adcTrigger, hal::tiva::Adc::SampleAndHold::sampleAndHold8, std::make_optional(currentSensingOversampling), phaseDelay };
-            // Note: The physical phase pins are wired in the order C, A, B, while the FOC code
-            // expects the ADC samples by logical phase index (phaseA, phaseB, phaseC).
-            // Therefore, the array below is intentionally ordered {C, A, B} so that:
-            //   samples[0] -> physical phase C, used as logical phase A
-            //   samples[1] -> physical phase A, used as logical phase B
-            //   samples[2] -> physical phase B, used as logical phase C
-            // Do not reorder this array to A, B, C without also updating the corresponding
-            // phase mapping in the control and measurement code.
-            std::array<hal::tiva::AnalogPin, 3> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseC }, hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB } } };
+            std::array<hal::tiva::AnalogPin, 3> currentPhaseAnalogPins{ { hal::tiva::AnalogPin{ Pins::currentPhaseA }, hal::tiva::AnalogPin{ Pins::currentPhaseB }, hal::tiva::AnalogPin{ Pins::currentPhaseC } } };
             infra::Creator<AdcPhaseCurrentMeasurement, AdcPhaseCurrentMeasurementImpl<hal::tiva::Adc>, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto sampleAndHold)
                 {
                     adcConfig.sampleAndHold = toSampleAndHold.at(static_cast<std::size_t>(sampleAndHold));
@@ -121,7 +113,7 @@ namespace application
         {
             using Conf = hal::tiva::QuadratureEncoder::Config;
 
-            static constexpr uint32_t resolution = 1000;
+            static constexpr uint32_t resolution = 4000;
             hal::tiva::QuadratureEncoder::Config qeiConfig{ resolution, 0, false, false, false, Conf::ResetMode::onMaxPosition, Conf::CaptureMode::phaseAandPhaseB, Conf::SignalMode::quadrature };
             infra::Creator<QuadratureEncoderDecorator, QuadratureEncoderDecoratorImpl<hal::tiva::QuadratureEncoder>, void()> synchronousQuadratureEncoderCreator{ [this](auto& object)
                 {
