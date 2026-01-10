@@ -20,14 +20,15 @@ namespace application
     {
     public:
         template<typename... Args>
-        explicit AdcPhaseCurrentMeasurementImpl(float adcToAmpereFactor, Args&&... args);
+        explicit AdcPhaseCurrentMeasurementImpl(float slope, float offset, Args&&... args);
 
         void Measure(const infra::Function<void(foc::Ampere phaseA, foc::Ampere phaseB, foc::Ampere phaseC)>& onDone) override;
         void Stop() override;
 
     private:
         Impl adc;
-        float adcToAmpereFactor = 0.0f;
+        float slope = 0.0f;
+        float offset = 0.0f;
         infra::Function<void(foc::Ampere phaseA, foc::Ampere phaseB, foc::Ampere phaseC)> onMeasurementDone;
     };
 
@@ -35,9 +36,10 @@ namespace application
 
     template<typename Impl, typename Enable>
     template<typename... Args>
-    AdcPhaseCurrentMeasurementImpl<Impl, Enable>::AdcPhaseCurrentMeasurementImpl(float adcToAmpereFactor, Args&&... args)
+    AdcPhaseCurrentMeasurementImpl<Impl, Enable>::AdcPhaseCurrentMeasurementImpl(float slope, float offset, Args&&... args)
         : adc(std::forward<Args>(args)...)
-        , adcToAmpereFactor(adcToAmpereFactor)
+        , slope(slope)
+        , offset(offset)
     {
     }
 
@@ -47,7 +49,7 @@ namespace application
         onMeasurementDone = onDone;
         adc.Measure([this](auto samples)
             {
-                onMeasurementDone(foc::Ampere{ static_cast<float>(samples[0]) * adcToAmpereFactor }, foc::Ampere{ static_cast<float>(samples[1]) * adcToAmpereFactor }, foc::Ampere{ static_cast<float>(samples[2]) * adcToAmpereFactor });
+                onMeasurementDone(foc::Ampere{ static_cast<float>(samples[0]) * slope + offset }, foc::Ampere{ static_cast<float>(samples[1]) * slope + offset }, foc::Ampere{ static_cast<float>(samples[2]) * slope + offset });
             });
     }
 

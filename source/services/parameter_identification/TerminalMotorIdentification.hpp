@@ -13,8 +13,7 @@ namespace services
     private:
         using StatusWithMessage = services::TerminalWithStorage::StatusWithMessage;
 
-        StatusWithMessage EstimateResistance(const infra::BoundedConstString& param);
-        StatusWithMessage EstimateInductance(const infra::BoundedConstString& param);
+        StatusWithMessage EstimateResistanceAndInductance(const infra::BoundedConstString& param);
         StatusWithMessage EstimateNumberOfPolePairs(const infra::BoundedConstString& param);
 
     private:

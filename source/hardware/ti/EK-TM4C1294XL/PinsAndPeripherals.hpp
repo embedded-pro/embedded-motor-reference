@@ -51,7 +51,7 @@ namespace application
 
         static hal::tiva::Adc::Trigger adcTrigger = hal::tiva::Adc::Trigger::pwmGenerator1;
 
-        static hal_pwm::PinChannel pwmPhase1{ hal_pwm::GeneratorIndex::generator1, Pins::pwmPhase1a, Pins::pwmPhase1b, true, true, std::make_optional(hal::tiva::SynchronousPwm::PinChannel::Trigger::countLoad) };
+        static hal_pwm::PinChannel pwmPhase1{ hal_pwm::GeneratorIndex::generator1, Pins::pwmPhase1a, Pins::pwmPhase1b, true, true, std::make_optional(hal::tiva::SynchronousPwm::PinChannel::Trigger::countZero) };
         static hal_pwm::PinChannel pwmPhase2{ hal_pwm::GeneratorIndex::generator2, Pins::pwmPhase2a, Pins::pwmPhase2b, true, true, std::nullopt };
         static hal_pwm::PinChannel pwmPhase3{ hal_pwm::GeneratorIndex::generator3, Pins::pwmPhase3a, Pins::pwmPhase3b, true, true, std::nullopt };
 

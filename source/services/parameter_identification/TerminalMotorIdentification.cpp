@@ -1,4 +1,32 @@
 #include "source/services/parameter_identification/TerminalMotorIdentification.hpp"
+#include "infra/stream/StringInputStream.hpp"
+#include "infra/util/Tokenizer.hpp"
+#include "source/services/parameter_identification/MotorIdentification.hpp"
+
+namespace
+{
+    std::optional<services::WindingConfiguration> ParseStringInput(const infra::BoundedConstString& input)
+    {
+        if (input == "star" || input == "wye")
+            return services::WindingConfiguration::Wye;
+        else if (input == "delta")
+            return services::WindingConfiguration::Delta;
+        else
+            return std::nullopt;
+    }
+
+    std::optional<foc::Ohm> ParseOhmInput(const infra::BoundedConstString& input)
+    {
+        float value = 0.0f;
+        infra::StringInputStream stream(input, infra::softFail);
+        stream >> value;
+
+        if (!stream.ErrorPolicy().Failed() && value >= 0.0f)
+            return std::make_optional(foc::Ohm{ value });
+        else
+            return {};
+    }
+}
 
 namespace services
 {
@@ -7,16 +35,10 @@ namespace services
         , tracer(tracer)
         , identification(identification)
     {
-        terminal.AddCommand({ { "estimate_resistance", "estr", "Estimate motor resistance. estr <voltage (V)> <duration (s)>. Ex: estr 1.0 0.5" },
+        terminal.AddCommand({ { "estimate_r_and_l", "estrl", "Estimate motor resistance and inductance. estrl <winding type (star|wye|delta)>. Ex: estrl star" },
             [this](const auto& params)
             {
-                this->terminal.ProcessResult(EstimateResistance(params));
-            } });
-
-        terminal.AddCommand({ { "estimate_inductance", "estl", "Estimate motor inductance. estl <voltage (V)> <duration (s)>. Ex: estl 1.0 0.5" },
-            [this](const auto& params)
-            {
-                this->terminal.ProcessResult(EstimateInductance(params));
+                this->terminal.ProcessResult(EstimateResistanceAndInductance(params));
             } });
 
         terminal.AddCommand({ { "estimate_pole_pairs", "estpp", "Estimate number of pole pairs. estpp <electrical speed (rad/s)> <mechanical speed (rad/s)>. Ex: estpp 100.0 50.0" },
@@ -26,32 +48,29 @@ namespace services
             } });
     }
 
-    TerminalMotorIdentification::StatusWithMessage TerminalMotorIdentification::EstimateResistance(const infra::BoundedConstString& param)
+    TerminalMotorIdentification::StatusWithMessage TerminalMotorIdentification::EstimateResistanceAndInductance(const infra::BoundedConstString& param)
     {
-        MotorIdentification::ResistanceConfig config;
+        MotorIdentification::ResistanceAndInductanceConfig config;
+        infra::Tokenizer tokenizer(param, ' ');
 
-        identification.GetResistance(config, [this](auto resistance)
+        if (tokenizer.Size() != 1)
+            return { services::TerminalWithStorage::Status::error, "invalid number of arguments" };
+
+        auto winding = ParseStringInput(tokenizer.Token(0));
+        if (!winding.has_value())
+            return { services::TerminalWithStorage::Status::error, "invalid value. It should be an 'star', 'wye' or 'delta'." };
+
+        config.windingConfig = *winding;
+
+        identification.EstimateResistanceAndInductance(config, [this](auto resistance, auto inductance)
             {
                 if (!resistance.has_value())
                     tracer.Trace() << "Resistance estimation failed.";
-                else
-                    tracer.Trace() << "Estimated Resistance: " << resistance->Value() << " Ohms";
-            });
-        return TerminalMotorIdentification::StatusWithMessage();
-    }
-
-    TerminalMotorIdentification::StatusWithMessage TerminalMotorIdentification::EstimateInductance(const infra::BoundedConstString& param)
-    {
-        MotorIdentification::InductanceConfig config;
-
-        identification.GetInductance(config, [this](auto inductance)
-            {
-                if (!inductance.has_value())
+                else if (!inductance.has_value())
                     tracer.Trace() << "Inductance estimation failed.";
                 else
-                    tracer.Trace() << "Estimated Inductance: " << inductance->Value() << " H";
+                    tracer.Trace() << "Estimated Resistance: " << resistance->Value() << " Ohms, Inductance: " << inductance->Value() << " mH";
             });
-
         return TerminalMotorIdentification::StatusWithMessage();
     }
 
@@ -59,7 +78,7 @@ namespace services
     {
         MotorIdentification::PolePairsConfig config;
 
-        identification.GetNumberOfPolePairs(config, [this](auto polePairs)
+        identification.EstimateNumberOfPolePairs(config, [this](auto polePairs)
             {
                 if (!polePairs.has_value())
                     tracer.Trace() << "Pole pairs estimation failed.";

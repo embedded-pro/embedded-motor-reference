@@ -7,6 +7,7 @@
 #include "source/hardware/HardwareFactory.hpp"
 #include "source/hardware/MotorFieldOrientedControllerAdapter.hpp"
 #include "source/services/cli/TerminalSpeed.hpp"
+#include "source/services/cli/TerminalWithBanner.hpp"
 
 namespace application
 {
@@ -18,7 +19,8 @@ namespace application
     private:
         HardwareAdapter hardwareAdapter;
         services::DebugLed debugLed;
-        services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;
+        foc::Volts vdc;
+        services::TerminalWithBanner::WithMaxSize<10> terminalWithStorage;
         MotorStateMachine<
             foc::FieldOrientedControllerSpeedImpl,
             foc::SpeedControllerImpl,

@@ -23,6 +23,8 @@ target_sources(e_foc.services.cli PRIVATE
     TerminalSpeed.hpp
     TerminalTorque.cpp
     TerminalTorque.hpp
+    TerminalWithBanner.cpp
+    TerminalWithBanner.hpp
 )
 
 add_subdirectory(test)

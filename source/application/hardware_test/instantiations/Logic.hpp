@@ -1,9 +1,9 @@
-#ifndef APPLICATION_BLDC_LOGIC_HPP
-#define APPLICATION_BLDC_LOGIC_HPP
+#pragma once
 
 #include "services/util/DebugLed.hpp"
 #include "source/application/hardware_test/components/Terminal.hpp"
 #include "source/hardware/HardwareFactory.hpp"
+#include "source/services/cli/TerminalWithBanner.hpp"
 
 namespace application
 {
@@ -13,10 +13,8 @@ namespace application
         explicit Logic(application::HardwareFactory& hardware);
 
     private:
-        services::TerminalWithStorage::WithMaxSize<10> terminalWithStorage;
+        services::TerminalWithBanner::WithMaxSize<10> terminalWithStorage;
         application::TerminalInteractor terminal;
         services::DebugLed debugLed;
     };
 }
-
-#endif

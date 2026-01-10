@@ -121,7 +121,7 @@ namespace application
         TerminalAndTracer terminalAndTracer{ serial };
         infra::Creator<AdcPhaseCurrentMeasurement, AdcPhaseCurrentMeasurementImpl<AdcMultiChannelStub>, void(SampleAndHold)> adcCurrentPhases{ [this](auto& object, auto)
             {
-                object.Emplace(1.0f);
+                object.Emplace(1.0f, 0.0f);
             } };
         infra::Creator<hal::SynchronousThreeChannelsPwm, SynchronousThreeChannelsPwmStub, void(std::chrono::nanoseconds deadTime, hal::Hertz frequency)> pwmBrushless{ [this](auto& object, auto, auto)
             {
