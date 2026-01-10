@@ -1,6 +1,9 @@
 #pragma once
 
+#include "infra/timer/Timer.hpp"
 #include "infra/util/AutoResetFunction.hpp"
+#include "infra/util/BoundedDeque.hpp"
+#include "infra/util/BoundedVector.hpp"
 #include "source/foc/implementations/TransformsClarkePark.hpp"
 #include "source/foc/interfaces/Driver.hpp"
 #include "source/services/parameter_identification/MotorIdentification.hpp"
@@ -13,33 +16,35 @@ namespace services
     public:
         MotorIdentificationImpl(foc::MotorDriver& driver, foc::Encoder& encoder, foc::Volts vdc);
 
-        void GetResistance(const ResistanceConfig& config, const infra::Function<void(std::optional<foc::Ohm>)>& onDone) override;
-        void GetInductance(const InductanceConfig& config, const infra::Function<void(std::optional<foc::Henry>)>& onDone) override;
-        void GetNumberOfPolePairs(const PolePairsConfig& config, const infra::Function<void(std::optional<std::size_t>)>& onDone) override;
+        void EstimateResistanceAndInductance(const ResistanceAndInductanceConfig& config, const infra::Function<void(std::optional<foc::Ohm>, std::optional<foc::MilliHenry>)>& onDone) override;
+        void EstimateNumberOfPolePairs(const PolePairsConfig& config, const infra::Function<void(std::optional<std::size_t>)>& onDone) override;
 
     private:
-        void CalculateResistance();
-        void CalculateInductance();
+        void AnalyzeInductanceMeasures();
         void CalculatePolePairs();
         void ApplyNextElectricalAngle();
+        void RunPolePairLogic();
 
-        constexpr static uint8_t neutralDuty = 50;
+        constexpr static uint8_t neutralDuty = 1;
+        constexpr static float deltaCoefficient = 1.5f;
+        constexpr static std::size_t inductanceSamplesSize = 128;
+        constexpr static std::size_t averageFilter = 5;
 
         foc::MotorDriver& driver;
         foc::Encoder& encoder;
         foc::Volts vdc;
         [[no_unique_address]] foc::ClarkePark transforms;
-        ResistanceConfig resistanceConfig;
-        InductanceConfig inductanceConfig;
+        ResistanceAndInductanceConfig resistanceAndInductanceConfig;
         PolePairsConfig polePairsConfig;
-        std::size_t currentSampleIndex = 0;
-        float accumulatedCurrent = 0.0f;
-        float firstCurrent = 0.0f;
-        float secondCurrent = 0.0f;
+        infra::BoundedDeque<float>::WithMaxSize<averageFilter> currentSamples;
+        infra::BoundedVector<float>::WithMaxSize<inductanceSamplesSize - averageFilter> filteredCurrentSample;
+        std::size_t currentSampleIndex{ 0 };
         foc::Radians initialPosition{ 0.0f };
-        foc::Radians finalPosition{ 0.0f };
-        infra::AutoResetFunction<void(std::optional<foc::Ohm>)> onResistanceDone;
-        infra::AutoResetFunction<void(std::optional<foc::Henry>)> onInductanceDone;
+        foc::Radians previousPosition{ 0.0f };
+        float accumulatedRotation{ 0.0f };
+        infra::AutoResetFunction<void(std::optional<foc::Ohm>, std::optional<foc::MilliHenry>)> onResistanceAndInductanceDone;
         infra::AutoResetFunction<void(std::optional<std::size_t>)> onPolePairsDone;
+
+        infra::TimerSingleShot settleTimer;
     };
 }
