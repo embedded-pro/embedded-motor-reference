@@ -27,7 +27,7 @@ namespace services
 
         struct PolePairsConfig
         {
-            hal::Percent testVoltagePercent{ 20 };
+            hal::Percent testVoltagePercent{ 10 };
             std::size_t electricalRevolutions{ 5 };
             infra::Duration settleTimeBetweenSteps{ std::chrono::milliseconds{ 50 } };
         };

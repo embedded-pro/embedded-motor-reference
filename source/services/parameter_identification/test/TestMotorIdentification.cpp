@@ -244,16 +244,10 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_initializes_encode
     EXPECT_CALL(encoderMock, Read())
         .WillOnce(::testing::Return(foc::Radians{ 0.0f }));
 
-    EXPECT_CALL(driverMock, PhaseCurrentsReady(hal::Hertz{ 10000 }, ::testing::_))
-        .WillOnce([this](auto, const auto& callback)
-            {
-                driverMock.StorePhaseCurrentsCallback(callback);
-            });
+    EXPECT_CALL(driverMock, PhaseCurrentsReady(hal::Hertz{ 10000 }, ::testing::_));
     EXPECT_CALL(driverMock, ThreePhasePwmOutput(::testing::_));
 
     identification.EstimateNumberOfPolePairs(config, [](auto) {});
-
-    ForwardTime(std::chrono::milliseconds{ 50 });
 }
 
 TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_calculates_correct_pole_pairs_for_4_pole_motor)
@@ -278,17 +272,10 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_calculates_correct
                 return foc::Radians{ MechanicalAngle(encoderStepIndex, totalSteps, expectedPolePairs) };
             });
 
-    EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(totalSteps)
-        .WillRepeatedly([this](auto, const auto& callback)
-            {
-                driverMock.StorePhaseCurrentsCallback(callback);
-            });
-
+    EXPECT_CALL(driverMock, PhaseCurrentsReady(hal::Hertz{ 10000 }, ::testing::_));
     EXPECT_CALL(driverMock, ThreePhasePwmOutput(::testing::_))
         .Times(totalSteps);
-    EXPECT_CALL(driverMock, Stop())
-        .Times(totalSteps + 1);
+    EXPECT_CALL(driverMock, Stop());
 
     identification.EstimateNumberOfPolePairs(config, [&](auto result)
         {
@@ -296,13 +283,7 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_calculates_correct
         });
 
     for (std::size_t i = 0; i < totalSteps; ++i)
-    {
         ForwardTime(std::chrono::milliseconds{ 50 });
-        driverMock.TriggerPhaseCurrentsCallback(foc::PhaseCurrents{
-            foc::Ampere{ 1.0f },
-            foc::Ampere{ 0.0f },
-            foc::Ampere{ 0.0f } });
-    }
 
     ASSERT_TRUE(resultPolePairs.has_value());
     EXPECT_EQ(*resultPolePairs, expectedPolePairs);
@@ -329,16 +310,10 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_calculates_correct
                 return foc::Radians{ MechanicalAngle(encoderStepIndex, totalSteps, expectedPolePairs) };
             });
 
-    EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(totalSteps)
-        .WillRepeatedly([this](auto, const auto& callback)
-            {
-                driverMock.StorePhaseCurrentsCallback(callback);
-            });
+    EXPECT_CALL(driverMock, PhaseCurrentsReady(hal::Hertz{ 10000 }, ::testing::_));
     EXPECT_CALL(driverMock, ThreePhasePwmOutput(::testing::_))
         .Times(totalSteps);
-    EXPECT_CALL(driverMock, Stop())
-        .Times(totalSteps + 1);
+    EXPECT_CALL(driverMock, Stop());
 
     identification.EstimateNumberOfPolePairs(config, [&](auto result)
         {
@@ -346,13 +321,7 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_calculates_correct
         });
 
     for (std::size_t i = 0; i < totalSteps; ++i)
-    {
         ForwardTime(std::chrono::milliseconds{ 50 });
-        driverMock.TriggerPhaseCurrentsCallback(foc::PhaseCurrents{
-            foc::Ampere{ 1.0f },
-            foc::Ampere{ 0.0f },
-            foc::Ampere{ 0.0f } });
-    }
 
     ASSERT_TRUE(resultPolePairs.has_value());
     EXPECT_EQ(*resultPolePairs, expectedPolePairs);
@@ -372,16 +341,10 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_returns_nullopt_fo
     EXPECT_CALL(encoderMock, Read())
         .WillRepeatedly(::testing::Return(foc::Radians{ 0.0f }));
 
-    EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(totalSteps)
-        .WillRepeatedly([this](auto, const auto& callback)
-            {
-                driverMock.StorePhaseCurrentsCallback(callback);
-            });
+    EXPECT_CALL(driverMock, PhaseCurrentsReady(hal::Hertz{ 10000 }, ::testing::_));
     EXPECT_CALL(driverMock, ThreePhasePwmOutput(::testing::_))
         .Times(totalSteps);
-    EXPECT_CALL(driverMock, Stop())
-        .Times(totalSteps + 1);
+    EXPECT_CALL(driverMock, Stop());
 
     identification.EstimateNumberOfPolePairs(config, [&](auto result)
         {
@@ -389,13 +352,7 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_returns_nullopt_fo
         });
 
     for (std::size_t i = 0; i < totalSteps; ++i)
-    {
         ForwardTime(std::chrono::milliseconds{ 50 });
-        driverMock.TriggerPhaseCurrentsCallback(foc::PhaseCurrents{
-            foc::Ampere{ 1.0f },
-            foc::Ampere{ 0.0f },
-            foc::Ampere{ 0.0f } });
-    }
 
     EXPECT_FALSE(resultPolePairs.has_value());
 }
@@ -421,16 +378,10 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_with_different_ele
                 return foc::Radians{ MechanicalAngle(encoderStepIndex, totalSteps, expectedPolePairs) };
             });
 
-    EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(totalSteps)
-        .WillRepeatedly([this](auto, const auto& callback)
-            {
-                driverMock.StorePhaseCurrentsCallback(callback);
-            });
+    EXPECT_CALL(driverMock, PhaseCurrentsReady(hal::Hertz{ 10000 }, ::testing::_));
     EXPECT_CALL(driverMock, ThreePhasePwmOutput(::testing::_))
         .Times(totalSteps);
-    EXPECT_CALL(driverMock, Stop())
-        .Times(totalSteps + 1);
+    EXPECT_CALL(driverMock, Stop());
 
     identification.EstimateNumberOfPolePairs(config, [&](auto result)
         {
@@ -438,13 +389,7 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_with_different_ele
         });
 
     for (std::size_t i = 0; i < totalSteps; ++i)
-    {
         ForwardTime(std::chrono::milliseconds{ 50 });
-        driverMock.TriggerPhaseCurrentsCallback(foc::PhaseCurrents{
-            foc::Ampere{ 1.0f },
-            foc::Ampere{ 0.0f },
-            foc::Ampere{ 0.0f } });
-    }
 
     ASSERT_TRUE(resultPolePairs.has_value());
     EXPECT_EQ(*resultPolePairs, expectedPolePairs);
@@ -471,16 +416,10 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_with_8_pole_motor)
                 return foc::Radians{ MechanicalAngle(encoderStepIndex, totalSteps, expectedPolePairs) };
             });
 
-    EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(totalSteps)
-        .WillRepeatedly([this](auto, const auto& callback)
-            {
-                driverMock.StorePhaseCurrentsCallback(callback);
-            });
+    EXPECT_CALL(driverMock, PhaseCurrentsReady(hal::Hertz{ 10000 }, ::testing::_));
     EXPECT_CALL(driverMock, ThreePhasePwmOutput(::testing::_))
         .Times(totalSteps);
-    EXPECT_CALL(driverMock, Stop())
-        .Times(totalSteps + 1);
+    EXPECT_CALL(driverMock, Stop());
 
     identification.EstimateNumberOfPolePairs(config, [&](auto result)
         {
@@ -488,13 +427,7 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_with_8_pole_motor)
         });
 
     for (std::size_t i = 0; i < totalSteps; ++i)
-    {
         ForwardTime(std::chrono::milliseconds{ 50 });
-        driverMock.TriggerPhaseCurrentsCallback(foc::PhaseCurrents{
-            foc::Ampere{ 1.0f },
-            foc::Ampere{ 0.0f },
-            foc::Ampere{ 0.0f } });
-    }
 
     ASSERT_TRUE(resultPolePairs.has_value());
     EXPECT_EQ(*resultPolePairs, expectedPolePairs);

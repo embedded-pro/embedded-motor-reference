@@ -1,4 +1,5 @@
 #include "source/services/parameter_identification/MotorIdentificationImpl.hpp"
+#include "source/foc/interfaces/Driver.hpp"
 #include "source/foc/interfaces/Units.hpp"
 #include <cmath>
 #include <numbers>
@@ -13,8 +14,10 @@ namespace
     constexpr float timeConstantThreshold = 0.632f;
     const hal::Hertz samplingFrequency{ 10000 };
     const auto samplingPeriod = 1.0f / static_cast<float>(samplingFrequency.Value());
+    ;
 
-    foc::PhasePwmDutyCycles NormalizedDutyCycles(foc::ThreePhase voltages)
+    foc::PhasePwmDutyCycles
+    NormalizedDutyCycles(foc::ThreePhase voltages)
     {
         auto offset = 50.0f;
         auto dutyA = static_cast<uint8_t>(std::clamp(offset + voltages.a * 50.0f, 0.0f, 100.0f));
@@ -147,6 +150,7 @@ namespace services
         initialPosition = encoder.Read();
         previousPosition = initialPosition;
 
+        driver.PhaseCurrentsReady(samplingFrequency, [](auto) {});
         ApplyNextElectricalAngle();
     }
 
@@ -155,10 +159,7 @@ namespace services
         const std::size_t totalSteps = polePairsConfig.electricalRevolutions * stepsPerRevolution;
 
         if (currentSampleIndex < totalSteps)
-            settleTimer.Start(polePairsConfig.settleTimeBetweenSteps, [this]()
-                {
-                    RunPolePairLogic();
-                });
+            RunPolePairLogic();
         else
             CalculatePolePairs();
     }
@@ -166,28 +167,23 @@ namespace services
     void MotorIdentificationImpl::RunPolePairLogic()
     {
         auto electricalAngle = static_cast<float>(currentSampleIndex) * anglePerStep;
+        auto voltage = static_cast<float>(polePairsConfig.testVoltagePercent.Value()) / 100.0f;
 
-        driver.PhaseCurrentsReady(samplingFrequency, [this](auto)
-            {
-                if (pendingSampleCapture.load())
-                {
-                    pendingSampleCapture.store(false);
-                    driver.Stop();
-                    auto currentPosition = encoder.Read();
-                    auto delta = currentPosition.Value() - previousPosition.Value();
-
-                    delta = delta - twoPi * std::floor((delta + std::numbers::pi_v<float>) / twoPi);
-
-                    accumulatedRotation += delta;
-                    previousPosition = currentPosition;
-
-                    currentSampleIndex++;
-                    ApplyNextElectricalAngle();
-                }
-            });
-        auto voltage = static_cast<float>(polePairsConfig.testVoltagePercent.Value()) * vdc.Value() / 100.0f;
         driver.ThreePhasePwmOutput(NormalizedDutyCycles(transforms.Inverse(foc::RotatingFrame{ voltage, 0.0f }, std::cos(electricalAngle), std::sin(electricalAngle))));
-        pendingSampleCapture.store(true);
+
+        settleTimer.Start(polePairsConfig.settleTimeBetweenSteps, [this]()
+            {
+                auto currentPosition = encoder.Read();
+                auto delta = currentPosition.Value() - previousPosition.Value();
+
+                delta = delta - twoPi * std::floor((delta + std::numbers::pi_v<float>) / twoPi);
+
+                accumulatedRotation += delta;
+                previousPosition = currentPosition;
+
+                currentSampleIndex++;
+                ApplyNextElectricalAngle();
+            });
     }
 
     void MotorIdentificationImpl::CalculatePolePairs()

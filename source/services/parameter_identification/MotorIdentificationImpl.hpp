@@ -7,7 +7,6 @@
 #include "source/foc/implementations/TransformsClarkePark.hpp"
 #include "source/foc/interfaces/Driver.hpp"
 #include "source/services/parameter_identification/MotorIdentification.hpp"
-#include <atomic>
 
 namespace services
 {
@@ -43,7 +42,6 @@ namespace services
         foc::Radians initialPosition{ 0.0f };
         foc::Radians previousPosition{ 0.0f };
         float accumulatedRotation{ 0.0f };
-        std::atomic<bool> pendingSampleCapture{ false };
         infra::AutoResetFunction<void(std::optional<foc::Ohm>, std::optional<foc::MilliHenry>)> onResistanceAndInductanceDone;
         infra::AutoResetFunction<void(std::optional<std::size_t>)> onPolePairsDone;
 
