@@ -1,6 +1,5 @@
 #include "source/services/parameter_identification/MotorIdentificationImpl.hpp"
 #include "source/foc/interfaces/Units.hpp"
-// #include "services/tracer/GlobalTracer.hpp"
 #include <cmath>
 #include <numbers>
 #include <numeric>
@@ -14,6 +13,17 @@ namespace
     constexpr float timeConstantThreshold = 0.632f;
     hal::Hertz samplingFrequency{ 10000 };
     auto samplingPeriod = 1.0f / static_cast<float>(samplingFrequency.Value());
+
+    float SimulateRLModelCurrent(float voltage, float resistance, float inductance, float time)
+    {
+        if (resistance <= 0.0f)
+            return 0.0f;
+
+        float tau = inductance / resistance;
+        float steadyStateCurrent = voltage / resistance;
+
+        return steadyStateCurrent * (1.0f - std::exp(-time / tau));
+    }
 
     foc::PhasePwmDutyCycles NormalizedDutyCycles(foc::ThreePhase voltages)
     {
