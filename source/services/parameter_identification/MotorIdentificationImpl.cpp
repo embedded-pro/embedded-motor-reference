@@ -11,19 +11,8 @@ namespace
     constexpr auto anglePerStep = twoPi / static_cast<float>(stepsPerRevolution);
     constexpr float minRotationThreshold = std::numbers::pi_v<float> / 2.0f;
     constexpr float timeConstantThreshold = 0.632f;
-    hal::Hertz samplingFrequency{ 10000 };
-    auto samplingPeriod = 1.0f / static_cast<float>(samplingFrequency.Value());
-
-    float SimulateRLModelCurrent(float voltage, float resistance, float inductance, float time)
-    {
-        if (resistance <= 0.0f)
-            return 0.0f;
-
-        float tau = inductance / resistance;
-        float steadyStateCurrent = voltage / resistance;
-
-        return steadyStateCurrent * (1.0f - std::exp(-time / tau));
-    }
+    const hal::Hertz samplingFrequency{ 10000 };
+    const auto samplingPeriod = 1.0f / static_cast<float>(samplingFrequency.Value());
 
     foc::PhasePwmDutyCycles NormalizedDutyCycles(foc::ThreePhase voltages)
     {
@@ -38,7 +27,7 @@ namespace
     {
         float sum = 0.0f;
 
-        for (auto& samples : deque)
+        for (const auto& samples : deque)
             sum += samples;
 
         float average = sum / static_cast<float>(deque.size());
@@ -137,7 +126,7 @@ namespace services
         else
         {
             auto tau = GetTauFromCurrentSamples(filteredCurrentSample, steadyStateCurrent, averageFilter);
-            auto resistance = CalculateResistance(static_cast<float>(resistanceAndInductanceConfig.testVoltagePercent.Value() * vdc.Value() / 100.0f), steadyStateCurrent);
+            auto resistance = CalculateResistance(resistanceAndInductanceConfig.testVoltagePercent.Value() * vdc.Value() / 100.0f, steadyStateCurrent);
 
             if (resistance.has_value() && tau.has_value())
                 onResistanceAndInductanceDone(resistance, CalculateInductance(resistance.value(), tau.value_or(0.0f)));
@@ -166,7 +155,10 @@ namespace services
         const std::size_t totalSteps = polePairsConfig.electricalRevolutions * stepsPerRevolution;
 
         if (currentSampleIndex < totalSteps)
-            RunPolePairLogic();
+            settleTimer.Start(polePairsConfig.settleTimeBetweenSteps, [this]()
+                {
+                    RunPolePairLogic();
+                });
         else
             CalculatePolePairs();
     }
@@ -175,21 +167,27 @@ namespace services
     {
         auto electricalAngle = static_cast<float>(currentSampleIndex) * anglePerStep;
 
-        driver.PhaseCurrentsReady(samplingFrequency, [this](auto currents)
+        driver.PhaseCurrentsReady(samplingFrequency, [this](auto)
             {
-                auto currentPosition = encoder.Read();
-                auto delta = currentPosition.Value() - previousPosition.Value();
+                if (pendingSampleCapture.load())
+                {
+                    pendingSampleCapture.store(false);
+                    driver.Stop();
+                    auto currentPosition = encoder.Read();
+                    auto delta = currentPosition.Value() - previousPosition.Value();
 
-                delta = delta - twoPi * std::floor((delta + std::numbers::pi_v<float>) / twoPi);
+                    delta = delta - twoPi * std::floor((delta + std::numbers::pi_v<float>) / twoPi);
 
-                accumulatedRotation += delta;
-                previousPosition = currentPosition;
+                    accumulatedRotation += delta;
+                    previousPosition = currentPosition;
 
-                currentSampleIndex++;
-                ApplyNextElectricalAngle();
+                    currentSampleIndex++;
+                    ApplyNextElectricalAngle();
+                }
             });
         auto voltage = static_cast<float>(polePairsConfig.testVoltagePercent.Value()) * vdc.Value() / 100.0f;
         driver.ThreePhasePwmOutput(NormalizedDutyCycles(transforms.Inverse(foc::RotatingFrame{ voltage, 0.0f }, std::cos(electricalAngle), std::sin(electricalAngle))));
+        pendingSampleCapture.store(true);
     }
 
     void MotorIdentificationImpl::CalculatePolePairs()

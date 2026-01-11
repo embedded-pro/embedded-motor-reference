@@ -4,6 +4,7 @@
 #include "infra/timer/Timer.hpp"
 #include "infra/util/Function.hpp"
 #include "source/foc/interfaces/Units.hpp"
+#include <chrono>
 #include <optional>
 
 namespace services
@@ -28,6 +29,7 @@ namespace services
         {
             hal::Percent testVoltagePercent{ 20 };
             std::size_t electricalRevolutions{ 5 };
+            infra::Duration settleTimeBetweenSteps{ std::chrono::milliseconds{ 50 } };
         };
 
         virtual void EstimateResistanceAndInductance(const ResistanceAndInductanceConfig& config, const infra::Function<void(std::optional<foc::Ohm>, std::optional<foc::MilliHenry>)>& onDone) = 0;
