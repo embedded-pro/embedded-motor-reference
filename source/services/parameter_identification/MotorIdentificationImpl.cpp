@@ -188,7 +188,7 @@ namespace services
                 currentSampleIndex++;
                 ApplyNextElectricalAngle();
             });
-        auto voltage = static_cast<float>(polePairsConfig.testVoltagePercent.Value()) / 100.0f;
+        auto voltage = static_cast<float>(polePairsConfig.testVoltagePercent.Value()) * vdc.Value() / 100.0f;
         driver.ThreePhasePwmOutput(NormalizedDutyCycles(transforms.Inverse(foc::RotatingFrame{ voltage, 0.0f }, std::cos(electricalAngle), std::sin(electricalAngle))));
     }
 

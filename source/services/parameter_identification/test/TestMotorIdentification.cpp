@@ -22,12 +22,21 @@ namespace
         return (voltage / resistance) * (1.0f - std::exp(-time / tau));
     }
 
+    float MechanicalAngle(std::size_t stepIndex, std::size_t totalSteps, std::size_t expectedPolePairs)
+    {
+        constexpr std::size_t stepsPerRevolution = 12;
+        auto electricalRevolutions = totalSteps / stepsPerRevolution;
+        auto electricalAngle = (static_cast<float>(stepIndex) / static_cast<float>(totalSteps)) * (static_cast<float>(electricalRevolutions) * 2.0f * std::numbers::pi_v<float>);
+        return electricalAngle / static_cast<float>(expectedPolePairs);
+    }
+
     class MotorIdentificationTest
         : public ::testing::Test
         , public infra::ClockFixture
     {
     public:
         const std::size_t numberOfSamples = 127;
+        std::size_t encoderStepIndex = 0;
 
         StrictMock<foc::FieldOrientedControllerInterfaceMock> driverMock;
         StrictMock<foc::EncoderMock> encoderMock;
@@ -90,7 +99,7 @@ TEST_F(MotorIdentificationTest, estimate_resistance_and_inductance_collects_curr
         services::WindingConfiguration::Wye
     };
 
-    float testVoltage = 0.15f * 24.0f;
+    float testVoltage = 0.15f * vdc.Value();
     float resistance = 1.5f;
     float inductance = 0.002f;
 
@@ -174,6 +183,56 @@ TEST_F(MotorIdentificationTest, estimate_resistance_and_inductance_returns_nullo
     EXPECT_FALSE(resultInductance.has_value());
 }
 
+TEST_F(MotorIdentificationTest, estimate_resistance_and_inductance_with_low_resistance_motor)
+{
+    services::MotorIdentification::ResistanceAndInductanceConfig config{
+        hal::Percent{ 15 },
+        std::chrono::milliseconds{ 50 },
+        services::WindingConfiguration::Wye
+    };
+
+    float testVoltage = 0.15f * 24.0f;
+    float resistance = 0.5f;
+    float inductance = 0.001f;
+
+    std::optional<foc::Ohm> resultResistance;
+    std::optional<foc::MilliHenry> resultInductance;
+
+    EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
+        .Times(2)
+        .WillRepeatedly([this](auto, const auto& callback)
+            {
+                driverMock.StorePhaseCurrentsCallback(callback);
+            });
+    EXPECT_CALL(driverMock, ThreePhasePwmOutput(::testing::_))
+        .Times(2);
+
+    identification.EstimateResistanceAndInductance(config, [&](auto r, auto l)
+        {
+            resultResistance = r;
+            resultInductance = l;
+        });
+
+    ForwardTime(std::chrono::milliseconds{ 50 });
+
+    EXPECT_CALL(driverMock, Stop());
+
+    for (std::size_t i = 0; i < numberOfSamples; ++i)
+    {
+        float time = static_cast<float>(i) * 0.0001f;
+        float current = SimulateRLModelCurrent(testVoltage, resistance, inductance, time);
+        driverMock.TriggerPhaseCurrentsCallback(foc::PhaseCurrents{
+            foc::Ampere{ current },
+            foc::Ampere{ 0.0f },
+            foc::Ampere{ 0.0f } });
+    }
+
+    ASSERT_TRUE(resultResistance.has_value());
+    ASSERT_TRUE(resultInductance.has_value());
+    EXPECT_NEAR(resultResistance->Value(), resistance, 0.15f);
+    EXPECT_NEAR(resultInductance->Value(), inductance * 1000.0f, 0.5f);
+}
+
 TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_initializes_encoder_and_applies_voltages)
 {
     services::MotorIdentification::PolePairsConfig config{
@@ -203,18 +262,19 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_calculates_correct
     std::optional<std::size_t> resultPolePairs;
     constexpr std::size_t totalSteps = 5 * 12;
     constexpr std::size_t expectedPolePairs = 2;
+    float voltage = static_cast<float>(config.testVoltagePercent.Value()) * vdc.Value() / 100.0f;
 
+    encoderStepIndex = 0;
     EXPECT_CALL(encoderMock, Read())
         .WillOnce(::testing::Return(foc::Radians{ 0.0f }))
-        .WillRepeatedly([stepIndex = 0](void) mutable
+        .WillRepeatedly([this, totalSteps, expectedPolePairs]()
             {
-                float mechanicalAngle = (static_cast<float>(stepIndex) / static_cast<float>(totalSteps)) * (2.0f * std::numbers::pi_v<float> / static_cast<float>(expectedPolePairs));
-                ++stepIndex;
-                return foc::Radians{ mechanicalAngle };
+                ++encoderStepIndex;
+                return foc::Radians{ MechanicalAngle(encoderStepIndex, totalSteps, expectedPolePairs) };
             });
 
     EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(totalSteps + 1)
+        .Times(totalSteps)
         .WillRepeatedly([this](auto, const auto& callback)
             {
                 driverMock.StorePhaseCurrentsCallback(callback);
@@ -252,17 +312,17 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_calculates_correct
     constexpr std::size_t totalSteps = 5 * 12;
     constexpr std::size_t expectedPolePairs = 3;
 
+    encoderStepIndex = 0;
     EXPECT_CALL(encoderMock, Read())
         .WillOnce(::testing::Return(foc::Radians{ 0.0f }))
-        .WillRepeatedly([stepIndex = 0](void) mutable
+        .WillRepeatedly([this, totalSteps, expectedPolePairs]()
             {
-                float mechanicalAngle = (static_cast<float>(stepIndex) / static_cast<float>(totalSteps)) * (2.0f * std::numbers::pi_v<float> / static_cast<float>(expectedPolePairs));
-                ++stepIndex;
-                return foc::Radians{ mechanicalAngle };
+                ++encoderStepIndex;
+                return foc::Radians{ MechanicalAngle(encoderStepIndex, totalSteps, expectedPolePairs) };
             });
 
     EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(totalSteps + 1)
+        .Times(totalSteps)
         .WillRepeatedly([this](auto, const auto& callback)
             {
                 driverMock.StorePhaseCurrentsCallback(callback);
@@ -303,7 +363,7 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_returns_nullopt_fo
         .WillRepeatedly(::testing::Return(foc::Radians{ 0.0f }));
 
     EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(totalSteps + 1)
+        .Times(totalSteps)
         .WillRepeatedly([this](auto, const auto& callback)
             {
                 driverMock.StorePhaseCurrentsCallback(callback);
@@ -340,17 +400,17 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_with_different_ele
     constexpr std::size_t totalSteps = 10 * 12;
     constexpr std::size_t expectedPolePairs = 4;
 
+    encoderStepIndex = 0;
     EXPECT_CALL(encoderMock, Read())
         .WillOnce(::testing::Return(foc::Radians{ 0.0f }))
-        .WillRepeatedly([stepIndex = 0](void) mutable
+        .WillRepeatedly([this, totalSteps, expectedPolePairs]()
             {
-                float mechanicalAngle = (static_cast<float>(stepIndex) / static_cast<float>(totalSteps)) * (2.0f * std::numbers::pi_v<float> / static_cast<float>(expectedPolePairs));
-                ++stepIndex;
-                return foc::Radians{ mechanicalAngle };
+                ++encoderStepIndex;
+                return foc::Radians{ MechanicalAngle(encoderStepIndex, totalSteps, expectedPolePairs) };
             });
 
     EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(totalSteps + 1)
+        .Times(totalSteps)
         .WillRepeatedly([this](auto, const auto& callback)
             {
                 driverMock.StorePhaseCurrentsCallback(callback);
@@ -377,56 +437,6 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_with_different_ele
     EXPECT_EQ(*resultPolePairs, expectedPolePairs);
 }
 
-TEST_F(MotorIdentificationTest, estimate_resistance_and_inductance_with_low_resistance_motor)
-{
-    services::MotorIdentification::ResistanceAndInductanceConfig config{
-        hal::Percent{ 15 },
-        std::chrono::milliseconds{ 50 },
-        services::WindingConfiguration::Wye
-    };
-
-    float testVoltage = 0.15f * 24.0f;
-    float resistance = 0.5f;
-    float inductance = 0.001f;
-
-    std::optional<foc::Ohm> resultResistance;
-    std::optional<foc::MilliHenry> resultInductance;
-
-    EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(2)
-        .WillRepeatedly([this](auto, const auto& callback)
-            {
-                driverMock.StorePhaseCurrentsCallback(callback);
-            });
-    EXPECT_CALL(driverMock, ThreePhasePwmOutput(::testing::_))
-        .Times(2);
-
-    identification.EstimateResistanceAndInductance(config, [&](auto r, auto l)
-        {
-            resultResistance = r;
-            resultInductance = l;
-        });
-
-    ForwardTime(std::chrono::milliseconds{ 50 });
-
-    EXPECT_CALL(driverMock, Stop());
-
-    for (std::size_t i = 0; i < 128; ++i)
-    {
-        float time = static_cast<float>(i) * 0.0001f;
-        float current = SimulateRLModelCurrent(testVoltage, resistance, inductance, time);
-        driverMock.TriggerPhaseCurrentsCallback(foc::PhaseCurrents{
-            foc::Ampere{ current },
-            foc::Ampere{ 0.0f },
-            foc::Ampere{ 0.0f } });
-    }
-
-    ASSERT_TRUE(resultResistance.has_value());
-    ASSERT_TRUE(resultInductance.has_value());
-    EXPECT_NEAR(resultResistance->Value(), resistance, 0.15f);
-    EXPECT_NEAR(resultInductance->Value(), inductance * 1000.0f, 0.5f);
-}
-
 TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_with_8_pole_motor)
 {
     services::MotorIdentification::PolePairsConfig config{
@@ -438,17 +448,17 @@ TEST_F(MotorIdentificationTest, estimate_number_of_pole_pairs_with_8_pole_motor)
     constexpr std::size_t totalSteps = 5 * 12;
     constexpr std::size_t expectedPolePairs = 4;
 
+    encoderStepIndex = 0;
     EXPECT_CALL(encoderMock, Read())
         .WillOnce(::testing::Return(foc::Radians{ 0.0f }))
-        .WillRepeatedly([stepIndex = 0](void) mutable
+        .WillRepeatedly([this, totalSteps, expectedPolePairs]()
             {
-                float mechanicalAngle = (static_cast<float>(stepIndex) / static_cast<float>(totalSteps)) * (2.0f * std::numbers::pi_v<float> / static_cast<float>(expectedPolePairs));
-                ++stepIndex;
-                return foc::Radians{ mechanicalAngle };
+                ++encoderStepIndex;
+                return foc::Radians{ MechanicalAngle(encoderStepIndex, totalSteps, expectedPolePairs) };
             });
 
     EXPECT_CALL(driverMock, PhaseCurrentsReady(::testing::_, ::testing::_))
-        .Times(totalSteps + 1)
+        .Times(totalSteps)
         .WillRepeatedly([this](auto, const auto& callback)
             {
                 driverMock.StorePhaseCurrentsCallback(callback);
