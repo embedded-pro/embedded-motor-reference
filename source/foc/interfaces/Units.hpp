@@ -26,5 +26,6 @@ namespace foc
     using NewtonMeter = Nm;
     using RevPerMinute = infra::Quantity<unit::RevPerMinute, float>;
     using Henry = infra::Quantity<unit::Henry, float>;
+    using MilliHenry = infra::Quantity<unit::Henry::Scale<infra::StaticRational<1, 1000>>, float>;
     using Ohm = infra::Quantity<unit::Ohm, float>;
 }

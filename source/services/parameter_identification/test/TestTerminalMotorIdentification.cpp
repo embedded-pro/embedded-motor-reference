@@ -2,7 +2,7 @@
 #include "infra/event/test_helper/EventDispatcherWithWeakPtrFixture.hpp"
 #include "infra/util/ByteRange.hpp"
 #include "infra/util/test_helper/MockHelpers.hpp"
-#include "services/util/Terminal.hpp"
+#include "services/util/TerminalWithStorage.hpp"
 #include "source/services/parameter_identification/MotorIdentification.hpp"
 #include "source/services/parameter_identification/TerminalMotorIdentification.hpp"
 #include "gmock/gmock.h"
@@ -28,9 +28,8 @@ namespace
         : public services::MotorIdentification
     {
     public:
-        MOCK_METHOD2(GetResistance, void(const ResistanceConfig& config, const infra::Function<void(std::optional<foc::Ohm>)>& onDone));
-        MOCK_METHOD2(GetInductance, void(const InductanceConfig& config, const infra::Function<void(std::optional<foc::Henry>)>& onDone));
-        MOCK_METHOD2(GetNumberOfPolePairs, void(const PolePairsConfig& config, const infra::Function<void(std::optional<std::size_t>)>& onDone));
+        MOCK_METHOD2(EstimateResistanceAndInductance, void(const ResistanceAndInductanceConfig& config, const infra::Function<void(std::optional<foc::Ohm>, std::optional<foc::MilliHenry>)>& onDone));
+        MOCK_METHOD2(EstimateNumberOfPolePairs, void(const PolePairsConfig& config, const infra::Function<void(std::optional<std::size_t>)>& onDone));
     };
 
     class TerminalMotorIdentificationTest
@@ -48,10 +47,10 @@ namespace
                 EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>{ { '>', ' ' } }), testing::_));
             } };
         services::TerminalWithCommandsImpl::WithMaxQueueAndMaxHistory<128, 5> terminalWithCommands{ communication, tracer };
-        services::TerminalWithStorage::WithMaxSize<10> terminal{ terminalWithCommands, tracer };
-        services::TerminalMotorIdentification terminalIdentification{ terminal, tracer, identificationMock };
+        services::TerminalWithStorage::WithMaxSize<16> terminalWithStorage{ terminalWithCommands, tracer };
+        services::TerminalMotorIdentification terminalIdentification{ terminalWithStorage, tracer, identificationMock };
 
-        void InvokeCommand(std::string command, const std::function<void()>& onCommandReceived)
+        void InvokeCommand(const std::string& command, const infra::Function<void()>& onCommandReceived)
         {
             ::testing::InSequence _;
 
@@ -67,33 +66,41 @@ namespace
     };
 }
 
-TEST_F(TerminalMotorIdentificationTest, estimate_resistance_calls_identification)
+TEST_F(TerminalMotorIdentificationTest, estrl_calls_identification_with_wye)
 {
-    InvokeCommand("estimate_resistance", [this]()
+    InvokeCommand("estrl wye", [this]()
         {
-            EXPECT_CALL(identificationMock, GetResistance(testing::_, testing::_));
+            EXPECT_CALL(identificationMock, EstimateResistanceAndInductance(testing::_, testing::_))
+                .WillOnce([](const auto& config, const auto&)
+                    {
+                        EXPECT_EQ(config.windingConfig, services::WindingConfiguration::Wye);
+                    });
         });
 
     ExecuteAllActions();
 }
 
-TEST_F(TerminalMotorIdentificationTest, estimate_resistance_short_command)
+TEST_F(TerminalMotorIdentificationTest, estrl_calls_identification_with_delta)
 {
-    InvokeCommand("estr", [this]()
+    InvokeCommand("estrl delta", [this]()
         {
-            EXPECT_CALL(identificationMock, GetResistance(testing::_, testing::_));
+            EXPECT_CALL(identificationMock, EstimateResistanceAndInductance(testing::_, testing::_))
+                .WillOnce([](const auto& config, const auto&)
+                    {
+                        EXPECT_EQ(config.windingConfig, services::WindingConfiguration::Delta);
+                    });
         });
 
     ExecuteAllActions();
 }
 
-TEST_F(TerminalMotorIdentificationTest, estimate_resistance_successful_callback)
+TEST_F(TerminalMotorIdentificationTest, estrl_successful_callback)
 {
-    infra::Function<void(std::optional<foc::Ohm>)> capturedCallback;
+    infra::Function<void(std::optional<foc::Ohm>, std::optional<foc::MilliHenry>)> capturedCallback;
 
-    InvokeCommand("estr", [this, &capturedCallback]()
+    InvokeCommand("estrl star", [this, &capturedCallback]()
         {
-            EXPECT_CALL(identificationMock, GetResistance(testing::_, testing::_))
+            EXPECT_CALL(identificationMock, EstimateResistanceAndInductance(testing::_, testing::_))
                 .WillOnce(testing::SaveArg<1>(&capturedCallback));
         });
 
@@ -106,17 +113,17 @@ TEST_F(TerminalMotorIdentificationTest, estimate_resistance_successful_callback)
     EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(prefix.begin(), prefix.end())), testing::_));
     EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AtLeast(1));
 
-    capturedCallback(foc::Ohm{ 1.5f });
+    capturedCallback(foc::Ohm{ 1.5f }, foc::MilliHenry{ 2.0f });
     ExecuteAllActions();
 }
 
-TEST_F(TerminalMotorIdentificationTest, estimate_resistance_failure_callback)
+TEST_F(TerminalMotorIdentificationTest, estrl_resistance_failure_callback)
 {
-    infra::Function<void(std::optional<foc::Ohm>)> capturedCallback;
+    infra::Function<void(std::optional<foc::Ohm>, std::optional<foc::MilliHenry>)> capturedCallback;
 
-    InvokeCommand("estimate_resistance", [this, &capturedCallback]()
+    InvokeCommand("estimate_r_and_l wye", [this, &capturedCallback]()
         {
-            EXPECT_CALL(identificationMock, GetResistance(testing::_, testing::_))
+            EXPECT_CALL(identificationMock, EstimateResistanceAndInductance(testing::_, testing::_))
                 .WillOnce(testing::SaveArg<1>(&capturedCallback));
         });
 
@@ -128,139 +135,27 @@ TEST_F(TerminalMotorIdentificationTest, estimate_resistance_failure_callback)
     EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
     EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(message.begin(), message.end())), testing::_));
 
-    capturedCallback(std::nullopt);
+    capturedCallback(std::nullopt, std::nullopt);
     ExecuteAllActions();
 }
 
-TEST_F(TerminalMotorIdentificationTest, estimate_resistance_verifies_default_config)
-{
-    services::MotorIdentification::ResistanceConfig capturedConfig;
-
-    InvokeCommand("estr", [this, &capturedConfig]()
-        {
-            EXPECT_CALL(identificationMock, GetResistance(testing::_, testing::_))
-                .WillOnce(testing::SaveArg<0>(&capturedConfig));
-        });
-
-    ExecuteAllActions();
-
-    services::MotorIdentification::ResistanceConfig defaultConfig;
-    EXPECT_EQ(capturedConfig.testVoltagePercent, defaultConfig.testVoltagePercent);
-    EXPECT_EQ(capturedConfig.sampleCount, defaultConfig.sampleCount);
-    EXPECT_EQ(capturedConfig.minCurrent, defaultConfig.minCurrent);
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_inductance_calls_identification)
-{
-    InvokeCommand("estimate_inductance", [this]()
-        {
-            EXPECT_CALL(identificationMock, GetInductance(testing::_, testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_inductance_short_command)
-{
-    InvokeCommand("estl", [this]()
-        {
-            EXPECT_CALL(identificationMock, GetInductance(testing::_, testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_inductance_successful_callback)
-{
-    infra::Function<void(std::optional<foc::Henry>)> capturedCallback;
-
-    InvokeCommand("estl", [this, &capturedCallback]()
-        {
-            EXPECT_CALL(identificationMock, GetInductance(testing::_, testing::_))
-                .WillOnce(testing::SaveArg<1>(&capturedCallback));
-        });
-
-    ExecuteAllActions();
-
-    ::testing::InSequence _;
-    std::string newline{ "\r\n" };
-    std::string prefix{ "Estimated Inductance: " };
-    EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-    EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(prefix.begin(), prefix.end())), testing::_));
-    EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AtLeast(1));
-
-    capturedCallback(foc::Henry{ 0.001f });
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_inductance_failure_callback)
-{
-    infra::Function<void(std::optional<foc::Henry>)> capturedCallback;
-
-    InvokeCommand("estimate_inductance", [this, &capturedCallback]()
-        {
-            EXPECT_CALL(identificationMock, GetInductance(testing::_, testing::_))
-                .WillOnce(testing::SaveArg<1>(&capturedCallback));
-        });
-
-    ExecuteAllActions();
-
-    ::testing::InSequence _;
-    std::string newline{ "\r\n" };
-    std::string message{ "Inductance estimation failed." };
-    EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-    EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(message.begin(), message.end())), testing::_));
-
-    capturedCallback(std::nullopt);
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_inductance_verifies_default_config)
-{
-    services::MotorIdentification::InductanceConfig capturedConfig;
-
-    InvokeCommand("estl", [this, &capturedConfig]()
-        {
-            EXPECT_CALL(identificationMock, GetInductance(testing::_, testing::_))
-                .WillOnce(testing::SaveArg<0>(&capturedConfig));
-        });
-
-    ExecuteAllActions();
-
-    services::MotorIdentification::InductanceConfig defaultConfig;
-    EXPECT_EQ(capturedConfig.testVoltagePercent, defaultConfig.testVoltagePercent);
-    EXPECT_EQ(capturedConfig.resistance, defaultConfig.resistance);
-    EXPECT_EQ(capturedConfig.samplingFrequency, defaultConfig.samplingFrequency);
-    EXPECT_EQ(capturedConfig.minCurrentChange, defaultConfig.minCurrentChange);
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_pole_pairs_calls_identification)
-{
-    InvokeCommand("estimate_pole_pairs", [this]()
-        {
-            EXPECT_CALL(identificationMock, GetNumberOfPolePairs(testing::_, testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_pole_pairs_short_command)
+TEST_F(TerminalMotorIdentificationTest, estpp_calls_identification)
 {
     InvokeCommand("estpp", [this]()
         {
-            EXPECT_CALL(identificationMock, GetNumberOfPolePairs(testing::_, testing::_));
+            EXPECT_CALL(identificationMock, EstimateNumberOfPolePairs(testing::_, testing::_));
         });
 
     ExecuteAllActions();
 }
 
-TEST_F(TerminalMotorIdentificationTest, estimate_pole_pairs_successful_callback)
+TEST_F(TerminalMotorIdentificationTest, estpp_successful_callback)
 {
     infra::Function<void(std::optional<std::size_t>)> capturedCallback;
 
-    InvokeCommand("estpp", [this, &capturedCallback]()
+    InvokeCommand("estimate_pole_pairs", [this, &capturedCallback]()
         {
-            EXPECT_CALL(identificationMock, GetNumberOfPolePairs(testing::_, testing::_))
+            EXPECT_CALL(identificationMock, EstimateNumberOfPolePairs(testing::_, testing::_))
                 .WillOnce(testing::SaveArg<1>(&capturedCallback));
         });
 
@@ -273,17 +168,17 @@ TEST_F(TerminalMotorIdentificationTest, estimate_pole_pairs_successful_callback)
     EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(prefix.begin(), prefix.end())), testing::_));
     EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AtLeast(1));
 
-    capturedCallback(7);
+    capturedCallback(std::make_optional<std::size_t>(7));
     ExecuteAllActions();
 }
 
-TEST_F(TerminalMotorIdentificationTest, estimate_pole_pairs_failure_callback)
+TEST_F(TerminalMotorIdentificationTest, estpp_failure_callback)
 {
     infra::Function<void(std::optional<std::size_t>)> capturedCallback;
 
-    InvokeCommand("estimate_pole_pairs", [this, &capturedCallback]()
+    InvokeCommand("estpp", [this, &capturedCallback]()
         {
-            EXPECT_CALL(identificationMock, GetNumberOfPolePairs(testing::_, testing::_))
+            EXPECT_CALL(identificationMock, EstimateNumberOfPolePairs(testing::_, testing::_))
                 .WillOnce(testing::SaveArg<1>(&capturedCallback));
         });
 
@@ -296,116 +191,5 @@ TEST_F(TerminalMotorIdentificationTest, estimate_pole_pairs_failure_callback)
     EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(message.begin(), message.end())), testing::_));
 
     capturedCallback(std::nullopt);
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_pole_pairs_verifies_default_config)
-{
-    services::MotorIdentification::PolePairsConfig capturedConfig;
-
-    InvokeCommand("estpp", [this, &capturedConfig]()
-        {
-            EXPECT_CALL(identificationMock, GetNumberOfPolePairs(testing::_, testing::_))
-                .WillOnce(testing::SaveArg<0>(&capturedConfig));
-        });
-
-    ExecuteAllActions();
-
-    services::MotorIdentification::PolePairsConfig defaultConfig;
-    EXPECT_EQ(capturedConfig.testVoltagePercent, defaultConfig.testVoltagePercent);
-    EXPECT_EQ(capturedConfig.electricalRevolutions, defaultConfig.electricalRevolutions);
-    EXPECT_EQ(capturedConfig.minMechanicalRotation, defaultConfig.minMechanicalRotation);
-}
-
-TEST_F(TerminalMotorIdentificationTest, multiple_commands_can_be_invoked_sequentially)
-{
-    InvokeCommand("estr", [this]()
-        {
-            EXPECT_CALL(identificationMock, GetResistance(testing::_, testing::_));
-        });
-
-    ExecuteAllActions();
-
-    InvokeCommand("estl", [this]()
-        {
-            EXPECT_CALL(identificationMock, GetInductance(testing::_, testing::_));
-        });
-
-    ExecuteAllActions();
-
-    InvokeCommand("estpp", [this]()
-        {
-            EXPECT_CALL(identificationMock, GetNumberOfPolePairs(testing::_, testing::_));
-        });
-
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_resistance_with_zero_result)
-{
-    infra::Function<void(std::optional<foc::Ohm>)> capturedCallback;
-
-    InvokeCommand("estr", [this, &capturedCallback]()
-        {
-            EXPECT_CALL(identificationMock, GetResistance(testing::_, testing::_))
-                .WillOnce(testing::SaveArg<1>(&capturedCallback));
-        });
-
-    ExecuteAllActions();
-
-    ::testing::InSequence _;
-    std::string newline{ "\r\n" };
-    std::string prefix{ "Estimated Resistance: " };
-    EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-    EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(prefix.begin(), prefix.end())), testing::_));
-    EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AtLeast(1));
-
-    capturedCallback(foc::Ohm{ 0.0f });
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_inductance_with_zero_result)
-{
-    infra::Function<void(std::optional<foc::Henry>)> capturedCallback;
-
-    InvokeCommand("estl", [this, &capturedCallback]()
-        {
-            EXPECT_CALL(identificationMock, GetInductance(testing::_, testing::_))
-                .WillOnce(testing::SaveArg<1>(&capturedCallback));
-        });
-
-    ExecuteAllActions();
-
-    ::testing::InSequence _;
-    std::string newline{ "\r\n" };
-    std::string prefix{ "Estimated Inductance: " };
-    EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-    EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(prefix.begin(), prefix.end())), testing::_));
-    EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AtLeast(1));
-
-    capturedCallback(foc::Henry{ 0.0f });
-    ExecuteAllActions();
-}
-
-TEST_F(TerminalMotorIdentificationTest, estimate_pole_pairs_with_zero_result)
-{
-    infra::Function<void(std::optional<std::size_t>)> capturedCallback;
-
-    InvokeCommand("estpp", [this, &capturedCallback]()
-        {
-            EXPECT_CALL(identificationMock, GetNumberOfPolePairs(testing::_, testing::_))
-                .WillOnce(testing::SaveArg<1>(&capturedCallback));
-        });
-
-    ExecuteAllActions();
-
-    ::testing::InSequence _;
-    std::string newline{ "\r\n" };
-    std::string prefix{ "Estimated Pole Pairs: " };
-    EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(newline.begin(), newline.end())), testing::_));
-    EXPECT_CALL(streamWriterMock, Insert(infra::CheckByteRangeContents(std::vector<uint8_t>(prefix.begin(), prefix.end())), testing::_));
-    EXPECT_CALL(streamWriterMock, Insert(testing::_, testing::_)).Times(testing::AtLeast(1));
-
-    capturedCallback(0);
     ExecuteAllActions();
 }
