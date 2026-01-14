@@ -49,14 +49,12 @@ namespace application
         onMeasurementDone = onDone;
         adc.Measure([this](auto samples)
             {
-                // Cache slope/offset to avoid redundant member loads in hot path
                 const float s = slope;
                 const float o = offset;
                 onMeasurementDone(
                     foc::Ampere{ static_cast<float>(samples[0]) * s + o },
                     foc::Ampere{ static_cast<float>(samples[1]) * s + o },
-                    foc::Ampere{ static_cast<float>(samples[2]) * s + o }
-                );
+                    foc::Ampere{ static_cast<float>(samples[2]) * s + o });
             });
     }
 

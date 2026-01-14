@@ -80,7 +80,6 @@ namespace foc
         auto mechanicalAngle = position.Value();
         auto electricalAngle = mechanicalAngle * polePairs;
 
-        // Use direct inline trigonometry - no virtual dispatch
         auto cosTheta = FastTrigonometry::Cosine(electricalAngle);
         auto sinTheta = FastTrigonometry::Sine(electricalAngle);
 
@@ -179,7 +178,6 @@ namespace foc
         auto mechanicalAngle = position.Value();
         auto electricalAngle = mechanicalAngle * polePairs;
 
-        // Use direct inline trigonometry - no virtual dispatch
         auto cosTheta = FastTrigonometry::Cosine(electricalAngle);
         auto sinTheta = FastTrigonometry::Sine(electricalAngle);
 

@@ -9,7 +9,6 @@ namespace foc
 {
     SpaceVectorModulation::Output SpaceVectorModulation::Generate(const TwoPhase& voltagePhase) const
     {
-        // Cache inputs to eliminate redundant loads (alpha/beta were loaded multiple times)
         const float alpha = voltagePhase.alpha;
         const float beta = voltagePhase.beta;
 

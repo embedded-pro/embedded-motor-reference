@@ -18,7 +18,6 @@ namespace foc
         constexpr float two_pi = 2.0f * pi;
         constexpr float pi_over_2 = pi * 0.5f;
 
-        // Sine LUT with 512 entries covering [0, 2π)
         alignas(16) inline constexpr std::array<float, 512> sineLUT = {
             0.0000000f, 0.0122715f, 0.0245412f, 0.0368072f, 0.0490677f, 0.0613207f, 0.0735646f, 0.0857973f,
             0.0980171f, 0.1102222f, 0.1224107f, 0.1345807f, 0.1467305f, 0.1588581f, 0.1709619f, 0.1830399f,
@@ -90,25 +89,24 @@ namespace foc
         constexpr float lutScale = static_cast<float>(sineLUT.size()) / two_pi;
     }
 
-    // Optimized inline trigonometric functions - no virtual dispatch
     struct FastTrigonometry
     {
         ALWAYS_INLINE static float Sine(float angle) noexcept
         {
-            const float scaledAngle = angle * detail::lutScale;
-            const int rawIndex = static_cast<int>(scaledAngle);
+            const auto scaledAngle = angle * detail::lutScale;
+            const auto rawIndex = static_cast<std::size_t>(scaledAngle);
 
-            std::size_t index = rawIndex & detail::lutMask;
+            auto index = rawIndex & detail::lutMask;
+
             if (rawIndex < 0) [[unlikely]]
-                index = (detail::sineLUT.size() + (rawIndex % static_cast<int>(detail::sineLUT.size()))) & detail::lutMask;
+                index = (detail::sineLUT.size() + (rawIndex % static_cast<std::size_t>(detail::sineLUT.size()))) & detail::lutMask;
 
-            const float fraction = scaledAngle - static_cast<float>(rawIndex);
-            const std::size_t nextIndex = (index + 1) & detail::lutMask;
+            const auto fraction = scaledAngle - static_cast<float>(rawIndex);
+            const auto nextIndex = (index + 1) & detail::lutMask;
 
-            const float y0 = detail::sineLUT[index];
-            const float y1 = detail::sineLUT[nextIndex];
+            const auto y0 = detail::sineLUT[index];
+            const auto y1 = detail::sineLUT[nextIndex];
 
-            // Inline lerp: y0 + fraction * (y1 - y0)
             return y0 + fraction * (y1 - y0);
         }
 
@@ -128,7 +126,6 @@ namespace foc
         }
     };
 
-    // Legacy virtual interface implementation for backward compatibility
     class TrigonometricFunctions
         : public math::TrigonometricFunctions<float>
     {

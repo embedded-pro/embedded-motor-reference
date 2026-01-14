@@ -42,14 +42,11 @@ namespace application
         static constexpr float twoPi = 2.0f * std::numbers::pi_v<float>;
         static constexpr float pi = std::numbers::pi_v<float>;
 
-        // Cache encoder values to avoid redundant calls/conversions
-        const float count = static_cast<float>(encoder.Position());
-        const float resolution = static_cast<float>(encoder.Resolution());
-        const float angle = count * twoPi / resolution;
-        
-        // Wrap angle to [-pi, pi]
-        const float angle_plus_pi = angle + pi;
-        const float wrapped = angle - twoPi * std::floor(angle_plus_pi / twoPi);
+        const auto count = static_cast<float>(encoder.Position());
+        const auto resolution = static_cast<float>(encoder.Resolution());
+        const auto angle = count * twoPi / resolution;
+        const auto angle_plus_pi = angle + pi;
+        const auto wrapped = angle - twoPi * std::floor(angle_plus_pi / twoPi);
 
         return foc::Radians{ wrapped };
     }
