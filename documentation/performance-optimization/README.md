@@ -17,14 +17,14 @@ This guide documents best practices for writing high-performance code targeting 
 
 ### Optimization Levels
 
-| Flag | Description | Use Case |
-|------|-------------|----------|
-| `-O0` | No optimization | Default debug, full debuggability |
-| `-Og` | Debug-friendly optimization | **Recommended for debug builds** |
-| `-O1` | Basic optimization | Faster compile, moderate speed |
-| `-O2` | Standard optimization | Good balance of speed/size |
-| `-O3` | Aggressive optimization | Maximum speed, may increase size |
-| `-Os` | Size optimization | Flash-constrained systems |
+| Flag  | Description                 | Use Case                          |
+|-------|-----------------------------|-----------------------------------|
+| `-O0` | No optimization             | Default debug, full debuggability |
+| `-Og` | Debug-friendly optimization | **Recommended for debug builds**  |
+| `-O1` | Basic optimization          | Faster compile, moderate speed    |
+| `-O2` | Standard optimization       | Good balance of speed/size        |
+| `-O3` | Aggressive optimization     | Maximum speed, may increase size  |
+| `-Os` | Size optimization           | Flash-constrained systems         |
 
 ### Critical Flags for Embedded
 
@@ -266,16 +266,16 @@ arm-none-eabi-nm --size-sort -C firmware.elf | tail -20
 
 Key ARM Cortex-M4F instructions to look for:
 
-| Instruction | Meaning | Cycles |
-|-------------|---------|--------|
-| `vfma.f32` | Fused multiply-add | 1 |
-| `vmul.f32` | Multiply | 1 |
-| `vadd.f32` | Add | 1 |
-| `vdiv.f32` | Division | 14 |
-| `vsqrt.f32` | Square root | 14 |
-| `blx r3` | Indirect call (virtual) | 3+ |
-| `bl <addr>` | Direct call | 1+N |
-| `push/pop` | Stack operations | 1-2 |
+| Instruction | Meaning                 | Cycles |
+|-------------|-------------------------|--------|
+| `vfma.f32`  | Fused multiply-add      | 1      |
+| `vmul.f32`  | Multiply                | 1      |
+| `vadd.f32`  | Add                     | 1      |
+| `vdiv.f32`  | Division                | 14     |
+| `vsqrt.f32` | Square root             | 14     |
+| `blx r3`    | Indirect call (virtual) | 3+     |
+| `bl <addr>` | Direct call             | 1+N    |
+| `push/pop`  | Stack operations        | 1-2    |
 
 ### Signs of Poor Optimization
 
@@ -358,10 +358,10 @@ uint32_t elapsed = start - SysTick->VAL;  // SysTick counts down
 
 | Control Loop Rate | Available Cycles |
 |-------------------|------------------|
-| 10 kHz | 12,000 cycles |
-| 20 kHz | 6,000 cycles |
-| 40 kHz | 3,000 cycles |
-| 100 kHz | 1,200 cycles |
+| 10 kHz            | 12,000 cycles    |
+| 20 kHz            | 6,000 cycles     |
+| 40 kHz            | 3,000 cycles     |
+| 100 kHz           | 1,200 cycles     |
 
 **FOC typical requirements**: 200-400 cycles (optimized), 800-1500 cycles (unoptimized)
 
