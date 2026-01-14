@@ -74,7 +74,8 @@
             "cacheVariables": {
                 "EMIL_GENERATE_PACKAGE_CONFIG": false,
                 "EMIL_INCLUDE_SEGGER_RTT": "On",
-                "EMIL_SEGGER_RTT_BUFFER_SIZE_UP": "2048"
+                "EMIL_SEGGER_RTT_BUFFER_SIZE_UP": "2048",
+                "NUMERICAL_TOOLBOX_ENABLE_OPTIMIZATIONS": true
             },
             "generator": "Ninja Multi-Config"
         },

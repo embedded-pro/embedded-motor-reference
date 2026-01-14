@@ -110,6 +110,7 @@ cmake --build --preset EK-TM4C1294XL-Debug
 
 For detailed information about the project structure and coding guidelines, see:
 - [Copilot Instructions](/.github/copilot-instructions.md) - Development guidelines and patterns
+- [Performance Optimization Guide](documentation/performance-optimization/README.md) - Writing high-performance embedded code, analyzing assembly, measuring cycles
 - [embedded-infra-lib Documentation](embedded-infra-lib/README.md) - Infrastructure library reference
 - [numerical-toolbox Documentation](numerical-toolbox/README.md) - Reusable algorithms
 
