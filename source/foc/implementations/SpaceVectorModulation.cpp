@@ -1,13 +1,24 @@
 #include "source/foc/implementations/SpaceVectorModulation.hpp"
 #include <algorithm>
 
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC optimize("O3", "fast-math")
+#endif
+
 namespace foc
 {
     SpaceVectorModulation::Output SpaceVectorModulation::Generate(const TwoPhase& voltagePhase) const
     {
-        auto vA = voltagePhase.alpha;
-        auto vB = (-voltagePhase.alpha * half + voltagePhase.beta * sqrt3Div2);
-        auto vC = (-voltagePhase.alpha * half - voltagePhase.beta * sqrt3Div2);
+        // Cache inputs to eliminate redundant loads (alpha/beta were loaded multiple times)
+        const float alpha = voltagePhase.alpha;
+        const float beta = voltagePhase.beta;
+
+        const float alpha_half = alpha * half;
+        const float beta_sqrt3 = beta * sqrt3Div2;
+
+        auto vA = alpha;
+        auto vB = -alpha_half + beta_sqrt3;
+        auto vC = -alpha_half - beta_sqrt3;
 
         auto vMax = std::max({ vA, vB, vC });
         auto vMin = std::min({ vA, vB, vC });

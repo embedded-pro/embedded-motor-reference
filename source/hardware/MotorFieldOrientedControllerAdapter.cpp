@@ -42,12 +42,15 @@ namespace application
 
     foc::Radians HardwareAdapter::Read()
     {
-        return synchronousQuadratureEncoderCreator->Read() - encoderOffset;
+        const auto encoderReading = synchronousQuadratureEncoderCreator->Read();
+        const auto offset = encoderOffset;
+        return encoderReading - offset;
     }
 
     void HardwareAdapter::Set(foc::Radians value)
     {
-        encoderOffset = synchronousQuadratureEncoderCreator->Read() - value;
+        const auto encoderReading = synchronousQuadratureEncoderCreator->Read();
+        encoderOffset = encoderReading - value;
     }
 
     void HardwareAdapter::SetZero()

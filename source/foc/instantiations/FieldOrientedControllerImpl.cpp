@@ -1,7 +1,12 @@
 #include "source/foc/instantiations/FieldOrientedControllerImpl.hpp"
 #include "infra/util/ReallyAssert.hpp"
 #include "numerical/math/CompilerOptimizations.hpp"
+#include "source/foc/instantiations/TrigonometricImpl.hpp"
 #include <numbers>
+
+#if defined(__GNUC__) || defined(__clang__)
+#pragma GCC optimize("O3", "fast-math")
+#endif
 
 namespace
 {
@@ -54,20 +59,32 @@ namespace foc
     {
         auto scale = 1.0f / (invSqrt3 * Vdc.Value());
 
-        dPid.SetTunings({ tunings.first.kp * scale, tunings.first.ki * scale, tunings.first.kd * scale });
-        qPid.SetTunings({ tunings.second.kp * scale, tunings.second.ki * scale, tunings.second.kd * scale });
+        const float d_kp = tunings.first.kp;
+        const float d_ki = tunings.first.ki;
+        const float d_kd = tunings.first.kd;
+        const float q_kp = tunings.second.kp;
+        const float q_ki = tunings.second.ki;
+        const float q_kd = tunings.second.kd;
+
+        dPid.SetTunings({ d_kp * scale, d_ki * scale, d_kd * scale });
+        qPid.SetTunings({ q_kp * scale, q_ki * scale, q_kd * scale });
     }
 
     OPTIMIZE_FOR_SPEED
     PhasePwmDutyCycles FieldOrientedControllerTorqueImpl::Calculate(const PhaseCurrents& currentPhases, Radians& position)
     {
+        const float ia = currentPhases.a.Value();
+        const float ib = currentPhases.b.Value();
+        const float ic = currentPhases.c.Value();
+
         auto mechanicalAngle = position.Value();
         auto electricalAngle = mechanicalAngle * polePairs;
 
-        auto cosTheta = trigFunctions.Cosine(electricalAngle);
-        auto sinTheta = trigFunctions.Sine(electricalAngle);
+        // Use direct inline trigonometry - no virtual dispatch
+        auto cosTheta = FastTrigonometry::Cosine(electricalAngle);
+        auto sinTheta = FastTrigonometry::Sine(electricalAngle);
 
-        auto idAndIq = park.Forward(clarke.Forward(ThreePhase{ currentPhases.a.Value(), currentPhases.b.Value(), currentPhases.c.Value() }), cosTheta, sinTheta);
+        auto idAndIq = park.Forward(clarke.Forward(ThreePhase{ ia, ib, ic }), cosTheta, sinTheta);
         auto output = spaceVectorModulator.Generate(park.Inverse(RotatingFrame{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) }, cosTheta, sinTheta));
 
         return PhasePwmDutyCycles{ hal::Percent(static_cast<uint8_t>(output.a * 100.0f + 0.5f)),
@@ -104,15 +121,28 @@ namespace foc
     void FieldOrientedControllerSpeedImpl::SetCurrentTunings(Volts Vdc, const IdAndIqTunings& torqueTunings)
     {
         auto scale = 1.0f / (invSqrt3 * Vdc.Value());
+        auto scale_dt = scale * dt;
+        auto scale_inv_dt = scale / dt;
 
-        dPid.SetTunings({ torqueTunings.first.kp * scale, torqueTunings.first.ki * scale * dt, torqueTunings.first.kd * scale / dt });
-        qPid.SetTunings({ torqueTunings.second.kp * scale, torqueTunings.second.ki * scale * dt, torqueTunings.second.kd * scale / dt });
+        const float d_kp = torqueTunings.first.kp;
+        const float d_ki = torqueTunings.first.ki;
+        const float d_kd = torqueTunings.first.kd;
+        const float q_kp = torqueTunings.second.kp;
+        const float q_ki = torqueTunings.second.ki;
+        const float q_kd = torqueTunings.second.kd;
+
+        dPid.SetTunings({ d_kp * scale, d_ki * scale_dt, d_kd * scale_inv_dt });
+        qPid.SetTunings({ q_kp * scale, q_ki * scale_dt, q_kd * scale_inv_dt });
     }
 
     OPTIMIZE_FOR_SPEED
     void FieldOrientedControllerSpeedImpl::SetSpeedTunings(Volts Vdc, const SpeedTunings& speedTuning)
     {
-        speedPid.SetTunings({ speedTuning.kp, speedTuning.ki * dt, speedTuning.kd / dt });
+        const float kp = speedTuning.kp;
+        const float ki = speedTuning.ki;
+        const float kd = speedTuning.kd;
+
+        speedPid.SetTunings({ kp, ki * dt, kd / dt });
     }
 
     OPTIMIZE_FOR_SPEED
@@ -142,15 +172,20 @@ namespace foc
     OPTIMIZE_FOR_SPEED
     PhasePwmDutyCycles FieldOrientedControllerSpeedImpl::Calculate(const PhaseCurrents& currentPhases, Radians& position)
     {
+        const float ia = currentPhases.a.Value();
+        const float ib = currentPhases.b.Value();
+        const float ic = currentPhases.c.Value();
+
         auto mechanicalAngle = position.Value();
         auto electricalAngle = mechanicalAngle * polePairs;
 
-        auto cosTheta = trigFunctions.Cosine(electricalAngle);
-        auto sinTheta = trigFunctions.Sine(electricalAngle);
+        // Use direct inline trigonometry - no virtual dispatch
+        auto cosTheta = FastTrigonometry::Cosine(electricalAngle);
+        auto sinTheta = FastTrigonometry::Sine(electricalAngle);
 
         qPid.SetPoint(speedPid.Process(CalculateFilteredSpeed(mechanicalAngle)));
 
-        auto idAndIq = park.Forward(clarke.Forward(ThreePhase{ currentPhases.a.Value(), currentPhases.b.Value(), currentPhases.c.Value() }), cosTheta, sinTheta);
+        auto idAndIq = park.Forward(clarke.Forward(ThreePhase{ ia, ib, ic }), cosTheta, sinTheta);
         auto output = spaceVectorModulator.Generate(park.Inverse(RotatingFrame{ dPid.Process(idAndIq.d), qPid.Process(idAndIq.q) }, cosTheta, sinTheta));
 
         return PhasePwmDutyCycles{ hal::Percent(static_cast<uint8_t>(output.a * 100.0f + 0.5f)),

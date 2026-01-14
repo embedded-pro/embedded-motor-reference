@@ -61,4 +61,11 @@ This file is a concise, task-oriented guide for AI coding agents to be immediate
 - If suggesting new APIs, prefer interface-driven DI and small, testable functions.
 - For performance changes, provide before/after size/runtime metrics and ensure host tests cover correctness.
 
+10) Performance optimization
+- For performance-critical code (FOC, PID, ISRs), see `documentation/performance-optimization/README.md`.
+- Key techniques: avoid virtual dispatch in hot paths, use `#pragma GCC optimize("O3", "fast-math")` for critical files, prefer static inline functions over virtual methods.
+- Debug builds use `-Og` to maintain debuggability while enabling basic optimizations.
+- Use `arm-none-eabi-objdump -d -C` to analyze generated assembly and verify optimizations.
+- Target cycle budgets: FOC loop should complete in <400 cycles at 120 MHz for 20 kHz control rate.
+
 If any section appears incomplete or you want deeper coverage (build-on-target, hardware flashing steps, or CI specifics), tell me which area to expand.
