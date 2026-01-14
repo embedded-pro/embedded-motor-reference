@@ -7,6 +7,7 @@ target_include_directories(e_foc.foc.instantiations PUBLIC
 
 target_link_libraries(e_foc.foc.instantiations PUBLIC
     e_foc.foc.implementations
+    numerical.controllers.implementations
 )
 
 target_sources(e_foc.foc.instantiations PRIVATE
